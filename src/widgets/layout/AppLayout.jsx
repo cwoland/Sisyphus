@@ -1,0 +1,31 @@
+import { useState } from 'react';
+import { Outlet } from 'react-router-dom';
+import { Header } from './Header.jsx';
+import { Sidebar } from './Sidebar.jsx';
+import { BottomNav } from './BottomNav.jsx';
+import { Drawer } from './Drawer.jsx';
+
+export const AppLayout = () => {
+  const [drawerOpen, setDrawerOpen] = useState(false);
+
+  return (
+    <div className="min-h-[100dvh] bg-bg">
+      <div className="mx-auto flex max-w-app">
+        <aside className="sticky top-0 hidden h-[100dvh] w-64 shrink-0 border-r border-border bg-surface pad-safe-top lg:block">
+          <Sidebar />
+        </aside>
+
+        <div className="flex min-w-0 flex-1 flex-col">
+          <Header onOpenMenu={() => setDrawerOpen(true)} />
+
+          <main className="flex-1 px-4 pb-24 pt-4 pad-safe-x sm:px-6 lg:pb-8">
+            <Outlet />
+          </main>
+        </div>
+      </div>
+
+      <BottomNav onOpenMenu={() => setDrawerOpen(true)} />
+      <Drawer isOpen={drawerOpen} onClose={() => setDrawerOpen(false)} />
+    </div>
+  );
+};
