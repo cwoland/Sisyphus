@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import { Menu, Moon, Sun } from 'lucide-react';
 import { Logo } from '../../shared/ui/Logo.jsx';
 import { useThemeStore } from '../../entities/theme/theme.store.js';
@@ -17,7 +18,9 @@ export const Header = ({ onOpenMenu }) => {
             <Menu size={22} />
           </button>
           <div className="lg:hidden">
+            <Link to="/" className="rounded-gl focus-visible:outline-none" aria-label="На главную">
             <Logo size="sm" />
+            </Link>
           </div>
         </div>
 

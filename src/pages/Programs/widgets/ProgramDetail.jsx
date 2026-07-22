@@ -3,7 +3,7 @@ import { Button } from '../../../shared/ui/Button.jsx';
 import { Skeleton } from '../../../shared/ui/Skeleton.jsx';
 import { muscleGroupLabel } from '../../../entities/exercise/muscleGroups.js';
 
-export const ProgramDetail = ({ program, isLoading, onSchedule, onDelete }) => {
+export const ProgramDetail = ({ program, isLoading, onSchedule, onEdit, onDelete }) => {
   if (isLoading) {
     return (
       <div className="space-y-3">
@@ -33,7 +33,7 @@ export const ProgramDetail = ({ program, isLoading, onSchedule, onDelete }) => {
         <Button size="sm" onClick={() => onSchedule(program)}>
           <CalendarPlus size={16} /> В календарь
         </Button>
-        <Button size="sm" variant="secondary" onClick={() => ondevicemotion(program)}>
+        <Button size="sm" variant="secondary" onClick={() => onEdit(program)}>
           <Pencil size={16} /> Изменить
         </Button>
         <Button size="sm" variant="ghost" onClick={() => onDelete(program.id)}>

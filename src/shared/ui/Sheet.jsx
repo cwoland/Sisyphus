@@ -4,7 +4,7 @@ import { X } from 'lucide-react';
 import { clsx } from 'clsx';
 
 
-export const Sheet = ({ isOpen, onClose, title, children }) => {
+export const Sheet = ({ isOpen, onClose, title, headerActions, children }) => {
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = 'hidden';
@@ -29,13 +29,14 @@ export const Sheet = ({ isOpen, onClose, title, children }) => {
         aria-modal="true"
         className={clsx(
           'relative z-10 w-full bg-surface shadow-xl',
-          'rounded-t-2xl pad-safe-bottom max-h-[90dvh]',
-          'sm:max-w-lg sm:rounded-2xl sm:max-h-[85dvh]',
+          'rounded-t-2xl pad-safe-bottom max-h-[92dvh]',
+          'sm:max-w-2xl sm:rounded-2xl sm:h-auto sm:min-h-[70dvh] sm:max-h-[88dvh]',
           'flex flex-col animate-fade-in'
         )}
       >
         <div className="flex items-center justify-between border-b border-border px-5 py-4">
           <h2 className="font-display text-lg font-semibold text-text">{title}</h2>
+          <div className="flex items-center gap-1">
           <button
             onClick={onClose}
             className="rounded-lg p-1.5 text-text-muted hover:bg-surface-2 hover:text-text"
@@ -43,6 +44,7 @@ export const Sheet = ({ isOpen, onClose, title, children }) => {
           >
             <X size={20} />
           </button>
+        </div>
         </div>
 
         <div className="flex-1 overflow-y-auto px-5 py-4 no-scrollbar">{children}</div>

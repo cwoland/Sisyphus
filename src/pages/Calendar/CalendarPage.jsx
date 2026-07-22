@@ -1,8 +1,8 @@
-import { useState, useMemo } from 'react';
-import { ChevronLeft, ChevronRight, Plus } from 'lucide-react';
+import { useState, useMemo, useEffect } from 'react';
+import { ChevronLeft, ChevronRight, Plus, Trash2 } from 'lucide-react';
 import { clsx } from 'clsx';
 
-import { useCalendarWorkouts, useWorkoutDetails, useWorkoutMutations } from './calendar.hooks.js';
+import { useCalendarWorkouts, useWorkoutDetails, useWorkoutMutations, useRecords } from './calendar.hooks.js';
 import { CalendarGrid } from './widgets/CalendarGrid.jsx';
 import { DayPanel } from './widgets/DayPanel.jsx';
 import { BestResultCard } from './widgets/BestResultCard.jsx';
@@ -33,7 +33,8 @@ export const CalendarPage = () => {
 
   const workoutsQuery = useCalendarWorkouts(anchorDate, view);
   const detailsQuery = useWorkoutDetails(openWorkoutId);
-  const { statusMutation, syncMutation, setMutation, deleteSetMutation, createMutation } = useWorkoutMutations();
+  const { statusMutation, syncMutation, setMutation, deleteSetMutation, createMutation, deleteWorkoutMutation } = useWorkoutMutations();
+  const recordsQuery = useRecords();
 
   const navigate = (dir) => {
     setAnchorDate((d) => (view === 'month' ? addMonths(d, dir) : addWeeks(d, dir)));
@@ -83,6 +84,14 @@ export const CalendarPage = () => {
     });
   };
 
+  const handleDeleteWorkout = () => {
+    if (!openWorkoutId) return;
+    if (!window.confirm('Удалить тренировку?')) return;
+    deleteWorkoutMutation.mutate(openWorkoutId, {
+      onSuccess: () => setOpenWorkoutId(null),
+    });
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -126,7 +135,7 @@ export const CalendarPage = () => {
             onSetStatus={handleSetStatus}
             onAddWorkout={handleAddWorkout}
           />
-          <BestResultCard sets={detailsQuery.data?.sets || []} />
+          <BestResultCard records={recordsQuery.data || []} />
         </div>
       </div>
 
@@ -142,6 +151,9 @@ export const CalendarPage = () => {
           </div>
         ) : (
           <div className="space-y-6">
+            <WorkoutMetaEditor
+              workout={detailsQuery.data}
+              onSave={(data) => updateMutation.mutate({ id: openWorkoutId, ...data })} />
             {groupedSets.length === 0 ? (
               <p className="py-6 text-center text-sm text-text-muted">
                 В этой тренировке пока нет упражнений. Добавь первое.
@@ -163,6 +175,12 @@ export const CalendarPage = () => {
               className="flex w-full items-center justify-center gap-1 rounded-xl border border-dashed border-border py-3 text-sm text-text-muted hover:border-accent hover:text-accent">
                 <Plus size={16} /> Добавить упражнение
               </button>
+
+              <button 
+                onClick={handleDeleteWorkout}
+                className="flex w-full items-center justify-center gap-1 rounded-xl border border-red-500/30 py-3 text-sm text-red-500 hover:bg-red-500/10">
+                  <Trash2 size={16} /> Удалить тренировку
+                </button>
           </div>
         )}
         </Sheet>
@@ -174,3 +192,39 @@ export const CalendarPage = () => {
     </div>
   );
 };
+
+const WorkoutMetaEditor = ({ workout, onSave }) => {
+  const [title, setTitle] = useState(workout?.title ?? '');
+  const [date, setDate] = useState(workout?.date ?? '');
+
+  useEffect(() => {
+    setTitle(workout?.title ?? '');
+    setDate(workout?.date ?? '');
+  }, [workout?.id]);
+
+  if (!workout) return null;
+
+  const commit = () => {
+    const patch = {};
+    if (title.trim() && title !== workout.title) patch.title = title.trim();
+    if (date && date !== workout.date) patch.date = date;
+    if (Object.keys(patch).length) onSave(patch);
+  };
+
+  return (
+    <div className="flex flex-col gap-2 border-b border-border pb-4 sm:flex-row">
+      <input 
+        value={title}
+        onChange={(e) => setTitle(e.target.value)}
+        onBlur={commit}
+        placeholder="Название тренировки"
+        className="flex-1 rounded-xl border border-border bg-surface-2 px-3 py-2 text-sm text-text focus:outline-none focus:ring-1 focus:ring-accent" />
+        <input
+          type="date"
+          value={date}
+          onChange={(e) => setDate(e.target.value)}
+          onBlur={commit}
+          className="rounded-xl border border-border bg-surface-2 px-3 py-2 text-sm text-text focus:outline-none focus:ring-accent" />
+    </div>
+  );
+}

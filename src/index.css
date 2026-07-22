@@ -1,35 +1,47 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap');
 
+@font-face {
+  font-family: 'Skaldheim';
+  src: url('/fonts/Skaldheim.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
   :root {
-    --color-coral: 255 127 102;
+    --color-coral: 17 34 80;
     --color-cornsilk: 255 248 231;
-    --color-burgundy: 128 0 32;
-    --color-crimson: 220 20 60;
+    --color-sapphire: 40 80 112;
+    --color-royal-blue: 17 34 80;
+    --color-crimson: 200 55 60;
+    --color-burgundy: 150 40 50;
 
-    --bg: 255 248 231;
-    --surface: 255 255 255;
-    --surface-2: 252 245 235;
-    --border: 235 225 210;
-    --text: 40 30 30;
-    --text-muted: 130 115 110;
-    --accent: 220 20 60;
-    --accent-hover: 128 0 32;
+    --bg: 210 213 220;
+    --surface: 236 237 240;
+    --surface-2: 222 224 230;
+    --border: 202 206 216;
+    --text: 17 34 80;
+    --text-muted: 92 104 132;
+    --accent: 17 34 80;
+    --accent-hover: 40 80 112;
   }
 
   html.dark {
-    --bg: 24 18 20;
-    --surface: 34 26 28;
-    --surface-2: 44 34 36;
-    --border: 60 48 50;
-    --text: 245 238 235;
-    --text-muted: 165 150 148;
-    --accent: 255 127 102;
-    --accent-hover: 255 150 128;
+    --bg: 18 22 34;
+    --surface: 26 32 48;
+    --surface-2: 36 44 64;
+    --border: 52 62 88;
+    --text: 226 230 240;
+    --text-muted: 140 152 180;
+    --accent: 120 158 220;
+    --accent-hover: 150 182 235;
+    --color-crimson: 220 90 95;
+    --color-burgundy: 180 70 78;
   }
 
   html {
@@ -40,6 +52,9 @@
     @apply bg-bg text-text font-sans antialiased;
     min-height: 100dvh;
     overscroll-behavior-y: none;
+
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48'%3E%3Cpath d='M0 40 H48 M8 40 V14 H32 V32 H18 V23' fill='none' stroke='%23112250' stroke-width='2' opacity='0.05'/%3E%3C/svg%3E");
+    background-repeat: repeat;
   }
 
   *:focus-visible {

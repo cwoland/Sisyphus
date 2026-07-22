@@ -22,6 +22,7 @@ export default {
       fontFamily: {
         sans: ['Inter', 'system-ui', 'sans-serif'],
         display: ['"Space Grotesk"', 'Inter', 'sans-serif'],
+        logo: ['Skaldheim', '"Space Grotesk"', 'serif'],
       },
       spacing: {
         'safe-top': 'env(safe-area-inset-top)',

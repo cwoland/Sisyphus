@@ -9,6 +9,9 @@ export const getWorkout = (id) =>
 export const createWorkout = (payload) =>
     api.post('/workouts', payload).then((r) => r.data.workout);
 
+export const updateWorkout = ({ id, ...body }) =>
+    api.patch(`/workouts/${id}`, body).then((r) => r.data.workout);
+
 export const deleteWorkout = (id) =>
     api.delete(`/workouts/${id}`).then((r) => r.data);
 

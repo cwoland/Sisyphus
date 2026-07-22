@@ -1,8 +1,9 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
-  getWorkouts, getWorkout, createWorkout, updateWorkoutStatus, syncWorkout,
+  getWorkouts, getWorkout, createWorkout, updateWorkout, updateWorkoutStatus, syncWorkout,
   upsertWorkoutSet, deleteWorkoutSet, deleteWorkout,
 } from '../../entities/workout/workout.api.js';
+import { getRecords } from '../../entities/records/record.api.js';
 import { monthGridRange, weekRange } from '../../shared/lib/date.js';
 import { toast } from '../../shared/ui/toast/toast.store.js';
 
@@ -22,6 +23,12 @@ export const useWorkoutDetails = (workoutId) =>
     enabled: !!workoutId,
   });
 
+export const useRecords = () =>
+  useQuery({
+    queryKey: ['records'],
+    queryFn: getRecords,
+  });
+
 export const useWorkoutMutations = () => {
   const qc = useQueryClient();
 
@@ -32,7 +39,10 @@ export const useWorkoutMutations = () => {
 
   const statusMutation = useMutation({
     mutationFn: updateWorkoutStatus,
-    onSuccess: (w) => invalidateAll(w.id),
+    onSuccess: (w) => {
+      invalidateAll(w.id);
+      qc.invalidateQueries({ queryKey: ['records'] });
+    },
     onError: (e) => toast.error(e.response?.data?.message || 'Не удалось изменить статус'),
   });
 
@@ -40,6 +50,12 @@ export const useWorkoutMutations = () => {
     mutationFn: createWorkout,
     onSuccess: (w) => { invalidateAll(w.id); toast.success('Тренировка добавлена'); },
     onError: (e) => toast.error(e.response?.data?.message || 'Не удалось добавить тренировку'),
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: updateWorkout,
+    onSuccess: (w) => invalidateAll(w.id),
+    onError: (e) => toast.error(e.response?.data?.message || 'Не удалось сохранить изменения'),
   });
 
   const syncMutation = useMutation({
@@ -72,5 +88,5 @@ export const useWorkoutMutations = () => {
     onError: (e) => toast.error(e.response?.data?.message || 'Не удалось удалить тренировку'),
   });
 
-  return { statusMutation, createMutation, syncMutation, setMutation, deleteSetMutation, deleteWorkoutMutation };
+  return { statusMutation, createMutation, updateMutation, syncMutation, setMutation, deleteSetMutation, deleteWorkoutMutation };
 };

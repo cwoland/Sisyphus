@@ -1,5 +1,5 @@
 export const Logo = ({ size = 'md', showText = true }) => {
-  const dimensions = { sm: 24, md: 32, lg: 40 };
+  const dimensions = { sm: 24, md: 36, lg: 48 };
   const px = dimensions[size] || 32;
 
   return (
@@ -25,7 +25,7 @@ export const Logo = ({ size = 'md', showText = true }) => {
         />
       </svg>
       {showText && (
-        <span className="font-display font-bold tracking-tight text-lg text-text">
+        <span className="font-logo tracking-wide text-3xl text-text">
           SISYPHUS
         </span>
       )}

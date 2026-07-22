@@ -7,7 +7,7 @@ import { scheduleProgram } from '../../entities/workout/workout.api.js';
 import { toast } from '../../shared/ui/toast/toast.store.js';
 
 export const usePrograms = () =>
-    useQuery({ queryKey: ['programs'], queryFn: () => getPrograms });
+    useQuery({ queryKey: ['programs'], queryFn: () => getPrograms() });
 
 export const useProgram = (id) =>
     useQuery({ queryKey: ['program', id], queryFn: () => getProgram(id), enabled: !!id });
