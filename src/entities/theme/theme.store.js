@@ -20,6 +20,7 @@ export const useThemeStore = create((set, get) => ({
   },
 
   toggleTheme: () => get().setMode(get().theme === 'dark' ? 'light' : 'dark'),
+  initTheme: () => get().setMode(get().mode),
 }));
 
 apply(resolve(initialMode));
@@ -30,3 +31,10 @@ window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () 
   apply(theme);
   useThemeStore.setState({ theme });
 });
+
+export const initTheme = () => {
+  const { mode } = useThemeStore.getState();
+  const theme = resolve(mode);
+  apply(theme);
+  useThemeStore.setState({ theme });
+};

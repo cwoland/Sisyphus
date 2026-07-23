@@ -69,6 +69,25 @@
     padding-left: env(safe-area-inset-left);
     padding-right: env(safe-area-inset-right);
   }
+  .clip-card-art { clip-path: inset(-3rem 0 0 0 round 1rem); }
+  .card-art {
+    position: absolute;
+    top: -2rem;
+    right: -2rem;
+    height: calc(100% + 7rem);
+    width: auto;
+    max-width: none;
+    object-fit: contain;
+    pointer-events: none;
+    user-select: none;
+    opacity: 0.9;
+    -webkit-mask-image: linear-gradient(to left, black 45%, transparent 100%);
+    mask-image: linear-gradient(to left, black 45%, transparent 100%);
+  }
+
+  .card-art-dark { display: none; }
+  html.dark .card-art-light { display: none; }
+  html.dark .card-art-dark { display: block; opacity: 0.9; }
 
   .no-scrollbar::-webkit-scrollbar { display: none; }
   .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }

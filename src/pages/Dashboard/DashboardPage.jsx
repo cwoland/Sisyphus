@@ -42,40 +42,41 @@ export const DashboardPage = () => {
 
         {workoutsQuery.isLoading ? (
           <SkeletonCard />
-        ) : todayWorkouts.length === 0 ? (
-          <div className="relative isolate overflow-hidden rounded-2xl border border-border bg-surface p-6">
-            <CardArt name="warrior" className="-right-4 top-0 h-full w-44" />
-            <div className="relative">
-              <EmptyState
-                icon={Calendar}
-                title="Сегодня подъёма нет"
-                description="Отдых — часть маршрута. Или добавьте тренировку в календаре."
-              />
-            </div>
-          </div>
         ) : (
-          <div className="space-y-3">
-            {todayWorkouts.map((w) => (
-              <Link
-                key={w.id}
-                to="/calendar"
-                className="relative isolate flex items-center justify-between overflow-hidden rounded-2xl border border-border bg-surface p-4 transition-colors hover:bg-surface-2"
-              >
-                <CardArt name="warrior" className="-right-4 top-0 h-full w-32" />
-                <div className="relative flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-accent/10 text-accent">
-                    {w.status === 'completed' ? <CheckCircle2 size={20} /> : <Calendar size={20} />}
-                  </div>
-                  <div>
-                    <p className="font-medium text-text">{w.title}</p>
-                    <p className="text-xs text-text-muted">
-                      {w.status === 'completed' ? 'Завершена' : w.status === 'skipped' ? 'Пропущена' : 'Запланирована'}
-                    </p>
-                  </div>
+          <div className="relative isolate clip-card-art flex min-h-[13rem] flex-col justify-center rounded-2xl border border-border bg-surface p-4 sm:p-6">
+            <CardArt name="warrior" />
+            <div className="relative">
+              {todayWorkouts.length === 0 ? (
+                <EmptyState
+                  icon={Calendar}
+                  title="Сегодня подъёма нет"
+                  description="Отдых — часть маршрута. Или добавьте тренировку в календаре."
+                />
+              ) : (
+                <div className="space-y-2">
+                  {todayWorkouts.map((w) => (
+                    <Link
+                      key={w.id}
+                      to="/calendar"
+                      className="flex items-center justify-between rounded-xl border border-border p-3 transition-colors hover:bg-surface-2"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-accent/10 text-accent">
+                          {w.status === 'completed' ? <CheckCircle2 size={20} /> : <Calendar size={20} />}
+                        </div>
+                        <div>
+                          <p className="font-medium text-text">{w.title}</p>
+                          <p className="text-xs text-text-muted">
+                            {w.status === 'completed' ? 'Завершена' : w.status === 'skipped' ? 'Пропущена' : 'Запланирована'}
+                          </p>
+                        </div>
+                      </div>
+                      <ChevronRight size={18} className="text-text-muted" />
+                    </Link>
+                  ))}
                 </div>
-                <ChevronRight size={18} className="relative text-text-muted" />
-              </Link>
-            ))}
+              )}
+            </div>
           </div>
         )}
       </section>
@@ -99,8 +100,8 @@ export const DashboardPage = () => {
             </div>
           </div>
         ) : (
-          <div className="relative isolate overflow-hidden rounded-2xl border border-border bg-surface p-6">
-            <CardArt name="back" className="-right-6 top-0 h-full w-44" />
+          <div className="relative isolate clip-card-art rounded-2xl border border-border bg-surface p-6">
+            <CardArt name="back" />
             <div className="relative flex flex-col items-center gap-6 sm:flex-row">
               <CalorieRing
                 consumed={Number(nutritionQuery.data?.consumed?.total_calories) || 0}
@@ -127,9 +128,9 @@ export const DashboardPage = () => {
         {recordsQuery.isLoading ? (
           <SkeletonCard />
         ) : (
-          <div className="relative isolate overflow-hidden rounded-2xl border border-border bg-surface p-6">
-            <CardArt name="smith" className="-right-6 top-0 h-full w-44" />
-            <div className="relative">
+          <div className="relative isolate clip-card-art flex min-h-[13rem] flex-col justify-center rounded-2xl border border-border bg-surface p-4 sm:p-6">
+            <CardArt name="smith" />
+            <div className="relative pr-16 sm:pr-24">
               {topRecords.length === 0 ? (
                 <EmptyState
                   icon={Trophy}
@@ -139,7 +140,10 @@ export const DashboardPage = () => {
               ) : (
                 <div className="space-y-2">
                   {topRecords.map((r) => (
-                    <div key={r.id} className="flex items-center justify-between rounded-xl bg-surface-2 px-3 py-2">
+                    <div
+                      key={r.id}
+                      className="flex items-center justify-between rounded-xl border border-border px-3 py-2"
+                    >
                       <span className="truncate text-sm text-text">{r.exercise_name}</span>
                       <div className="shrink-0 text-right">
                         <span className="font-display font-bold text-text">{Math.round(Number(r.one_rm))} кг</span>
