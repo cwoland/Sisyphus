@@ -3,7 +3,7 @@ import { ArrowLeft, Send, Sparkles, Trash2 } from 'lucide-react';
 import { clsx } from 'clsx';
 import { useConversationMessages, useSendAiMessage } from '../ai.hooks.js';
 import { Spinner } from '../../../shared/ui/Spinner.jsx';
-import { contextLabel } from '../../../entities/ai/contextTypes.js';
+import { contextLabel } from '../../../entities/ai/ContextTypes.js';
 
 export const AiConversation = ({ conversationId, onBack, onDelete }) => {
   const { data, isLoading } = useConversationMessages(conversationId);

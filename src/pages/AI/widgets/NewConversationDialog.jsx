@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { clsx } from 'clsx';
 import { Sheet } from '../../../shared/ui/Sheet.jsx';
 import { Button } from '../../../shared/ui/Button.jsx';
-import { contextTypes } from '../../../entities/ai/contextTypes.js';
+import { contextTypes } from '../../../entities/ai/ContextTypes.js';
 import { usePrograms } from '../../Programs/programs.hooks.js';
 
 export const NewConversationDialog = ({ isOpen, onClose, onCreate, isCreating }) => {
