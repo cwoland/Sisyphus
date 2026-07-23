@@ -1,11 +1,83 @@
 import { useState } from 'react';
 import { Plus, Trash2, GripVertical, X } from 'lucide-react';
+import { clsx } from 'clsx';
+import {
+  DndContext, closestCenter, PointerSensor, useSensor, useSensors,
+} from '@dnd-kit/core';
+import {
+  SortableContext, verticalListSortingStrategy, useSortable, arrayMove,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 import { Button } from '../../../shared/ui/Button.jsx';
 import { Input } from '../../../shared/ui/Input.jsx';
 import { ExercisePicker } from '../../../features/exercise-picker/ExercisePicker.jsx';
 import { muscleGroupLabel } from '../../../entities/exercise/muscleGroups.js';
 
 const emptyDay = () => ({ tempId: crypto.randomUUID(), title: '', exercises: [] });
+
+const SortableExercise = ({ ex, dayTempId, onUpdate, onRemove }) => {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
+    useSortable({ id: ex.tempId });
+
+  const style = { transform: CSS.Transform.toString(transform), transition };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className={clsx(
+        'rounded-xl border border-border bg-surface-2 p-3',
+        isDragging && 'relative z-10 opacity-80 shadow-lg'
+      )}
+    >
+      <div className="mb-2 flex items-center gap-2">
+        <button
+          type="button"
+          {...attributes}
+          {...listeners}
+          className="shrink-0 cursor-grab touch-none rounded-lg p-1 text-text-muted hover:text-text active:cursor-grabbing"
+          aria-label="Перетащить"
+        >
+          <GripVertical size={16} />
+        </button>
+
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-sm font-medium text-text">{ex.name}</p>
+          <p className="text-xs text-text-muted">{muscleGroupLabel(ex.muscleGroup)}</p>
+        </div>
+
+        <button
+          onClick={() => onRemove(dayTempId, ex.tempId)}
+          className="shrink-0 text-text-muted hover:text-crimson"
+          aria-label="Убрать"
+        >
+          <X size={16} />
+        </button>
+      </div>
+
+      <div className="flex gap-2">
+        <div className="flex-1">
+          <label className="text-xs text-text-muted">Подходы</label>
+          <input
+            type="number" min="1" max="20"
+            value={ex.targetSets}
+            onChange={(e) => onUpdate(dayTempId, ex.tempId, { targetSets: e.target.value })}
+            className="w-full rounded-lg border border-border bg-surface px-2 py-1.5 text-center text-sm text-text focus:outline-none focus:ring-1 focus:ring-accent"
+          />
+        </div>
+        <div className="flex-1">
+          <label className="text-xs text-text-muted">Повторы</label>
+          <input
+            value={ex.targetReps}
+            onChange={(e) => onUpdate(dayTempId, ex.tempId, { targetReps: e.target.value })}
+            placeholder="8-12"
+            className="w-full rounded-lg border border-border bg-surface px-2 py-1.5 text-center text-sm text-text focus:outline-none focus:ring-1 focus:ring-accent"
+          />
+        </div>
+      </div>
+    </div>
+  );
+};
 
 export const ProgramBuilder = ({ initial, submitLabel = 'Создать программу', onSubmit, isSubmitting, onCancel }) => {
   const [title, setTitle] = useState(initial?.title || '');
@@ -18,6 +90,23 @@ export const ProgramBuilder = ({ initial, submitLabel = 'Создать прог
   );
   const [pickerForDay, setPickerForDay] = useState(null);
   const [errors, setErrors] = useState({});
+  const sensors = useSensors(
+    useSensors(PointerSensor, { activationConstraint: { distance: 5 } })
+  );
+
+  const handleDragEnd = (dayTempId, event) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+
+    setDays((d) =>
+      d.map((day) => {
+        if (day.tempId !== dayTempId) return day;
+        const from = day.exercises.findIndex((ex) => ex.tempId === active.id);
+        const to = day.exercises.findIndex((ex) => ex.tempId === over.id);
+        return { ...day, exercises: arrayMove(day.exercises, from, to) };
+      })
+    );
+  };
 
   const addDay = () =>
     setDays((d) => [...d, { ...emptyDay(), title: `День ${d.length + 1}` }]);
@@ -149,39 +238,28 @@ export const ProgramBuilder = ({ initial, submitLabel = 'Создать прог
             </div>
 
             <div className="space-y-2">
-              {day.exercises.map((ex) => (
-                <div key={ex.tempId} className="rounded-xl border border-border bg-surface-2 p-3">
-                  <div className="mb-2 flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-text">{ex.name}</p>
-                      <p className="text-xs text-text-muted">{muscleGroupLabel(ex.muscleGroup)}</p>
-                    </div>
-                    <button onClick={() => removeExercise(day.tempId, ex.tempId)} className="text-text-muted hover:text-crimson" aria-label="Убрать">
-                      <X size={16} />
-                    </button>
-                  </div>
-                  <div className="flex gap-2">
-                    <div className="flex-1">
-                      <label className="text-xs text-text-muted">Подходы</label>
-                      <input
-                        type="number" min="1" max="20"
-                        value={ex.targetSets}
-                        onChange={(e) => updateExercise(day.tempId, ex.tempId, { targetSets: e.target.value })}
-                        className="w-full rounded-lg border border-border bg-surface px-2 py-1.5 text-center text-sm text-text focus:outline-none focus:ring-1 focus:ring-accent"
+              <DndContext
+                sensors={sensors}
+                collisionDetection={closestCenter}
+                onDragEnd={(e) => handleDragEnd(day.tempId, e)}
+              >
+                <SortableContext
+                  items={day.exercises.map((ex) => ex.tempId)}
+                  strategy={verticalListSortingStrategy}
+                >
+                  <div className="space-y-2">
+                    {day.exercises.map((ex) => (
+                      <SortableExercise
+                        key={ex.tempId}
+                        ex={ex}
+                        dayTempId={day.tempId}
+                        onUpdate={updateExercise}
+                        onRemove={removeExercise}
                       />
-                    </div>
-                    <div className="flex-1">
-                      <label className="text-xs text-text-muted">Повторы</label>
-                      <input
-                        value={ex.targetReps}
-                        onChange={(e) => updateExercise(day.tempId, ex.tempId, { targetReps: e.target.value })}
-                        placeholder="8-12"
-                        className="w-full rounded-lg border border-border bg-surface px-2 py-1.5 text-center text-sm text-text focus:outline-none focus:ring-1 focus:ring-accent"
-                      />
-                    </div>
+                    ))}
                   </div>
-                </div>
-              ))}
+                </SortableContext>
+              </DndContext>
 
               <button
                 onClick={() => setPickerForDay(day.tempId)}

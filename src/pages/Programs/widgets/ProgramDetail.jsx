@@ -1,9 +1,9 @@
-import { CalendarPlus, Trash2, Globe, Lock, Pencil } from 'lucide-react';
+import { CalendarPlus, Trash2, Globe, Lock, Pencil, Copy } from 'lucide-react';
 import { Button } from '../../../shared/ui/Button.jsx';
 import { Skeleton } from '../../../shared/ui/Skeleton.jsx';
 import { muscleGroupLabel } from '../../../entities/exercise/muscleGroups.js';
 
-export const ProgramDetail = ({ program, isLoading, onSchedule, onEdit, onDelete }) => {
+export const ProgramDetail = ({ program, isLoading, isOwner, onSchedule, onEdit, onDelete, onFork, isForking }) => {
   if (isLoading) {
     return (
       <div className="space-y-3">
@@ -17,28 +17,34 @@ export const ProgramDetail = ({ program, isLoading, onSchedule, onEdit, onDelete
 
   return (
     <div className="space-y-4">
-      <div className="flex items-start justify-between gap-3">
-        <div>
-          <div className="flex items-center gap-2">
-            <h2 className="font-display text-xl font-bold text-text">{program.title}</h2>
-            {program.is_public
-              ? <Globe size={16} className="text-accent" />
-              : <Lock size={16} className="text-text-muted" />}
-          </div>
-          {program.description && <p className="mt-1 text-sm text-text-muted">{program.description}</p>}
+      <div>
+        <div className="flex items-center gap-2">
+          <h2 className="font-display text-xl font-bold text-text">{program.title}</h2>
+          {program.is_public
+            ? <Globe size={16} className="text-accent" />
+            : <Lock size={16} className="text-text-muted" />}
         </div>
+        {program.description && <p className="mt-1 text-sm text-text-muted">{program.description}</p>}
       </div>
 
-      <div className="flex gap-2">
-        <Button size="sm" onClick={() => onSchedule(program)}>
-          <CalendarPlus size={16} /> В календарь
-        </Button>
-        <Button size="sm" variant="secondary" onClick={() => onEdit(program)}>
-          <Pencil size={16} /> Изменить
-        </Button>
-        <Button size="sm" variant="ghost" onClick={() => onDelete(program.id)}>
-          <Trash2 size={16} /> Удалить
-        </Button>
+      <div className="flex flex-wrap gap-2">
+        {isOwner ? (
+          <>
+            <Button size="sm" onClick={() => onSchedule(program)}>
+              <CalendarPlus size={16} /> В календарь
+            </Button>
+            <Button size="sm" variant="secondary" onClick={() => onEdit(program)}>
+              <Pencil size={16} /> Изменить
+            </Button>
+            <Button size="sm" variant="ghost" onClick={() => onDelete(program.id)}>
+              <Trash2 size={16} /> Удалить
+            </Button>
+          </>
+        ) : (
+          <Button size="sm" onClick={() => onFork(program.id)} isLoading={isForking}>
+            <Copy size={16} /> Скопировать себе
+          </Button>
+        )}
       </div>
 
       <div className="space-y-3">

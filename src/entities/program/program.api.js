@@ -6,6 +6,9 @@ export const getPrograms = () =>
 export const getProgram = (id) =>
   api.get(`/programs/${id}`).then((r) => r.data.program);
 
+export const getPublicPrograms = (q = '') =>
+  api.get('/programs/public', { params: q ? { q } : {} }).then((r) => r.data.programs);
+
 export const createProgram = (payload) =>
   api.post('/programs', payload).then((r) => r.data.program);
 

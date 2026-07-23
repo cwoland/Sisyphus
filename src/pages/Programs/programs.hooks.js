@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
-    getPrograms, getProgram, createProgram, updateProgram, deleteProgram, forkProgram,
+    getPrograms, getProgram, getPublicPrograms, createProgram, updateProgram, deleteProgram, forkProgram,
 } from '../../entities/program/program.api.js';
 import { getExercises, createExercise } from '../../entities/exercise/exercise.api.js';
 import { scheduleProgram } from '../../entities/workout/workout.api.js';
@@ -11,6 +11,13 @@ export const usePrograms = () =>
 
 export const useProgram = (id) =>
     useQuery({ queryKey: ['program', id], queryFn: () => getProgram(id), enabled: !!id });
+
+export const usePublicPrograms = (q = '', options = {}) =>
+    useQuery({
+        queryKey: ['programs', 'public', q],
+        queryFn: () => getPublicPrograms(q),
+        ...options,
+    });
 
 export const useExercises = (params) =>
     useQuery({ queryKey: ['exercises', params], queryFn: () => getExercises(params) });
