@@ -10,7 +10,6 @@ dist-ssr/
 .vite/
 
 dev-dist/
-sw.js
 workbox-*.js
 
 .vscode/*
