@@ -5,6 +5,21 @@ import { toast } from '../ui/toast/toast.store.js';
 
 const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
+const COLD_START_DELAY = 3000;
+const WARN_COOLDOWN = 60_000;
+
+let pending = 0;
+let timer = null;
+let lastWarnedAt = 0;
+
+const stopTimer = () => {
+  pending = Math.max(0, pending - 1);
+  if (pending === 0) {
+    clearTimeout(timer);
+    timer = null;
+  }
+};
+
 export const api = axios.create({
   baseURL: BASE_URL,
   withCredentials: true,
@@ -100,4 +115,23 @@ api.interceptors.response.use(
     }
     return Promise.reject(error);
   }
+);
+
+api.interceptors.request.use((config) => {
+  if (config.url?.includes('/ai')) return config;
+  pending += 1;
+  if (pending === 1 && !timer) {
+    timer = setTimeout(() => {
+      if (Date.now() - lastWarnedAt > WARN_COOLDOWN) {
+        lastWarnedAt = Date.now();
+        toast.info('Пробуждаем сервер - это займет 20-30 сек.');
+      }
+    }, COLD_START_DELAY);
+  }
+  return config;
+});
+
+api.interceptors.response.use(
+  (res) => { stopTimer(); return res; },
+  (err) => { stopTimer(); return Promise.reject(err); }
 );
