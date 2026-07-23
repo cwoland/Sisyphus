@@ -11,7 +11,7 @@ import { Button } from '../../shared/ui/Button.jsx';
 import { EmptyState } from '../../shared/ui/EmptyState.jsx';
 import { SkeletonList } from '../../shared/ui/Skeleton.jsx';
 import { emptyStates } from '../../shared/lib/sisyphusPhrases.js';
-import { contextIcon, contextLabel } from '../../entities/ai/contextTypes.js';
+import { contextIcon, contextLabel } from '../../entities/ai/ContextTypes.js';
 
 export const AiPage = () => {
   const conversationsQuery = useConversations();
