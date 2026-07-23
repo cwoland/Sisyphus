@@ -176,6 +176,10 @@ export const CalendarPage = () => {
                 <Plus size={16} /> Добавить упражнение
               </button>
 
+              <WorkoutNotes
+                workout={detailsQuery.data}
+                onSave={(data) => updateMutation.mutate({ id: openWorkoutId, ...data })} />
+
               <button 
                 onClick={handleDeleteWorkout}
                 className="flex w-full items-center justify-center gap-1 rounded-xl border border-red-500/30 py-3 text-sm text-red-500 hover:bg-red-500/10">
@@ -225,6 +229,33 @@ const WorkoutMetaEditor = ({ workout, onSave }) => {
           onChange={(e) => setDate(e.target.value)}
           onBlur={commit}
           className="rounded-xl border border-border bg-surface-2 px-3 py-2 text-sm text-text focus:outline-none focus:ring-accent" />
+    </div>
+  );
+}
+
+const WorkoutNotes = ({ workout, onSave }) => {
+  const [value, setValue] = useState(workout?.notes ?? '');
+
+  useEffect(() => { setValue(workout?.notes ?? ''); }, [workout?.id]);
+
+  if (!workout) return null;
+
+  const commit = () => {
+    const next = value.trim();
+    if (next === (workout.notes ?? '')) return;
+    onSave({ notes: next || null });
+  };
+
+  return (
+    <div className="space-y-1.5 border-t border-border pt-4">
+      <label className="block text-sm font-medium text-text">Заметки</label>
+      <textarea
+        value={value}
+        onChange={(e) => setValue(e.target.value)}
+        onBlur={commit}
+        rows={3}
+        placeholder="Самочувствие, техника, что поменять"
+        className="w-full rounded-xl border border-border bg-surface-2 px-3 py-2 text-sm text-text placeholder:text-text-muted focus:outline:none focus:ring-1 focus:ring-accent" />
     </div>
   );
 }
