@@ -55,7 +55,7 @@ export const ProgramsPage = () => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h1 className="font-display text-2xl font-bold text-text">Программы</h1>
         <Button onClick={() => setBuilderOpen(true)}>

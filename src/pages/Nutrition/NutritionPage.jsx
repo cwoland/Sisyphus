@@ -44,7 +44,7 @@ export const NutritionPage = () => {
   const isEmpty = !entriesQuery.isLoading && (entriesQuery.data?.length === 0);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h1 className="font-display text-2xl font-bold text-text">Питание</h1>
         <Button variant="secondary" size="sm" onClick={() => setTargetsOpen(true)}>

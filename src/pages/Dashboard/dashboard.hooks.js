@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { getWorkouts } from '../../entities/workout/workout.api.js';
 import { getDailySummary } from '../../entities/nutrition/nutrition.api.js';
 import { todayApi, weekRange } from '../../shared/lib/date.js';
+import { getRecords } from '../../entities/records/record.api.js';
 
 export const useWeekWorkouts = () => {
     const { from, to } = weekRange();
@@ -18,3 +19,9 @@ export const useTodayNutrition = () => {
         queryFn: () => getDailySummary(date),
     });
 };
+
+export const useTopRecords = () => 
+    useQuery({
+        queryKey: ['records'],
+        queryFn: getRecords,
+    });

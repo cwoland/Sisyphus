@@ -31,7 +31,7 @@ export const FriendsPage = () => {
   const requests = requestsQuery.data || [];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h1 className="font-display text-2xl font-bold text-text">Друзья</h1>
         <Button onClick={() => setAddOpen(true)}>
@@ -50,7 +50,7 @@ export const FriendsPage = () => {
                 <Avatar name={req.name} src={req.avatar_url} />
                 <div className="min-w-0 flex-1">
                   <p className="truncate font-medium text-text">{req.name}</p>
-                  <p className="truncate text-xs text-text-muted">{req.email}</p>
+                  <p className="truncate text-xs text-text-muted">@{req.username}</p>
                 </div>
                 <div className="flex gap-1">
                   <button
@@ -94,7 +94,7 @@ export const FriendsPage = () => {
                 <Avatar name={friend.name} src={friend.avatar_url} />
                 <div className="min-w-0 flex-1">
                   <p className="truncate font-medium text-text">{friend.name}</p>
-                  <p className="truncate text-xs text-text-muted">{friend.email}</p>
+                  <p className="truncate text-xs text-text-muted">@{friend.username}</p>
                 </div>
                 <button
                   onClick={() => openChatWith(friend.id)}

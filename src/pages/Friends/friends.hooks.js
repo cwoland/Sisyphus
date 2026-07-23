@@ -1,11 +1,18 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
-  getFriends, getPendingRequests, sendFriendRequest, respondToRequest, removeFriend,
+  getFriends, getPendingRequests, sendFriendRequest, respondToRequest, removeFriend, searchUsers,
 } from '../../entities/friend/friend.api.js';
 import { toast } from '../../shared/ui/toast/toast.store.js';
 
 export const useFriends = () =>
   useQuery({ queryKey: ['friends'], queryFn: getFriends });
+
+export const useUserSearch = (q) =>
+  useQuery({
+    queryKey: ['friends', 'search', q],
+    queryFn: () => searchUsers(q),
+    enabled: q.trim().length >= 2,
+  });
 
 export const usePendingRequests = () =>
   useQuery({

@@ -20,7 +20,7 @@ export const AppLayout = () => {
         <div className="flex min-w-0 flex-1 flex-col">
           <Header onOpenMenu={() => setDrawerOpen(true)} />
 
-          <main className="flex-1 px-4 pb-24 pt-4 pad-safe-x sm:px-6 lg:pb-8">
+          <main className="flex-1 px-[10%] pb-24 md:px-8 lg:pb-8">
             <Outlet />
           </main>
         </div>

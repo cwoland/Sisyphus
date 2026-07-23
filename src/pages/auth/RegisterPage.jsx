@@ -15,6 +15,9 @@ import { useAuthStore } from '../../entities/user/auth.store.js';
 
 const registerSchema = z.object({
   name: z.string().min(2, 'Минимум 2 символа').max(100),
+  username: z.string()
+    .min(3, 'Минимум 3 символа').max(20, 'Максимум 20 символов')
+    .regex(/^[a-zA-Z0-9_]+$/, 'Только латиница, цифры и _'),
   email: z.string().min(1, 'Введите email').email('Некорректный email'),
   password: z.string().min(8, 'Минимум 8 символов'),
 });
@@ -74,6 +77,14 @@ export const RegisterPage = () => {
           error={errors.name?.message}
           {...register('name')}
         />
+
+        <Input
+          id="username"
+          label="Никнейм"
+          placeholder="например, sisyphusboulder"
+          autoComplete="username"
+          error={errors.username?.message}
+          {...register('username')} />
 
         <Input
           id="email"
