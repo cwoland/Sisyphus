@@ -78,6 +78,7 @@ export const CalendarPage = () => {
     setMutation.mutate({
       workoutId: openWorkoutId,
       exerciseId: exercise.id,
+      exerciseName: exercise.name,
       weight: null,
       reps: null,
       isCompleted: false,

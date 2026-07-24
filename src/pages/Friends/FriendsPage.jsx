@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { UserPlus, Check, X, MessageCircle, UserMinus, Users } from 'lucide-react';
+import { UserPlus, Check, X, MessageCircle, UserMinus, Users, Newspaper } from 'lucide-react';
 
-import { useFriends, usePendingRequests, useFriendMutations } from './friends.hooks.js';
+import { useFriends, usePendingRequests, useFriendMutations, useFriendsFeed } from './friends.hooks.js';
 import { useStartChat } from '../Chat/chat.hooks.js';
 import { AddFriendForm } from '../../features/add-friend/AddFriendForm.jsx';
 import { Avatar } from '../../shared/ui/Avatar.jsx';
@@ -11,6 +11,7 @@ import { Button } from '../../shared/ui/Button.jsx';
 import { EmptyState } from '../../shared/ui/EmptyState.jsx';
 import { SkeletonList } from '../../shared/ui/Skeleton.jsx';
 import { emptyStates } from '../../shared/lib/sisyphusPhrases.js';
+import { FeedList } from './widgets/FeedList.jsx';
 
 export const FriendsPage = () => {
   const navigate = useNavigate();
@@ -20,6 +21,9 @@ export const FriendsPage = () => {
   const startChat = useStartChat();
 
   const [addOpen, setAddOpen] = useState(false);
+  const [tab, setTab] = useState('feed');
+
+  const feedQuery = useFriendsFeed({ enabled: tab === 'feed' });
 
   const openChatWith = (friendId) => {
     startChat.mutate(friendId, {
@@ -39,7 +43,25 @@ export const FriendsPage = () => {
         </Button>
       </div>
 
-      {requests.length > 0 && (
+      <div className="flex gap-1 rounded-xl bg-surface-2 p-1">
+        <button
+          onClick={() => setTab('feed')}
+          className={`flex flex-1 items-center justify-center gap-1.5 rounded-lg py-2 text-sm font-medium transition-colors ${tab === 'feed' ? 'bg-surface text-text shadow-sm' : 'text-text-muted'}`}
+        >
+          <Newspaper size={16} /> Лента
+        </button>
+        <button
+          onClick={() => setTab('friends')}
+          className={`flex flex-1 items-center justify-center gap-1.5 rounded-lg py-2 text-sm font-medium transition-colors ${tab === 'friends' ? 'bg-surface text-text shadow-sm' : 'text-text-muted'}`}
+        >
+          <Users size={16} /> Друзья
+        </button>
+      </div>
+
+      {tab === 'feed' && <FeedList query={feedQuery} />}
+
+      {tab === 'friends' && (
+      requests.length > 0 && (
         <section>
           <h2 className="mb-3 font-display text-lg font-semibold text-text">
             Заявки <span className="text-sm font-normal text-text-muted">({requests.length})</span>
@@ -72,7 +94,8 @@ export const FriendsPage = () => {
             ))}
           </div>
         </section>
-      )}
+      ))}
+    
 
       <section>
         <h2 className="mb-3 font-display text-lg font-semibold text-text">Мои друзья</h2>

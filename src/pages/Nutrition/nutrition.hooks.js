@@ -31,28 +31,64 @@ export const useRecentFoods = (q, options = {}) =>
 
 export const useNutritionMutations = (date) => {
   const qc = useQueryClient();
+  const entriesKey = ['nutrition', 'entries', date];
 
   const invalidate = () => {
-    qc.invalidateQueries({ queryKey: ['nutrition', 'entries', date] });
+    qc.invalidateQueries({ queryKey: entriesKey });
     qc.invalidateQueries({ queryKey: ['nutrition', 'summary', date] });
+  };
+
+  const snapshot = async () => {
+    await qc.cancelQueries({ queryKey: entriesKey });
+    return qc.getQueryData(entriesKey);
   };
 
   const create = useMutation({
     mutationFn: createEntry,
-    onSuccess: invalidate,
-    onError: (e) => toast.error(e.response?.data?.message || 'Не удалось добавить'),
+    onMutate: async (vars) => {
+      const previous = await snapshot();
+      qc.setQueryData(entriesKey, (old) => [
+        ...(old || []),
+        { id: `temp-${Date.now()}`, meal_type: vars.mealType, ...vars },
+      ]);
+      return { previous };
+    },
+    onError: (e, _v, ctx) => {
+      qc.setQueryData(entriesKey, ctx?.previous);
+      toast.error(e.response?.data?.message || 'Не удалось добавить');
+    },
+    onSettled: invalidate,
   });
 
   const update = useMutation({
     mutationFn: updateEntry,
-    onSuccess: invalidate,
-    onError: (e) => toast.error(e.response?.data?.message || 'Не удалось изменить'),
+    onMutate: async (vars) => {
+      const previous = await snapshot();
+      qc.setQueryData(entriesKey, (old) =>
+        (old || []).map((e) => (e.id === vars.id ? { ...e, ...vars, meal_type: vars.mealType } : e))
+      );
+      return { previous };
+    },
+    onError: (e, _v, ctx) => {
+      qc.setQueryData(entriesKey, ctx?.previous);
+      toast.error(e.response?.data?.message || 'Не удалось изменить');
+    },
+    onSettled: invalidate,
   });
 
   const remove = useMutation({
     mutationFn: deleteEntry,
-    onSuccess: () => { invalidate(); toast.success('Запись удалена'); },
-    onError: (e) => toast.error(e.response?.data?.message || 'Не удалось удалить'),
+    onMutate: async (id) => {
+      const previous = await snapshot();
+      qc.setQueryData(entriesKey, (old) => (old || []).filter((e) => e.id !== id));
+      return { previous };
+    },
+    onError: (e, _v, ctx) => {
+      qc.setQueryData(entriesKey, ctx?.previous);
+      toast.error(e.response?.data?.message || 'Не удалось удалить');
+    },
+    onSuccess: () => toast.success('Запись удалена'),
+    onSettled: invalidate,
   });
 
   return { create, update, remove };

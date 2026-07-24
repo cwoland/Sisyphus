@@ -53,12 +53,17 @@ export default {
           '20%, 60%': { transform: 'translateX(-8px)' },
           '40%, 80%': { transform: 'translateX(8px)' },
         },
+        'loading-bar': {
+          '0%': { transform: 'translateX(-100%)' },
+          '100%': { transform: 'translateX(400%)' },
+        },
       },
       animation: {
         shimmer: 'shimmer 1.5s infinite',
         'toast-in': 'toast-in 0.3s ease-out',
         'fade-in': 'fade-in 0.2s ease-out',
         'shake': 'shake 0.4s ease-in-out',
+        'loading-bar': 'loading-bar 1.4s ease-in-out infinite',
       },
     },
   },

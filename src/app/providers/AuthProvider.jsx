@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { useAuthStore } from '../../entities/user/auth.store.js';
 import { meRequest } from '../../entities/user/auth.api.js';
 import { api } from '../../shared/lib/axios.js';
+import { SplashScreen } from '../../shared/ui/SplashScreen.jsx';
 
 export const AuthProvider = ({ children }) => {
   const { login, setAuthChecked, isAuthChecked } = useAuthStore();
@@ -23,7 +24,7 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   if (!isAuthChecked) {
-    return <div>Загрузка...</div>;
+    return <SplashScreen />;
   }
 
   return children;
