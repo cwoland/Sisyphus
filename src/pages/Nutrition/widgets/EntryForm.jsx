@@ -1,9 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { clsx } from 'clsx';
+import { History } from 'lucide-react';
 import { Button } from '../../../shared/ui/Button.jsx';
 import { Input } from '../../../shared/ui/Input.jsx';
+import { useRecentFoods } from '../nutrition.hooks.js';
 import { mealTypes } from '../../../entities/nutrition/mealTypes.js';
-
 
 export const EntryForm = ({ date, entry, defaultMealType, onSubmit, onCancel, isSubmitting }) => {
   const [mealType, setMealType] = useState(entry?.meal_type || defaultMealType || 'breakfast');
@@ -13,6 +14,27 @@ export const EntryForm = ({ date, entry, defaultMealType, onSubmit, onCancel, is
   const [fat, setFat] = useState(entry?.fat ?? '');
   const [carbs, setCarbs] = useState(entry?.carbs ?? '');
   const [error, setError] = useState('');
+
+  const [term, setTerm] = useState('');
+  const [picked, setPicked] = useState(false);
+
+  useEffect(() => {
+    const t = setTimeout(() => setTerm(name.trim()), 250);
+    return () => clearTimeout(t);
+  }, [name]);
+
+  const canSuggest = !entry && !picked && term.length >= 2;
+  const suggestionsQuery = useRecentFoods(term, { enabled: canSuggest });
+  const suggestions = canSuggest ? (suggestionsQuery.data || []) : [];
+
+  const applySuggestion = (s) => {
+    setName(s.name);
+    setCalories(String(Math.round(Number(s.calories))));
+    setProtein(String(Number(s.protein)));
+    setFat(String(Number(s.fat)));
+    setCarbs(String(Number(s.carbs)));
+    setPicked(true);
+  };
 
   const submit = () => {
     if (name.trim().length < 1) return setError('Введите название');
@@ -52,12 +74,32 @@ export const EntryForm = ({ date, entry, defaultMealType, onSubmit, onCancel, is
         })}
       </div>
 
-      <Input
-        label="Название"
-        value={name}
-        onChange={(e) => setName(e.target.value)}
-        placeholder="Например, Овсянка с бананом"
-      />
+      <div className="relative">
+        <Input
+          label="Название"
+          value={name}
+          onChange={(e) => { setName(e.target.value); setPicked(false); }}
+          placeholder="Например, Овсянка с бананом"
+        />
+
+        {suggestions.length > 0 && (
+          <div className="absolute left-0 right-0 top-full z-20 mt-1 overflow-hidden rounded-xl border border-border bg-surface shadow-lg">
+            {suggestions.map((s) => (
+              <button
+                key={s.name}
+                onClick={() => applySuggestion(s)}
+                className="flex w-full items-center gap-2 px-3 py-2 text-left hover:bg-surface-2"
+              >
+                <History size={14} className="shrink-0 text-text-muted" />
+                <span className="min-w-0 flex-1 truncate text-sm text-text">{s.name}</span>
+                <span className="shrink-0 text-xs text-text-muted">
+                  {Math.round(Number(s.calories))} ккал
+                </span>
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
 
       <div className="space-y-1.5">
         <label className="block text-sm font-medium text-text">Калории</label>

@@ -12,7 +12,6 @@ export const useInstallPrompt = () => {
     };
 
     window.addEventListener('beforeinstallprompt', handler);
-    // если уже установлено — прячем
     window.addEventListener('appinstalled', () => {
       setIsInstallable(false);
       setDeferredPrompt(null);

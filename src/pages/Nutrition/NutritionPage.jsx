@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { Plus, Settings2, Pencil, Trash2, ChevronLeft, ChevronRight, Apple } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { Plus, Settings2, Pencil, Trash2, ChevronLeft, ChevronRight, Apple, Scale } from 'lucide-react';
 import { format, addDays } from 'date-fns';
 import { ru } from 'date-fns/locale';
 
@@ -14,6 +15,7 @@ import { Skeleton } from '../../shared/ui/Skeleton.jsx';
 import { mealTypes, mealTypeLabel, mealTypeIcon } from '../../entities/nutrition/mealTypes.js';
 import { emptyStates } from '../../shared/lib/sisyphusPhrases.js';
 import { toApiDate, todayApi } from '../../shared/lib/date.js';
+import { useLatestBody } from '../../features/body/body.hooks.js';
 
 export const NutritionPage = () => {
   const [date, setDate] = useState(todayApi());
@@ -25,6 +27,7 @@ export const NutritionPage = () => {
   const targetsQuery = useTargets();
   const { create, update, remove } = useNutritionMutations(date);
   const targetsMutation = useTargetsMutation();
+  const latestBody = useLatestBody();
 
   const shiftDay = (dir) => setDate((d) => toApiDate(addDays(new Date(d), dir)));
 
@@ -68,6 +71,25 @@ export const NutritionPage = () => {
           <ChevronRight size={20} />
         </button>
       </div>
+
+      {latestBody.data?.current && (
+        <Link
+          to="/profile"
+          className="flex items-center justify-between rounded-2xl border border-border bg-surface px-4 py-3 transition-colors hover:bg-surface-2">
+            <div className="flex items-center gap-2">
+              <Scale size={16} className="text-accent" />
+              <span className="font-display font-bold text-text">
+                {Number(latestBody.data.current.weight)} кг
+              </span>
+              {latestBody.data.previous?.weight && (
+                <span className="text-xs text-text-muted">
+                  {(Number(latestBody.data.current.weight) - Number(latestBody.data.previous.weight) > 0 ? '+' : '')}
+                  {(Number(latestBody.data.current.weight) - Number(latestBody.data.previous.weight)).toFixed(1)}
+                </span>
+              )}
+            </div>
+          </Link>
+      )}
 
       <div className="rounded-2xl border border-border bg-surface p-4">
         {summaryQuery.isLoading ? (

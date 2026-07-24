@@ -3,6 +3,9 @@ import { api } from '../../shared/lib/axios.js';
 export const getEntries = ({ from, to }) =>
   api.get('/nutrition/entries', { params: { from, to } }).then((r) => r.data.entries);
 
+export const getRecentFoods = (q = '') =>
+  api.get('/nutrition/recent', { params: q ? { q } : {} }).then((r) => r.data.foods);
+
 export const createEntry = (payload) =>
   api.post('/nutrition/entries', payload).then((r) => r.data.entry);
 

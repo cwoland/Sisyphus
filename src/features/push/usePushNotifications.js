@@ -35,8 +35,15 @@ export const usePushNotifications = () => {
         return;
       }
 
-      const reg = await navigator.serviceWorker.ready;
+      const reg = await Promise.race([
+        navigator.serviceWorker.ready,
+        new Promise((_, reject) =>
+          setTimeout(() => reject(new Error('Service worker не зарегистрирован')), 5000)
+      ),
+      ]);
+
       const publicKey = await getVapidPublicKey();
+      if (!publicKey) throw new Error('Сервер не разрешил');
 
       const subscription = await reg.pushManager.subscribe({
         userVisibleOnly: true,
@@ -50,7 +57,7 @@ export const usePushNotifications = () => {
       toast.success('Уведомления включены. Напомним о подъёме.');
     } catch (e) {
       console.error(e);
-      toast.error('Не удалось включить уведомления');
+      toast.error(e.message || 'Не удалось включить уведомления');
     } finally {
       setIsLoading(false);
     }

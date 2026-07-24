@@ -19,6 +19,7 @@ import { Button } from '../../shared/ui/Button.jsx';
 import { Input } from '../../shared/ui/Input.jsx';
 import { PasswordInput } from '../../shared/ui/PasswordInput.jsx';
 import { Sheet } from '../../shared/ui/Sheet.jsx';
+import { BodyMetricsCard } from '../../features/body/BodyMetricsCard.jsx';
 import { toast } from '../../shared/ui/toast/toast.store.js';
 
 const THEME_MODES = [
@@ -141,6 +142,8 @@ export const ProfilePage = () => {
           </button>
         </div>
       </div>
+
+      <BodyMetricsCard />
 
       <div className="space-y-2">
         <p className="px-1 text-sm font-medium text-text-muted">Оформление</p>

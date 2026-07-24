@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
-  getEntries, createEntry, updateEntry, deleteEntry, getDailySummary,
+  getEntries, getRecentFoods, createEntry, updateEntry, deleteEntry, getDailySummary,
   getTargets, updateTargets,
 } from '../../entities/nutrition/nutrition.api.js';
 import { toast } from '../../shared/ui/toast/toast.store.js';
@@ -21,6 +21,13 @@ export const useDaySummary = (date) =>
 
 export const useTargets = () =>
   useQuery({ queryKey: ['nutrition', 'targets'], queryFn: getTargets });
+
+export const useRecentFoods = (q, options = {}) =>
+  useQuery({
+    queryKey: ['nutrition', 'recent', q],
+    queryFn: () => getRecentFoods(q),
+    ...options,
+  });
 
 export const useNutritionMutations = (date) => {
   const qc = useQueryClient();

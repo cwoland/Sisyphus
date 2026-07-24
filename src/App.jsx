@@ -11,6 +11,8 @@ import { useThemeStore } from './entities/theme/theme.store.js';
 import { OfflineIndicator } from './shared/offline/OfflineIndicator.jsx';
 import { UpdatePrompt } from './shared/pwa/UpdatePrompt.jsx';
 
+import { registerSW } from 'virtual:pwa-register';
+
 import { LoginPage } from './pages/auth/LoginPage.jsx';
 import { RegisterPage } from './pages/auth/RegisterPage.jsx';
 import { DashboardPage } from './pages/Dashboard/DashboardPage.jsx';
@@ -22,6 +24,8 @@ import { ChatPage } from './pages/Chat/ChatPage.jsx';
 import { AiPage } from './pages/AI/AiPage.jsx';
 import { ProfilePage } from './pages/Profile/ProfilePage.jsx';
 import { NotFoundPage } from './pages/NotFound/NotFoundPage.jsx';
+
+registerSW({ immediate: true });
 
 const queryClient = new QueryClient({
   defaultOptions: {
