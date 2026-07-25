@@ -83,7 +83,7 @@ export const ProgramsPage = () => {
       <div className="flex gap-1 rounded-xl bg-surface-2 p-1">
         <button
           onClick={() => setTab('mine')}
-          className={`flex flex-1 items-center justify-center gap-1.5 rounded-lg py-2 text-sm font-medium transition-colors ${
+          className={`flex min-w-0 flex-1 items-center justify-center gap-1.5 rounded-lg py-2 text-sm font-medium transition-colors ${
             tab === 'mine' ? 'bg-surface text-text shadow-sm' : 'text-text-muted'
           }`}
         >
@@ -91,7 +91,7 @@ export const ProgramsPage = () => {
         </button>
         <button
           onClick={() => setTab('catalog')}
-          className={`flex flex-1 items-center justify-center gap-1.5 rounded-lg py-2 text-sm font-medium transition-colors ${
+          className={`flex min-w-0 flex-1 items-center justify-center gap-1.5 rounded-lg py-2 text-sm font-medium transition-colors ${
             tab === 'catalog' ? 'bg-surface text-text shadow-sm' : 'text-text-muted'
           }`}
         >
