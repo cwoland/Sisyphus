@@ -91,7 +91,7 @@ export const ProgramBuilder = ({ initial, submitLabel = 'Создать прог
   const [pickerForDay, setPickerForDay] = useState(null);
   const [errors, setErrors] = useState({});
   const sensors = useSensors(
-    useSensors(PointerSensor, { activationConstraint: { distance: 5 } })
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } })
   );
 
   const handleDragEnd = (dayTempId, event) => {
