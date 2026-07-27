@@ -15,24 +15,25 @@ import { todayApi } from '../../shared/lib/date.js';
 
 export const DashboardPage = () => {
   const user = useAuthStore((s) => s.user);
-  const workoutsQuery = useWeekWorkouts();
-  const nutritionQuery = useTodayNutrition();
-  const recordsQuery = useTopRecords();
 
   const navigate = useNavigate();
   const activeQuery = useActiveWorkout();
   const startWorkout = useStartWorkout();
+
+  const handleStart = (w) => {
+    if (w.status === 'in_progress') return navigate(`/workout/${w.id}/active`);
+    startWorkout.mutate(w.id, { onSuccess: () => navigate(`/workout/${w.id}/active`) });
+  };
+  
+  const workoutsQuery = useWeekWorkouts();
+  const nutritionQuery = useTodayNutrition();
+  const recordsQuery = useTopRecords();
 
   const greeting = useMemo(() => pickRandom(greetings), []);
 
   const today = todayApi();
   const todayWorkouts = (workoutsQuery.data || []).filter((w) => w.date === today);
   const topRecords = (recordsQuery.data || []).slice(0, 3);
-
-  const handleStart = (w) => {
-    if (w.status === 'in_progress') return navigate(`/workout/${w.id}/active`);
-    startWorkout.mutate(w.id, { onSuccess: () => navigate(`/workout/${w.id}/active`) });
-  };
 
   return (
     <div className="space-y-4">
