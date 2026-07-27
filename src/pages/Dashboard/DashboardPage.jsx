@@ -19,12 +19,13 @@ export const DashboardPage = () => {
   const navigate = useNavigate();
   const activeQuery = useActiveWorkout();
   const startWorkout = useStartWorkout();
+  const active = activeQuery.data;
 
   const handleStart = (w) => {
     if (w.status === 'in_progress') return navigate(`/workout/${w.id}/active`);
     startWorkout.mutate(w.id, { onSuccess: () => navigate(`/workout/${w.id}/active`) });
   };
-  
+
   const workoutsQuery = useWeekWorkouts();
   const nutritionQuery = useTodayNutrition();
   const recordsQuery = useTopRecords();
