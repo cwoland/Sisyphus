@@ -2,7 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   getWorkouts, getWorkout, createWorkout, updateWorkout, updateWorkoutStatus, syncWorkout,
   upsertWorkoutSet, deleteWorkoutSet, deleteWorkout,
-  getActiveWorkout,
+  getActiveWorkout, startWorkout,
 } from '../../entities/workout/workout.api.js';
 import { getRecords } from '../../entities/records/record.api.js';
 import { monthGridRange, weekRange } from '../../shared/lib/date.js';
