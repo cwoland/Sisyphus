@@ -24,6 +24,7 @@ import { ChatPage } from './pages/Chat/ChatPage.jsx';
 import { AiPage } from './pages/AI/AiPage.jsx';
 import { ProfilePage } from './pages/Profile/ProfilePage.jsx';
 import { NotFoundPage } from './pages/NotFound/NotFoundPage.jsx';
+import { ActiveWorkoutPage } from './pages/ActiveWorkout/ActiveWorkoutPage.jsx';
 
 registerSW({ immediate: true });
 
@@ -51,6 +52,7 @@ function App() {
           <Routes>
             <Route path="/login" element={<PublicOnlyRoute><LoginPage /></PublicOnlyRoute>} />
             <Route path="/register" element={<PublicOnlyRoute><RegisterPage /></PublicOnlyRoute>} />
+            <Route path="/workout/:id/active" element={<ProtectedRoute><ActiveWorkoutPage /></ProtectedRoute>} />
 
             <Route
               element={

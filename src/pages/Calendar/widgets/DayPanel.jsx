@@ -8,11 +8,12 @@ import { emptyStates } from '../../../shared/lib/sisyphusPhrases.js';
 
 const statusConfig = {
   planned: { icon: Circle, label: 'Запланирована', color: 'text-text-muted' },
+  in_progress: { icon: Circle, label: 'В процессе', color: 'text-accent' },
   completed: { icon: CheckCircle2, label: 'Завершена', color: 'text-accent' },
   skipped: { icon: XCircle, label: 'Пропущена', color: 'text-crimson' },
 };
 
-export const DayPanel = ({ date, workouts, onOpenWorkout, onSync, onSetStatus, onAddWorkout }) => (
+export const DayPanel = ({ date, workouts, onOpenWorkout, onSync, onSetStatus, onAddWorkout, onStart }) => (
   <div className="rounded-2xl border border-border bg-surface p-4">
     <div className="mb-3 flex items-center justify-between">
     <h2 className="font-display text-lg font-semibold text-text">
@@ -55,14 +56,14 @@ export const DayPanel = ({ date, workouts, onOpenWorkout, onSync, onSetStatus, o
               </div>
 
               <div className="mt-3 flex gap-2">
+                {(w.status === 'planned' || w.status === 'in_progress') && (
+                  <Button size="sm" onClick={() => onStart(w)}>
+                    {w.status === 'in_progress' ? 'Продолжить' : 'Начать тренировку'}
+                  </Button>
+                )}
                 <Button size="sm" variant="secondary" onClick={() => onOpenWorkout(w)}>
                   Открыть
                 </Button>
-                {w.status !== 'completed' && (
-                  <Button size="sm" onClick={() => onSetStatus(w.id, 'completed')}>
-                    Завершить
-                  </Button>
-                )}
                 {w.status === 'planned' && (
                   <Button size="sm" variant="ghost" onClick={() => onSetStatus(w.id, 'skipped')}>
                     Пропустить

@@ -1,8 +1,9 @@
 import { useState, useMemo, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { ChevronLeft, ChevronRight, Plus, Trash2 } from 'lucide-react';
 import { clsx } from 'clsx';
 
-import { useCalendarWorkouts, useWorkoutDetails, useWorkoutMutations, useRecords } from './calendar.hooks.js';
+import { useCalendarWorkouts, useWorkoutDetails, useWorkoutMutations, useRecords, useStartWorkout } from './calendar.hooks.js';
 import { CalendarGrid } from './widgets/CalendarGrid.jsx';
 import { DayPanel } from './widgets/DayPanel.jsx';
 import { BestResultCard } from './widgets/BestResultCard.jsx';
@@ -56,6 +57,12 @@ export const CalendarPage = () => {
     }
     return [...map.values()];
   }, [detailsQuery.data]);
+
+  const startWorkout = useStartWorkout();
+  const handleStart = (w) => {
+    if (w.status === 'in_progress') return navigate(`/workout/${w.id}/active`);
+    startWorkout.mutate(w.id, { onSuccess: () => navigate(`/workout/${w.id}/active`) });
+  };
 
   const handleSetStatus = (id, status) => {
     statusMutation.mutate({ id, status }, {
@@ -129,6 +136,7 @@ export const CalendarPage = () => {
 
         <div className="space-y-6">
           <DayPanel
+            onStart={handleStart}
             date={selectedDate}
             workouts={dayWorkouts}
             onOpenWorkout={(w) => setOpenWorkoutId(w.id)}

@@ -15,6 +15,12 @@ export const updateWorkout = ({ id, ...body }) =>
 export const deleteWorkout = (id) =>
     api.delete(`/workouts/${id}`).then((r) => r.data);
 
+export const startWorkout = (id) =>
+    api.post(`/workouts/${id}/start`).then((r) => r.data.workout);
+
+export const getActiveWorkout = () =>
+    api.get('/workouts/active').then((r) => r.data.workout);
+
 export const updateWorkoutStatus = ({ id, status }) =>
     api.patch(`/workouts/${id}/status`, { status }).then((r) => r.data.workout);
 

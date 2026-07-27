@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   getWorkouts, getWorkout, createWorkout, updateWorkout, updateWorkoutStatus, syncWorkout,
   upsertWorkoutSet, deleteWorkoutSet, deleteWorkout,
+  getActiveWorkout,
 } from '../../entities/workout/workout.api.js';
 import { getRecords } from '../../entities/records/record.api.js';
 import { monthGridRange, weekRange } from '../../shared/lib/date.js';
@@ -13,6 +14,20 @@ export const useCalendarWorkouts = (anchorDate, view) => {
   return useQuery({
     queryKey: ['workouts', view, range.from, range.to],
     queryFn: () => getWorkouts(range),
+  });
+};
+
+export const useActiveWorkout = () =>
+  useQuery({ queryKey: ['workouts', 'active'], queryFn: getActiveWorkout });
+
+export const useStartWorkout = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: startWorkout,
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['workouts'] });
+    },
+    onError: (e) => toast.error(e.response?.data?.message || 'Не удалось начать тренировку'),
   });
 };
 
@@ -37,7 +52,6 @@ export const useWorkoutMutations = () => {
     if (workoutId) qc.invalidateQueries({ queryKey: ['workout', workoutId] });
   };
 
-  // снимок всех списков тренировок + точечный патч
   const patchLists = (fn) => {
     const snapshot = qc.getQueriesData({ queryKey: ['workouts'] });
     qc.setQueriesData({ queryKey: ['workouts'] }, (old) =>
