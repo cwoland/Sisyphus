@@ -13,6 +13,7 @@ import { Sheet } from '../../shared/ui/Sheet.jsx';
 import { Skeleton } from '../../shared/ui/Skeleton.jsx';
 import { completionPhrases, pickRandom } from '../../shared/lib/sisyphusPhrases.js';
 import { toast } from '../../shared/ui/toast/toast.store.js';
+import { SavedHint } from '../../shared/ui/SavedHint.jsx';
 import {
   monthTitle, isSameDay, isSameMonth, addMonths, addWeeks, weekRangeLabel, toApiDate, format,
 } from '../../shared/lib/date.js';
@@ -209,6 +210,7 @@ export const CalendarPage = () => {
 const WorkoutMetaEditor = ({ workout, onSave }) => {
   const [title, setTitle] = useState(workout?.title ?? '');
   const [date, setDate] = useState(workout?.date ?? '');
+  const [saved, setSaved] = useState(false);
 
   useEffect(() => {
     setTitle(workout?.title ?? '');
@@ -221,11 +223,19 @@ const WorkoutMetaEditor = ({ workout, onSave }) => {
     const patch = {};
     if (title.trim() && title !== workout.title) patch.title = title.trim();
     if (date && date !== workout.date) patch.date = date;
-    if (Object.keys(patch).length) onSave(patch);
+    if (Object.keys(patch).length) {
+      onSave(patch);
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2000);
+    };
   };
 
   return (
-    <div className="flex flex-col gap-2 border-b border-border pb-4 sm:flex-row">
+    <div className="border-b border-border pb-4">
+      <div className="mb-1.5 flex h-4 items-center justify-end">
+        <SavedHint show={saved} />
+      </div>
+    <div className="flex flex-col gap-2 sm:flex-row">
       <input 
         value={title}
         onChange={(e) => setTitle(e.target.value)}
@@ -239,11 +249,13 @@ const WorkoutMetaEditor = ({ workout, onSave }) => {
           onBlur={commit}
           className="rounded-xl border border-border bg-surface-2 px-3 py-2 text-sm text-text focus:outline-none focus:ring-accent" />
     </div>
+    </div>
   );
 }
 
 const WorkoutNotes = ({ workout, onSave }) => {
   const [value, setValue] = useState(workout?.notes ?? '');
+  const [saved, setSaved] = useState(false);
 
   useEffect(() => { setValue(workout?.notes ?? ''); }, [workout?.id]);
 
@@ -253,18 +265,23 @@ const WorkoutNotes = ({ workout, onSave }) => {
     const next = value.trim();
     if (next === (workout.notes ?? '')) return;
     onSave({ notes: next || null });
+    setSaved(true);
+    setTimeout(() => setSaved(false), 2000);
   };
 
   return (
     <div className="space-y-1.5 border-t border-border pt-4">
+      <div className="flex items-center justify-between">
       <label className="block text-sm font-medium text-text">Заметки</label>
+      <SavedHint show={saved} />
+      </div>
       <textarea
         value={value}
         onChange={(e) => setValue(e.target.value)}
         onBlur={commit}
         rows={3}
         placeholder="Самочувствие, техника, что поменять"
-        className="w-full rounded-xl border border-border bg-surface-2 px-3 py-2 text-sm text-text placeholder:text-text-muted focus:outline:none focus:ring-1 focus:ring-accent" />
+        className="w-full rounded-xl border border-border bg-surface-2 px-3 py-2 text-sm text-text placeholder:text-text-muted focus:outline-none focus:ring-1 focus:ring-accent" />
     </div>
   );
 }
