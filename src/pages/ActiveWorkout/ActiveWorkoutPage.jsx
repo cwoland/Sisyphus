@@ -52,7 +52,7 @@ const SetRow = ({ set, index, onSave, onRest }) => {
                 onChange={(e) => setReps(e.target.value)} onBlur={() => save()}
                 placeholder="повт"
                 className="w-16 rounded-lg border border-border bg-surface px-2 py-2 text-center text-base text-text focus:outline-none focus:ring-1 focus:ring-accent" />
-            {oneRM > 0 && <span className="hidden text-xs text-text-muted xs:inline">≈{Math.round(oneRm)}</span>}
+            {oneRM > 0 && <span className="hidden text-xs text-text-muted xs:inline">≈{Math.round(oneRM)}</span>}
             <button
                 onClick={toggle}
                 className={clsx('ml-auto flex h-10 w-10 items-center justify-center rounded-lg transition-colors',
