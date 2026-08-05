@@ -7,6 +7,12 @@ import { ru } from 'date-fns/locale';
 export const toApiDate = (date) => format(date, 'yyyy-MM-dd');
 export const todayApi = () => toApiDate(new Date());
 
+export const safeDate = (value) => {
+  if (!value) return null;
+  const d = new Date(value);
+  return isNaN(d.getTime()) ? null : d;
+};
+
 export const weekRange = (date = new Date()) => ({
   from: toApiDate(startOfWeek(date, { weekStartsOn: 1 })),
   to: toApiDate(endOfWeek(date, { weekStartsOn: 1 })),
