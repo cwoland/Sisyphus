@@ -74,7 +74,7 @@ export const AiPage = () => {
                   <div className="min-w-0 flex-1">
                     <p className="truncate font-medium text-text">{conv.title || contextLabel(conv.context_type)}</p>
                     <p className="text-xs text-text-muted">
-                      {formatDistanceToNow(new Date(conv.created_at), { locale: ru, addSuffix: true })}
+                      {safeDistanceToNow(conv.created_at, { locale: ru, addSuffix: true })}
                     </p>
                   </div>
                 </button>

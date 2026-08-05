@@ -49,7 +49,7 @@ export const FeedList = ({ query }) => {
                 {cfg.text(item.meta)}
               </p>
               <p className="mt-0.5 text-xs text-text-muted">
-                {formatDistanceToNow(new Date(item.occurred_at), { locale: ru, addSuffix: true })}
+                {safeDistanceToNow(item.occurred_at, { locale: ru, addSuffix: true })}
               </p>
             </div>
 

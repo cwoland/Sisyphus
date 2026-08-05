@@ -54,7 +54,7 @@ export const ChatPage = () => {
                     <p className="truncate font-medium text-text">{chat.friend_name}</p>
                     {chat.last_message_at && (
                       <span className="shrink-0 text-[10px] text-text-muted">
-                        {formatDistanceToNow(new Date(chat.last_message_at), { locale: ru, addSuffix: false })}
+                        {chat.last_message_at ? safeDistanceToNow(chat.last_message_at, { locale: ru, addSuffix: false }) : ''}
                       </span>
                     )}
                   </div>

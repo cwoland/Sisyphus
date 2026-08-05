@@ -12,7 +12,7 @@ export const MessageBubble = ({ message, isOwn }) => (
     >
       <p className="whitespace-pre-wrap break-words">{message.text}</p>
       <div className={clsx('mt-1 flex items-center justify-end gap-1', isOwn ? 'text-white/70' : 'text-text-muted')}>
-        <span className="text-[10px]">{format(new Date(message.created_at), 'HH:mm')}</span>
+        <span className="text-[10px]">{safeFormat(message.created_at, 'HH:mm')}</span>
         <MessageStatus message={message} isOwn={isOwn} />
       </div>
     </div>

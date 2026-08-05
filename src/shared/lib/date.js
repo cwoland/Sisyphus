@@ -13,6 +13,20 @@ export const safeDate = (value) => {
   return isNaN(d.getTime()) ? null : d;
 };
 
+export const safeFormat = (value, fmt, options) => {
+  if (!value) return '';
+  const d = new Date(value);
+  if (isNaN(d.getTime())) return '';
+  return format(d, fmt, options);
+};
+
+export const safeDistanceToNow = (value, options) => {
+  if (!value) return '';
+  const d = new Date(value);
+  if (isNaN(d.getTime())) return '';
+  return formatDistanceToNow(d, options);
+};
+
 export const weekRange = (date = new Date()) => ({
   from: toApiDate(startOfWeek(date, { weekStartsOn: 1 })),
   to: toApiDate(endOfWeek(date, { weekStartsOn: 1 })),

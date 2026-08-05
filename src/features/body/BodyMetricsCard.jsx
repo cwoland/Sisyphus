@@ -77,7 +77,7 @@ export const BodyMetricsCard = () => {
               })}
             </div>
             <p className="text-xs text-text-muted">
-              Последний замер: {format(new Date(current.date), 'd MMMM', { locale: ru })}
+              Последний замер: {safeFormat(current.date, 'd MMMM', { locale: ru })}
             </p>
           </>
         )}
@@ -92,7 +92,7 @@ export const BodyMetricsCard = () => {
           {metrics.slice(0, 6).map((m) => (
             <div key={m.id} className="flex items-center justify-between p-3">
               <span className="text-sm text-text">
-                {format(new Date(m.date), 'd MMM yyyy', { locale: ru })}
+                {safeFormat(m.date, 'd MMM yyyy', { locale: ru })}
               </span>
               <div className="flex items-center gap-3">
                 <span className="text-sm text-text-muted">

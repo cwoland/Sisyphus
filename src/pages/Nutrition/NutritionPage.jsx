@@ -61,10 +61,10 @@ export const NutritionPage = () => {
         </button>
         <div className="text-center">
           <p className="font-medium capitalize text-text">
-            {format(new Date(date), 'd MMMM', { locale: ru })}
+            {safeFormat(date, 'd MMMM', { locale: ru })}
           </p>
           <p className="text-xs capitalize text-text-muted">
-            {format(new Date(date), 'EEEE', { locale: ru })}
+            {safeFormat(date, 'EEEE', { locale: ru })}
           </p>
         </div>
         <button onClick={() => shiftDay(1)} className="rounded-lg p-2 text-text-muted hover:bg-surface-2 hover:text-text" aria-label="Следующий день">
