@@ -35,10 +35,12 @@ export const CalendarPage = () => {
 
   const workoutsQuery = useCalendarWorkouts(anchorDate, view);
   const detailsQuery = useWorkoutDetails(openWorkoutId);
-  const { statusMutation, syncMutation, setMutation, deleteSetMutation, createMutation, deleteWorkoutMutation } = useWorkoutMutations();
+  const { statusMutation, syncMutation, setMutation, deleteSetMutation, createMutation, updateMutation, deleteWorkoutMutation } = useWorkoutMutations();
   const recordsQuery = useRecords();
 
-  const navigate = (dir) => {
+  const navigate = useNavigate();
+
+  const shiftAnchor = (dir) => {
     setAnchorDate((d) => (view === 'month' ? addMonths(d, dir) : addWeeks(d, dir)));
   };
 
@@ -108,13 +110,13 @@ export const CalendarPage = () => {
           {view === 'month' ? monthTitle(anchorDate) : weekRangeLabel(anchorDate)}
         </h1>
         <div className="flex gap-1">
-          <button onClick={() => navigate(-1)} className="rounded-lg p-2 text-text-muted hover:bg-surface-2 hover:text-text" aria-label="Назад">
+          <button onClick={() => shiftAnchor(-1)} className="rounded-lg p-2 text-text-muted hover:bg-surface-2 hover:text-text" aria-label="Назад">
             <ChevronLeft size={20} />
           </button>
           <button onClick={() => { setAnchorDate(new Date()); setSelectedDate(new Date()); }} className="rounded-lg px-3 py-2 text-sm text-text-muted hover:bg-surface-2 hover:text-text">
             Сегодня
           </button>
-          <button onClick={() => navigate(1)} className="rounded-lg p-2 text-text-muted hover:bg-surface-2 hover:text-text" aria-label="Вперёд">
+          <button onClick={() => shiftAnchor(1)} className="rounded-lg p-2 text-text-muted hover:bg-surface-2 hover:text-text" aria-label="Вперёд">
             <ChevronRight size={20} />
           </button>
         </div>

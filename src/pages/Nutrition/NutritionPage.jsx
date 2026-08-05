@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Plus, Settings2, Pencil, Trash2, ChevronLeft, ChevronRight, Apple, Scale } from 'lucide-react';
-import { format, addDays } from 'date-fns';
+import { addDays } from 'date-fns';
 import { ru } from 'date-fns/locale';
 
 import { useDayEntries, useDaySummary, useTargets, useNutritionMutations, useTargetsMutation } from './nutrition.hooks.js';
@@ -14,7 +14,7 @@ import { EmptyState } from '../../shared/ui/EmptyState.jsx';
 import { Skeleton } from '../../shared/ui/Skeleton.jsx';
 import { mealTypes, mealTypeLabel, mealTypeIcon } from '../../entities/nutrition/mealTypes.js';
 import { emptyStates } from '../../shared/lib/sisyphusPhrases.js';
-import { toApiDate, todayApi } from '../../shared/lib/date.js';
+import { toApiDate, todayApi, safeFormat } from '../../shared/lib/date.js';
 import { useLatestBody } from '../../features/body/body.hooks.js';
 
 export const NutritionPage = () => {

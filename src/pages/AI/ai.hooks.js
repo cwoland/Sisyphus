@@ -54,7 +54,7 @@ export const useSendAiMessage = (conversationId) => {
           messages: [
             ...old.messages,
             { id: `temp-user-${Date.now()}`, role: 'user', content: message, created_at: new Date().toISOString() },
-            { id: 'typing', role: 'assistant', content: '', isTyping: true },
+            { id: 'typing', role: 'assistant', content: '', isTyping: true, created_at: new Date().toISOString() },
           ],
         };
       });

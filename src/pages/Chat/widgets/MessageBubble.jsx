@@ -1,5 +1,5 @@
 import { clsx } from 'clsx';
-import { format } from 'date-fns';
+import { safeFormat } from '../../../shared/lib/date.js';
 import { MessageStatus } from './MessageStatus.jsx';
 
 export const MessageBubble = ({ message, isOwn }) => (

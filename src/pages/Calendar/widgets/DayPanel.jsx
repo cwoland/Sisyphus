@@ -1,7 +1,7 @@
 import { CheckCircle2, Circle, XCircle, RefreshCw, Dumbbell, Plus } from 'lucide-react';
 import { clsx } from 'clsx';
-import { format } from 'date-fns';
 import { ru } from 'date-fns/locale';
+import { safeFormat } from '../../../shared/lib/date.js';
 import { Button } from '../../../shared/ui/Button.jsx';
 import { EmptyState } from '../../../shared/ui/EmptyState.jsx';
 import { emptyStates } from '../../../shared/lib/sisyphusPhrases.js';
@@ -17,7 +17,7 @@ export const DayPanel = ({ date, workouts, onOpenWorkout, onSync, onSetStatus, o
   <div className="rounded-2xl border border-border bg-surface p-4">
     <div className="mb-3 flex items-center justify-between">
     <h2 className="font-display text-lg font-semibold text-text">
-      {format(date, 'd MMMM, EEEE', { locale: ru })}
+      {safeFormat(date, 'd MMMM, EEEE', { locale: ru })}
     </h2>
     <button
     onClick={onAddWorkout}

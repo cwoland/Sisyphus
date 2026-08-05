@@ -9,8 +9,8 @@ import { Avatar } from '../../shared/ui/Avatar.jsx';
 import { EmptyState } from '../../shared/ui/EmptyState.jsx';
 import { SkeletonList } from '../../shared/ui/Skeleton.jsx';
 import { emptyStates } from '../../shared/lib/sisyphusPhrases.js';
-import { formatDistanceToNow } from 'date-fns';
 import { ru } from 'date-fns/locale';
+import { safeDistanceToNow } from '../../shared/lib/date.js';
 
 export const ChatPage = () => {
   const location = useLocation();

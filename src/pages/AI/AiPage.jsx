@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { Plus, Sparkles } from 'lucide-react';
 import { clsx } from 'clsx';
-import { formatDistanceToNow } from 'date-fns';
 import { ru } from 'date-fns/locale';
+import { safeDistanceToNow } from '../../shared/lib/date.js';
 
 import { useConversations, useCreateConversation, useDeleteConversation } from './ai.hooks.js';
 import { AiConversation } from './widgets/AiConversation.jsx';

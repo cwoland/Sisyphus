@@ -1,12 +1,11 @@
 import { useState } from 'react';
 import { Scale, Plus, Trash2, TrendingDown, TrendingUp } from 'lucide-react';
-import { format } from 'date-fns';
 import { ru } from 'date-fns/locale';
 
 import { useBodyMetrics, useBodyMutations } from './body.hooks.js';
 import { Sheet } from '../../shared/ui/Sheet.jsx';
 import { Button } from '../../shared/ui/Button.jsx';
-import { todayApi } from '../../shared/lib/date.js';
+import { todayApi, safeFormat } from '../../shared/lib/date.js';
 
 const FIELDS = [
   { key: 'weight', label: 'Вес, кг', step: '0.1' },

@@ -1,6 +1,6 @@
 import { Dumbbell, Trophy, BookOpen, Newspaper } from 'lucide-react';
-import { formatDistanceToNow } from 'date-fns';
 import { ru } from 'date-fns/locale';
+import { safeDistanceToNow } from '../../../shared/lib/date.js';
 
 import { Avatar } from '../../../shared/ui/Avatar.jsx';
 import { EmptyState } from '../../../shared/ui/EmptyState.jsx';
