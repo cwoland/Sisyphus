@@ -5,14 +5,13 @@ import { useUserSearch, useFriendMutations } from '../../pages/Friends/friends.h
 import { usePublicPrograms } from '../../pages/Programs/programs.hooks.js';
 import { Avatar } from '../../shared/ui/Avatar.jsx';
 
-export const HeaderSearch = () => {
+export const HeaderSearch = ({ onRail = false }) => {
   const navigate = useNavigate();
   const boxRef = useRef(null);
   const [input, setInput] = useState('');
   const [term, setTerm] = useState('');
   const [open, setOpen] = useState(false);
   const { sendRequest } = useFriendMutations();
-
   useEffect(() => {
     const t = setTimeout(() => setTerm(input.trim()), 300);
     return () => clearTimeout(t);
@@ -39,14 +38,25 @@ export const HeaderSearch = () => {
   };
 
   return (
-    <div ref={boxRef} className="relative w-full max-w-xs">
-      <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
+    <div ref={boxRef} className={clsx('relative', onRail ? 'w-full' : 'w-full max-w-xs')}>
+      <Search
+        size={16}
+        className={clsx(
+          'absolute left-3 top-1/2 -translate-y-1/2',
+          onRail ? 'text-rail-ink-muted' : 'text-text-muted'
+        )}
+      />
       <input
         value={input}
         onChange={(e) => { setInput(e.target.value); setOpen(true); }}
         onFocus={() => setOpen(true)}
         placeholder="Люди и программы"
-        className="w-full rounded-xl border border-border-strong bg-surface-2 py-2 pl-9 pr-3 text-sm text-text placeholder:text-text-muted focus:outline-none focus:ring-1 focus:ring-accent"
+        className={clsx(
+          'w-full rounded-xl py-2.5 pl-9 pr-3 text-sm focus:outline-none focus:ring-2',
+          onRail
+            ? 'border border-rail-hover bg-rail-hover/50 text-rail-ink placeholder:text-rail-ink-muted focus:ring-rail-mark'
+            : 'border border-border-strong bg-surface-2 text-text placeholder:text-text-muted focus:ring-accent'
+        )}
       />
 
       {open && active && (

@@ -26,6 +26,13 @@ export default {
         crimson: 'rgb(var(--danger) / <alpha-value>)',
         'on-crimson': 'rgb(var(--on-danger) / <alpha-value>)',
         burgundy: 'rgb(var(--danger) / <alpha-value>)',
+
+        rail: 'rgb(var(--rail) / <alpha-value>)',
+        'rail-hover': 'rgb(var(--rail-hover) / <alpha-value>)',
+        'rail-ink': 'rgb(var(--rail-ink) / <alpha-value>)',
+        'rail-ink-muted': 'rgb(var(--rail-ink-muted) / <alpha-value>)',
+        'rail-mark': 'rgb(var(--rail-mark) / <alpha-value>)',
+        'rail-edge': 'rgb(var(--rail-edge) / <alpha-value>)',
       },
       fontFamily: {
         sans: ['Archivo', 'system-ui', 'sans-serif'],

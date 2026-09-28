@@ -10,20 +10,18 @@ export const AppLayout = () => {
   const [drawerOpen, setDrawerOpen] = useState(false);
 
   return (
-    <div className="relative isolate min-h-[100dvh] bg-bg">
-      <GreekPatternBg />
-      <div className="relative z-10 mx-auto flex max-w-app">
-        <aside className="sticky top-0 hidden h-[100dvh] w-64 shrink-0 border-r border-border bg-surface pad-safe-top lg:block">
-          <Sidebar />
-        </aside>
+    <div className="relative isolate min-h-[100dvh] bg-bg lg:flex">
+      <aside className="sticky top-0 hidden h-[100dvh] w-64 shrink-0 border-r border-rail-edge lg:block">
+        <Sidebar withSearch />
+      </aside>
 
-        <div className="flex min-w-0 flex-1 flex-col">
-          <Header onOpenMenu={() => setDrawerOpen(true)} />
+      <div className="relative isolate flex min-w-0 flex-1 flex-col">
+        <GreekPatternBg />
+        <Header onOpenMenu={() => setDrawerOpen(true)} />
 
-          <main className="flex-1 overflow-x-clip px-4 pt-6 pb-[calc(7rem+env(safe-area-inset-bottom))] md:px-6 lg:px-8 lg:pt-6 lg:pb-8">
-            <Outlet />
-          </main>
-        </div>
+        <main className="relative mx-auto w-full max-w-app flex-1 overflow-x-clip px-4 pt-6 pb-[calc(7rem+env(safe-area-inset-bottom))] md:px-6 lg:px-10 lg:pb-10">
+          <Outlet />
+        </main>
       </div>
 
       <BottomNav onOpenMenu={() => setDrawerOpen(true)} />

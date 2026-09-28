@@ -1,43 +1,21 @@
 import { Link } from 'react-router-dom';
-import { Menu, Moon, Sun } from 'lucide-react';
+import { Menu } from 'lucide-react';
 import { Logo } from '../../shared/ui/Logo.jsx';
-import { useThemeStore } from '../../entities/theme/theme.store.js';
 
-import { HeaderSearch } from '../../features/search/HeaderSearch.jsx';
+export const Header = ({ onOpenMenu }) => (
+  <header className="sticky top-0 z-30 bg-rail text-rail-ink pad-safe-top lg:hidden">
+    <div className="flex h-14 items-center gap-2 px-3">
+      <button
+        onClick={onOpenMenu}
+        className="relative flex h-11 w-11 items-center justify-center rounded-xl text-rail-ink-muted transition-colors hover:bg-rail-hover hover:text-rail-ink"
+        aria-label="Открыть меню"
+      >
+        <Menu size={22} />
+      </button>
 
-export const Header = ({ onOpenMenu }) => {
-  const { theme, toggleTheme } = useThemeStore();
-
-  return (
-    <header className="sticky top-0 z-30 border-b border-border bg-surface/95 backdrop-blur pad-safe-top">
-      <div className="flex h-14 items-center justify-between px-4">
-        <div className="flex items-center gap-2">
-          <button
-            onClick={onOpenMenu}
-            className="rounded-lg p-2 text-text-muted hover:bg-surface-2 hover:text-text lg:hidden"
-            aria-label="Открыть меню"
-          >
-            <Menu size={22} />
-          </button>
-          <div className="lg:hidden">
-            <Link to="/" className="rounded-lg" aria-label="На главную">
-            <Logo size="sm" />
-            </Link>
-          </div>
-        </div>
-
-        <div className="mx-4 hidden min-w-0 flex-1 justify-center md:flex">
-          <HeaderSearch />
-        </div>
-
-        <button
-          onClick={toggleTheme}
-          className="rounded-lg p-2 text-text-muted hover:bg-surface-2 hover:text-text transition-colors"
-          aria-label="Переключить тему"
-        >
-          {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
-        </button>
-      </div>
-    </header>
-  );
-};
+      <Link to="/" className="rounded-lg" aria-label="На главную">
+        <Logo size="sm" />
+      </Link>
+    </div>
+  </header>
+);

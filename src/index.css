@@ -33,6 +33,13 @@
     --on-danger: 255 255 255;
     --alert: 166 40 30;
     --on-alert: 255 255 255;
+
+    --rail:            28 24 21;
+    --rail-hover:      48 41 35;
+    --rail-ink:        240 233 222;
+    --rail-ink-muted:  166 155 140;
+    --rail-mark:       214 118 70;
+    --rail-edge:       28 24 21;
   }
 
   html.dark {
@@ -53,6 +60,13 @@
     --on-gold: 20 15 12;
     --danger: 232 140 124;
     --on-danger: 26 14 12;
+
+    --rail:            36 30 25;
+    --rail-hover:      56 47 39;
+    --rail-ink:        240 233 222;
+    --rail-ink-muted:  172 160 145;
+    --rail-mark:       214 118 70;
+    --rail-edge:       84 68 56;
   }
 
   html {
