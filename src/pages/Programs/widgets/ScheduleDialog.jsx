@@ -61,7 +61,7 @@ export const ScheduleDialog = ({ isOpen, onClose, program, onSchedule, isSchedul
                 className={clsx(
                   'flex h-11 w-11 items-center justify-center rounded-xl border text-sm font-medium transition-colors',
                   weekdays.includes(d.value)
-                    ? 'border-accent bg-accent text-white'
+                    ? 'border-accent bg-accent text-on-accent'
                     : 'border-border text-text-muted hover:bg-surface-2'
                 )}
               >
@@ -77,7 +77,7 @@ export const ScheduleDialog = ({ isOpen, onClose, program, onSchedule, isSchedul
             type="number" min="1" max="52"
             value={weeksCount}
             onChange={(e) => setWeeksCount(e.target.value)}
-            className="w-full rounded-xl border border-border bg-surface px-4 py-3 text-sm text-text focus:outline-none focus:ring-2 focus:ring-accent"
+            className="w-full rounded-xl border border-border-strong bg-surface px-4 py-3 text-sm text-text focus:outline-none focus:ring-2 focus:ring-accent"
           />
         </div>
 

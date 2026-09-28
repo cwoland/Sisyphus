@@ -71,12 +71,12 @@ export const AiConversation = ({ conversationId, onBack, onDelete }) => {
           rows={1}
           placeholder="Спросить AI-тренера..."
           disabled={sendMutation.isPending}
-          className="max-h-32 flex-1 resize-none rounded-xl border border-border bg-surface px-3.5 py-2.5 text-sm text-text focus:outline-none focus:ring-2 focus:ring-accent disabled:opacity-60"
+          className="max-h-32 flex-1 resize-none rounded-xl border border-border-strong bg-surface px-3.5 py-2.5 text-sm text-text focus:outline-none focus:ring-2 focus:ring-accent disabled:opacity-60"
         />
         <button
           onClick={handleSend}
           disabled={!text.trim() || sendMutation.isPending}
-          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-accent text-white transition-colors hover:bg-accent-hover disabled:opacity-50"
+          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-accent text-on-accent transition-colors hover:bg-accent-hover disabled:opacity-50"
           aria-label="Отправить"
         >
           <Send size={18} />
@@ -94,7 +94,7 @@ const AiBubble = ({ message }) => {
       <div
         className={clsx(
           'max-w-[80%] rounded-2xl px-4 py-2.5 text-sm',
-          isUser ? 'rounded-br-md bg-accent text-white' : 'rounded-bl-md bg-surface-2 text-text'
+          isUser ? 'rounded-br-md bg-accent text-on-accent' : 'rounded-bl-md bg-surface-2 text-text'
         )}
       >
         {message.isTyping ? (

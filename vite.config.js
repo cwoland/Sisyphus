@@ -2,7 +2,6 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa';
 
-// https://vite.dev/config/
 export default defineConfig({
   plugins: [
     react(),
@@ -17,12 +16,16 @@ export default defineConfig({
         name: 'Sisyphus',
         short_name: 'Sisyphus',
         description: 'Твой камень ждёт тебя',
-        theme_color: '#112250',
-        background_color: '#ECEDF0',
+        theme_color: '#D2D5DC',
+        background_color: '#D2D5DC',
         display: 'standalone',
-        orientation: 'portrait',
+        orientation: 'any',
         scope: '/',
         start_url: '/',
+        shortcuts: [
+          { name: 'Начать тренировку', short_name: 'Тренировка', url: '/calendar' },
+          { name: 'Добавить приём пищи', short_name: 'Питание', url: '/nutrition' },
+        ],
         icons: [
           { src: '/pwa-192x192.png', sizes: '192x192', type: 'image/png' },
           { src: '/pwa-512x512.png', sizes: '512x512', type: 'image/png' },
@@ -36,11 +39,12 @@ export default defineConfig({
       },
 
       injectManifest: {
-        globPatterns: ['**/*.{js,css,html,svg,png,woff2}'],
+        globPatterns: ['**/*.{js,css,html,svg,png,webp,woff2}'],
+        globIgnores: ['art/*.png'],
       },
 
       devOptions: {
-        enabled: true,
+        enabled: false,
         type: 'module',
       },
     }),

@@ -108,7 +108,7 @@ export const EntryForm = ({ date, entry, defaultMealType, onSubmit, onCancel, is
           value={calories}
           onChange={(e) => setCalories(e.target.value)}
           placeholder="ккал"
-          className="w-full rounded-xl border border-border bg-surface px-4 py-3 text-sm text-text focus:outline-none focus:ring-2 focus:ring-accent"
+          className="w-full rounded-xl border border-border-strong bg-surface px-4 py-3 text-sm text-text focus:outline-none focus:ring-2 focus:ring-accent"
         />
       </div>
 
@@ -138,7 +138,7 @@ const MacroInput = ({ label, value, onChange }) => (
       value={value}
       onChange={(e) => onChange(e.target.value)}
       placeholder="0"
-      className="w-full rounded-lg border border-border bg-surface px-2 py-2 text-center text-sm text-text focus:outline-none focus:ring-1 focus:ring-accent"
+      className="w-full rounded-lg border border-border-strong bg-surface px-2 py-2 text-center text-sm text-text focus:outline-none focus:ring-1 focus:ring-accent"
     />
   </div>
 );

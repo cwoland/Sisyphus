@@ -7,7 +7,19 @@ import {
 import { getRecords } from '../../entities/records/record.api.js';
 import { monthGridRange, weekRange } from '../../shared/lib/date.js';
 import { toast } from '../../shared/ui/toast/toast.store.js';
+import { isQueuedError } from '../../shared/offline/isQueued.js';
 
+
+const onMutationError = (rollback, fallbackMessage) => (error, vars, ctx) => {
+  if (isQueuedError(error)) return;
+  rollback?.(ctx, vars);
+  toast.error(error.response?.data?.message || fallbackMessage);
+};
+
+const skipWhenQueued = (fn) => (data, error, vars, ctx) => {
+  if (isQueuedError(error)) return;
+  fn(data, error, vars, ctx);
+};
 
 export const useCalendarWorkouts = (anchorDate, view) => {
   const range = view === 'month' ? monthGridRange(anchorDate) : weekRange(anchorDate);
@@ -27,7 +39,7 @@ export const useStartWorkout = () => {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['workouts'] });
     },
-    onError: (e) => toast.error(e.response?.data?.message || 'Не удалось начать тренировку'),
+    onError: onMutationError(null, 'Не удалось начать тренировку'),
   });
 };
 
@@ -76,27 +88,26 @@ export const useWorkoutMutations = () => {
 
       return { lists, detailKey, detail };
     },
-    onError: (e, vars, ctx) => {
+    onError: onMutationError((ctx) => {
       restore(ctx?.lists);
       if (ctx?.detail) qc.setQueryData(ctx.detailKey, ctx.detail);
-      toast.error(e.response?.data?.message || 'Не удалось изменить статус');
-    },
-    onSettled: (_d, _e, vars) => {
+    }, 'Не удалось изменить статус'),
+    onSettled: skipWhenQueued((_d, _e, vars) => {
       invalidateAll(vars.id);
       qc.invalidateQueries({ queryKey: ['records'] });
-    },
+    }),
   });
 
   const createMutation = useMutation({
     mutationFn: createWorkout,
     onSuccess: (w) => { invalidateAll(w.id); toast.success('Тренировка добавлена'); },
-    onError: (e) => toast.error(e.response?.data?.message || 'Не удалось добавить тренировку'),
+    onError: onMutationError(null, 'Не удалось добавить тренировку'),
   });
 
   const syncMutation = useMutation({
     mutationFn: syncWorkout,
     onSuccess: (w) => { invalidateAll(w.id); toast.success('Тренировка синхронизирована с программой'); },
-    onError: (e) => toast.error(e.response?.data?.message || 'Ошибка синхронизации'),
+    onError: onMutationError(null, 'Ошибка синхронизации'),
   });
 
   const setMutation = useMutation({
@@ -140,11 +151,10 @@ export const useWorkoutMutations = () => {
 
       return { previous, key };
     },
-    onError: (e, vars, ctx) => {
+    onError: onMutationError((ctx) => {
       if (ctx?.previous) qc.setQueryData(ctx.key, ctx.previous);
-      toast.error(e.response?.data?.message || 'Не удалось сохранить подход');
-    },
-    onSettled: (_d, _e, vars) => invalidateAll(vars.workoutId),
+    }, 'Не удалось сохранить подход'),
+    onSettled: skipWhenQueued((_d, _e, vars) => invalidateAll(vars.workoutId)),
   });
 
   const deleteSetMutation = useMutation({
@@ -160,11 +170,10 @@ export const useWorkoutMutations = () => {
 
       return { previous, key };
     },
-    onError: (e, vars, ctx) => {
+    onError: onMutationError((ctx) => {
       if (ctx?.previous) qc.setQueryData(ctx.key, ctx.previous);
-      toast.error(e.response?.data?.message || 'Не удалось удалить подход');
-    },
-    onSettled: (_d, _e, vars) => invalidateAll(vars.workoutId),
+    }, 'Не удалось удалить подход'),
+    onSettled: skipWhenQueued((_d, _e, vars) => invalidateAll(vars.workoutId)),
   });
 
   const updateMutation = useMutation({
@@ -177,12 +186,11 @@ export const useWorkoutMutations = () => {
       const lists = patchLists((old) => old.map((w) => (w.id === vars.id ? { ...w, ...vars } : w)));
       return { previous, key, lists };
     },
-    onError: (e, vars, ctx) => {
+    onError: onMutationError((ctx) => {
       if (ctx?.previous) qc.setQueryData(ctx.key, ctx.previous);
       restore(ctx?.lists);
-      toast.error(e.response?.data?.message || 'Не удалось сохранить изменения');
-    },
-    onSettled: (_d, _e, vars) => invalidateAll(vars.id),
+    }, 'Не удалось сохранить изменения'),
+    onSettled: skipWhenQueued((_d, _e, vars) => invalidateAll(vars.id)),
   });
 
   const deleteWorkoutMutation = useMutation({
@@ -191,12 +199,9 @@ export const useWorkoutMutations = () => {
       await qc.cancelQueries({ queryKey: ['workouts'] });
       return { lists: patchLists((old) => old.filter((w) => w.id !== id)) };
     },
-    onError: (e, _id, ctx) => {
-      restore(ctx?.lists);
-      toast.error(e.response?.data?.message || 'Не удалось удалить тренировку');
-    },
+    onError: onMutationError((ctx) => restore(ctx?.lists), 'Не удалось удалить тренировку'),
     onSuccess: () => toast.success('Тренировка удалена'),
-    onSettled: () => invalidateAll(),
+    onSettled: skipWhenQueued(() => invalidateAll()),
   });
 
   return { statusMutation, createMutation, syncMutation, setMutation, deleteSetMutation, updateMutation, deleteWorkoutMutation };

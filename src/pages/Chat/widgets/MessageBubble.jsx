@@ -7,11 +7,11 @@ export const MessageBubble = ({ message, isOwn }) => (
     <div
       className={clsx(
         'max-w-[75%] rounded-2xl px-3.5 py-2 text-sm',
-        isOwn ? 'rounded-br-md bg-accent text-white' : 'rounded-bl-md bg-surface-2 text-text'
+        isOwn ? 'rounded-br-md bg-accent text-on-accent' : 'rounded-bl-md bg-surface-2 text-text'
       )}
     >
       <p className="whitespace-pre-wrap break-words">{message.text}</p>
-      <div className={clsx('mt-1 flex items-center justify-end gap-1', isOwn ? 'text-white/70' : 'text-text-muted')}>
+      <div className={clsx('mt-1 flex items-center justify-end gap-1', isOwn ? 'text-on-accent/70' : 'text-text-muted')}>
         <span className="text-[10px]">{safeFormat(message.created_at, 'HH:mm')}</span>
         <MessageStatus message={message} isOwn={isOwn} />
       </div>

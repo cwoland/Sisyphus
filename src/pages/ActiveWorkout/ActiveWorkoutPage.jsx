@@ -1,4 +1,4 @@
-import { useState } from 'react'; // comment for a new commit
+import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ChevronLeft, Flag, Check } from 'lucide-react';
 
@@ -27,12 +27,10 @@ const SetRow = ({ set, index, onSave, onRest }) => {
         });
 
     const toggle = () => {
-        setCompleted((c) => {
-            const n = !c;
-            save(n);
-            if (n) onRest();
-            return n;
-        });
+        const next = !completed;
+        setCompleted(next);
+        save(next);
+        if (next) onRest();
     };
 
     const oneRM = epley1RM(weight, reps);
@@ -44,21 +42,23 @@ const SetRow = ({ set, index, onSave, onRest }) => {
                 type="number" inputMode="decimal" value={weight}
                 onChange={(e) => setWeight(e.target.value)} onBlur={() => save()}
                 placeholder="кг"
-                className="w-16 rounded-lg border border-border bg-surface px-2 py-2 text-center text-base text-text focus:outline-none focus:ring-1 focus:ring-accent" />
+                className="w-16 rounded-lg border border-border-strong bg-surface px-2 py-2 text-center text-base text-text focus:outline-none focus:ring-1 focus:ring-accent" />
             <span className="text-text-muted">×</span>
             <input 
                 type="number"
                 inputMode="numeric" value={reps}
                 onChange={(e) => setReps(e.target.value)} onBlur={() => save()}
                 placeholder="повт"
-                className="w-16 rounded-lg border border-border bg-surface px-2 py-2 text-center text-base text-text focus:outline-none focus:ring-1 focus:ring-accent" />
+                className="w-16 rounded-lg border border-border-strong bg-surface px-2 py-2 text-center text-base text-text focus:outline-none focus:ring-1 focus:ring-accent" />
             {oneRM > 0 && <span className="hidden text-xs text-text-muted xs:inline">≈{Math.round(oneRM)}</span>}
             <button
                 onClick={toggle}
-                className={clsx('ml-auto flex h-10 w-10 items-center justify-center rounded-lg transition-colors',
-                    completed ? 'bg-accent text-white' : 'bg-surface text-text-muted hover:text-text'
+                className={clsx('ml-auto flex h-11 w-11 items-center justify-center rounded-lg transition-colors',
+                    completed ? 'bg-accent text-on-accent' : 'bg-surface text-text-muted hover:text-text'
                 )}
-                aria-label="Выполнено">
+                aria-label={completed
+                    ? `Подход ${index + 1}: отметить невыполненным`
+                    : `Подход ${index + 1}: отметить выполненным`}>
                     <Check size={18} />
                 </button>
         </div>

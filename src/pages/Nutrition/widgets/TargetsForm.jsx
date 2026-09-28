@@ -46,7 +46,7 @@ const Field = ({ label, value, onChange, small }) => (
       value={value}
       onChange={(e) => onChange(e.target.value)}
       className={clsx(
-        'w-full rounded-xl border border-border bg-surface px-4 py-3 text-sm text-text focus:outline-none focus:ring-2 focus:ring-accent',
+        'w-full rounded-xl border border-border-strong bg-surface px-4 py-3 text-sm text-text focus:outline-none focus:ring-2 focus:ring-accent',
         small && 'text-center px-2'
       )}
     />

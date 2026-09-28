@@ -77,7 +77,7 @@ export const FriendsPage = () => {
                 <div className="flex gap-1">
                   <button
                     onClick={() => respond.mutate({ id: req.friendship_id, accept: true })}
-                    className="flex h-9 w-9 items-center justify-center rounded-lg bg-accent text-white hover:bg-accent-hover"
+                    className="flex h-9 w-9 items-center justify-center rounded-lg bg-accent text-on-accent hover:bg-accent-hover"
                     aria-label="Принять"
                   >
                     <Check size={18} />

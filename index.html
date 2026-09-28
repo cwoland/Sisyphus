@@ -3,18 +3,23 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no" />
-    <meta name="theme-color" content="#DC143C" media="(prefers-color-scheme: light)" />
-    <meta name="theme-color" content="#181214" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#D2D5DC" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <title>Sisyphus</title>
     <script>
       (function () {
-        var saved = localStorage.getItem('sisyphus-theme');
-        var isDark = saved ? saved === 'dark'
-          : window.matchMedia('(prefers-color-scheme: dark)').matches;
-        if (isDark) document.documentElement.classList.add('dark');
+        var THEME_COLOR = { light: '#D2D5DC', dark: '#121622' };
+        var mode = null;
+        try { mode = localStorage.getItem('theme-mode'); } catch (e) { mode = null; }
+        if (mode !== 'light' && mode !== 'dark') mode = 'system';
+        var theme = mode === 'system'
+          ? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+          : mode;
+        if (theme === 'dark') document.documentElement.classList.add('dark');
+        var meta = document.querySelector('meta[name="theme-color"]');
+        if (meta) meta.setAttribute('content', THEME_COLOR[theme]);
       })();
     </script>
   </head>

@@ -3,6 +3,8 @@ import { Menu, Moon, Sun } from 'lucide-react';
 import { Logo } from '../../shared/ui/Logo.jsx';
 import { useThemeStore } from '../../entities/theme/theme.store.js';
 
+import { HeaderSearch } from '../../features/search/HeaderSearch.jsx';
+
 export const Header = ({ onOpenMenu }) => {
   const { theme, toggleTheme } = useThemeStore();
 
@@ -18,10 +20,14 @@ export const Header = ({ onOpenMenu }) => {
             <Menu size={22} />
           </button>
           <div className="lg:hidden">
-            <Link to="/" className="rounded-gl focus-visible:outline-none" aria-label="На главную">
+            <Link to="/" className="rounded-lg" aria-label="На главную">
             <Logo size="sm" />
             </Link>
           </div>
+        </div>
+
+        <div className="mx-4 hidden min-w-0 flex-1 justify-center md:flex">
+          <HeaderSearch />
         </div>
 
         <button

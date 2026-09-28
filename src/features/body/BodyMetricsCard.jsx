@@ -118,7 +118,7 @@ export const BodyMetricsCard = () => {
               type="date"
               value={form.date}
               onChange={(e) => setForm((f) => ({ ...f, date: e.target.value }))}
-              className="w-full rounded-xl border border-border bg-surface-2 px-3 py-2 text-sm text-text focus:outline-none focus:ring-1 focus:ring-accent"
+              className="w-full rounded-xl border border-border-strong bg-surface-2 px-3 py-2 text-sm text-text focus:outline-none focus:ring-1 focus:ring-accent"
             />
           </div>
 
@@ -131,7 +131,7 @@ export const BodyMetricsCard = () => {
                   value={form[f.key]}
                   onChange={(e) => setForm((s) => ({ ...s, [f.key]: e.target.value }))}
                   placeholder="—"
-                  className="w-full rounded-lg border border-border bg-surface px-2 py-2 text-center text-sm text-text focus:outline-none focus:ring-1 focus:ring-accent"
+                  className="w-full rounded-lg border border-border-strong bg-surface px-2 py-2 text-center text-sm text-text focus:outline-none focus:ring-1 focus:ring-accent"
                 />
               </div>
             ))}

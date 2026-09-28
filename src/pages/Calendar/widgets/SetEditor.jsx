@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Check, Trash2, Plus } from 'lucide-react';
 import { clsx } from 'clsx';
 import { epley1RM } from '../../../shared/lib/oneRepMax.js';
+import { IconButton } from '../../../shared/ui/IconButton.jsx';
 
 
 const SetRow = ({ set, index, onSave, onDelete, isSaving }) => {
@@ -31,7 +32,7 @@ const SetRow = ({ set, index, onSave, onDelete, isSaving }) => {
         onChange={(e) => setWeight(e.target.value)}
         onBlur={() => save()}
         placeholder="кг"
-        className="w-16 rounded-lg border border-border bg-surface px-2 py-1.5 text-center text-sm text-text focus:outline-none focus:ring-1 focus:ring-accent"
+        className="w-16 rounded-lg border border-border-strong bg-surface px-2 py-1.5 text-center text-sm text-text focus:outline-none focus:ring-1 focus:ring-accent"
       />
       <span className="text-text-muted">×</span>
       <input
@@ -41,7 +42,7 @@ const SetRow = ({ set, index, onSave, onDelete, isSaving }) => {
         onChange={(e) => setReps(e.target.value)}
         onBlur={() => save()}
         placeholder="повт"
-        className="w-16 rounded-lg border border-border bg-surface px-2 py-1.5 text-center text-sm text-text focus:outline-none focus:ring-1 focus:ring-accent"
+        className="w-16 rounded-lg border border-border-strong bg-surface px-2 py-1.5 text-center text-sm text-text focus:outline-none focus:ring-1 focus:ring-accent"
       />
 
       {oneRM > 0 && (
@@ -50,24 +51,22 @@ const SetRow = ({ set, index, onSave, onDelete, isSaving }) => {
         </span>
       )}
 
-      <button
-        onClick={() => { setCompleted((c) => { const n = !c; save(n); return n; }); }}
+      <IconButton
+        icon={Check}
+        onClick={() => { const next = !completed; setCompleted(next); save(next); }}
         className={clsx(
-          'ml-auto flex h-8 w-8 items-center justify-center rounded-lg transition-colors',
-          completed ? 'bg-accent text-white' : 'bg-surface text-text-muted hover:text-text'
+          'ml-auto',
+          completed ? 'bg-accent text-on-accent' : 'bg-surface text-text-muted hover:text-text'
         )}
-        aria-label={completed ? 'Отметить невыполненным' : 'Отметить выполненным'}
-      >
-        <Check size={16} />
-      </button>
+        aria-label={completed ? `Подход ${index + 1}: отметить невыполненным` : `Подход ${index + 1}: отметить выполненным`}
+      />
 
-      <button
+      <IconButton
+        icon={Trash2}
         onClick={() => onDelete(set.id)}
-        className="flex h-8 w-8 items-center justify-center rounded-lg text-text-muted hover:text-crimson"
-        aria-label="Удалить подход"
-      >
-        <Trash2 size={16} />
-      </button>
+        className="text-text-muted hover:text-crimson"
+        aria-label={`Удалить подход ${index + 1}`}
+      />
     </div>
   );
 };

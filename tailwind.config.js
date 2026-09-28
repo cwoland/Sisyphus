@@ -1,23 +1,25 @@
-/** @type {import('tailwindcss').Config} */
 export default {
   content: ['./index.html', './src/**/*.{js,jsx}'],
   darkMode: 'class',
   theme: {
     extend: {
       colors: {
-        coral: 'rgb(var(--color-coral) / <alpha-value>)',
-        cornsilk: 'rgb(var(--color-cornsilk) / <alpha-value>)',
         burgundy: 'rgb(var(--color-burgundy) / <alpha-value>)',
         crimson: 'rgb(var(--color-crimson) / <alpha-value>)',
+        'on-crimson': 'rgb(var(--color-on-crimson) / <alpha-value>)',
+        alert: 'rgb(var(--alert) / <alpha-value>)',
+        'on-alert': 'rgb(var(--on-alert) / <alpha-value>)',
 
         bg: 'rgb(var(--bg) / <alpha-value>)',
         surface: 'rgb(var(--surface) / <alpha-value>)',
         'surface-2': 'rgb(var(--surface-2) / <alpha-value>)',
         border: 'rgb(var(--border) / <alpha-value>)',
+        'border-strong': 'rgb(var(--border-strong) / <alpha-value>)',
         text: 'rgb(var(--text) / <alpha-value>)',
         'text-muted': 'rgb(var(--text-muted) / <alpha-value>)',
         accent: 'rgb(var(--accent) / <alpha-value>)',
         'accent-hover': 'rgb(var(--accent-hover) / <alpha-value>)',
+        'on-accent': 'rgb(var(--on-accent) / <alpha-value>)',
       },
       fontFamily: {
         sans: ['Inter', 'system-ui', 'sans-serif'],

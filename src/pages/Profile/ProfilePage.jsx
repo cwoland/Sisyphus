@@ -87,15 +87,10 @@ export const ProfilePage = () => {
   };
 
   const handleLogout = async () => {
-    try {
-      await logoutRequest();
-    } catch {
-      /* сессия всё равно очищается локально */
-    } finally {
-      qc.clear();
-      logout();
-      toast.info('Вы вышли. Камень подождёт до следующего раза.');
-    }
+    await logoutRequest().catch(() => null);
+    qc.clear();
+    logout();
+    toast.info('Вы вышли. Камень подождёт до следующего раза.');
   };
 
   const currentIcon = user?.avatar_url?.startsWith('lucide:') ? user.avatar_url.slice(7) : null;
@@ -107,7 +102,7 @@ export const ProfilePage = () => {
       <div className="flex items-center gap-4 rounded-2xl border border-border bg-surface p-5">
         <button onClick={() => setAvatarOpen(true)} className="relative shrink-0" aria-label="Сменить аватар">
           <Avatar name={user?.name} src={user?.avatar_url} size="xl" />
-          <span className="absolute -bottom-1 -right-1 flex h-7 w-7 items-center justify-center rounded-full border-2 border-surface bg-accent text-white">
+          <span className="absolute -bottom-1 -right-1 flex h-7 w-7 items-center justify-center rounded-full border-2 border-surface bg-accent text-on-accent">
             <Pencil size={13} />
           </span>
         </button>
@@ -222,7 +217,7 @@ export const ProfilePage = () => {
                 >
                   <Icon size={26} />
                   {active && (
-                    <span className="absolute right-1.5 top-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-accent text-white">
+                    <span className="absolute right-1.5 top-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-accent text-on-accent">
                       <Check size={11} />
                     </span>
                   )}

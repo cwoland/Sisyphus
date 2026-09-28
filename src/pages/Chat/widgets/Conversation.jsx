@@ -67,12 +67,12 @@ export const Conversation = ({ chat, onBack }) => {
           }}
           rows={1}
           placeholder="Сообщение..."
-          className="max-h-32 flex-1 resize-none rounded-xl border border-border bg-surface px-3.5 py-2.5 text-sm text-text focus:outline-none focus:ring-2 focus:ring-accent"
+          className="max-h-32 flex-1 resize-none rounded-xl border border-border-strong bg-surface px-3.5 py-2.5 text-sm text-text focus:outline-none focus:ring-2 focus:ring-accent"
         />
         <button
           onClick={handleSend}
           disabled={!text.trim() || sendMutation.isPending}
-          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-accent text-white transition-colors hover:bg-accent-hover disabled:opacity-50"
+          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-accent text-on-accent transition-colors hover:bg-accent-hover disabled:opacity-50"
           aria-label="Отправить"
         >
           <Send size={18} />

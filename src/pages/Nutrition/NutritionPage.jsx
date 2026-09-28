@@ -13,6 +13,7 @@ import { Button } from '../../shared/ui/Button.jsx';
 import { EmptyState } from '../../shared/ui/EmptyState.jsx';
 import { Skeleton } from '../../shared/ui/Skeleton.jsx';
 import { mealTypes, mealTypeLabel, mealTypeIcon } from '../../entities/nutrition/mealTypes.js';
+import { IconButton } from '../../shared/ui/IconButton.jsx';
 import { emptyStates } from '../../shared/lib/sisyphusPhrases.js';
 import { toApiDate, todayApi, safeFormat } from '../../shared/lib/date.js';
 import { useLatestBody } from '../../features/body/body.hooks.js';
@@ -141,12 +142,10 @@ export const NutritionPage = () => {
                         </p>
                       </div>
                       <div className="flex shrink-0 gap-1">
-                        <button onClick={() => setEntryForm({ entry: e })} className="rounded-lg p-1.5 text-text-muted hover:text-accent" aria-label="Изменить">
-                          <Pencil size={15} />
-                        </button>
-                        <button onClick={() => remove.mutate(e.id)} className="rounded-lg p-1.5 text-text-muted hover:text-crimson" aria-label="Удалить">
-                          <Trash2 size={15} />
-                        </button>
+                        <IconButton icon={Pencil} size={15} onClick={() => setEntryForm({ entry: e })}
+                          className="text-text-muted hover:text-accent" aria-label={`Изменить: ${e.name}`} />
+                        <IconButton icon={Trash2} size={15} onClick={() => remove.mutate(e.id)}
+                          className="text-text-muted hover:text-crimson" aria-label={`Удалить: ${e.name}`} />
                       </div>
                     </div>
                   ))}

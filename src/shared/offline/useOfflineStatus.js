@@ -7,20 +7,23 @@ export const useOnlineStatus = () => {
   const qc = useQueryClient();
 
   useEffect(() => {
-    const goOnline = () => {
-      setIsOnline(true);
-      replayQueue(() => qc.invalidateQueries());
-    };
+    const flush = () => replayQueue(() => qc.invalidateQueries());
+
+    const goOnline = () => { setIsOnline(true); flush(); };
     const goOffline = () => setIsOnline(false);
+
+    const onVisible = () => { if (document.visibilityState === 'visible') flush(); };
 
     window.addEventListener('online', goOnline);
     window.addEventListener('offline', goOffline);
+    document.addEventListener('visibilitychange', onVisible);
 
-    if (navigator.onLine) replayQueue(() => qc.invalidateQueries());
+    if (navigator.onLine) flush();
 
     return () => {
       window.removeEventListener('online', goOnline);
       window.removeEventListener('offline', goOffline);
+      document.removeEventListener('visibilitychange', onVisible);
     };
   }, [qc]);
 

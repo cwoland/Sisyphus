@@ -4,6 +4,19 @@ import {
   getTargets, updateTargets,
 } from '../../entities/nutrition/nutrition.api.js';
 import { toast } from '../../shared/ui/toast/toast.store.js';
+import { isQueuedError } from '../../shared/offline/isQueued.js';
+
+
+const onMutationError = (rollback, fallbackMessage) => (error, vars, ctx) => {
+  if (isQueuedError(error)) return;
+  rollback?.(ctx);
+  toast.error(error.response?.data?.message || fallbackMessage);
+};
+
+const skipWhenQueued = (fn) => (data, error, vars, ctx) => {
+  if (isQueuedError(error)) return;
+  fn(data, error, vars, ctx);
+};
 
 export const useDayEntries = (date) =>
   useQuery({
@@ -53,11 +66,8 @@ export const useNutritionMutations = (date) => {
       ]);
       return { previous };
     },
-    onError: (e, _v, ctx) => {
-      qc.setQueryData(entriesKey, ctx?.previous);
-      toast.error(e.response?.data?.message || 'Не удалось добавить');
-    },
-    onSettled: invalidate,
+    onError: onMutationError((ctx) => qc.setQueryData(entriesKey, ctx?.previous), 'Не удалось добавить'),
+    onSettled: skipWhenQueued(invalidate),
   });
 
   const update = useMutation({
@@ -69,11 +79,8 @@ export const useNutritionMutations = (date) => {
       );
       return { previous };
     },
-    onError: (e, _v, ctx) => {
-      qc.setQueryData(entriesKey, ctx?.previous);
-      toast.error(e.response?.data?.message || 'Не удалось изменить');
-    },
-    onSettled: invalidate,
+    onError: onMutationError((ctx) => qc.setQueryData(entriesKey, ctx?.previous), 'Не удалось изменить'),
+    onSettled: skipWhenQueued(invalidate),
   });
 
   const remove = useMutation({
@@ -83,12 +90,9 @@ export const useNutritionMutations = (date) => {
       qc.setQueryData(entriesKey, (old) => (old || []).filter((e) => e.id !== id));
       return { previous };
     },
-    onError: (e, _v, ctx) => {
-      qc.setQueryData(entriesKey, ctx?.previous);
-      toast.error(e.response?.data?.message || 'Не удалось удалить');
-    },
+    onError: onMutationError((ctx) => qc.setQueryData(entriesKey, ctx?.previous), 'Не удалось удалить'),
     onSuccess: () => toast.success('Запись удалена'),
-    onSettled: invalidate,
+    onSettled: skipWhenQueued(invalidate),
   });
 
   return { create, update, remove };

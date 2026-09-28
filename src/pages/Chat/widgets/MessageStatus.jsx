@@ -6,10 +6,10 @@ export const MessageStatus = ({ message, isOwn }) => {
   const isPending = String(message.id).startsWith('temp-');
 
   if (isPending) {
-    return <Check size={13} className="text-white/40" />;
+    return <Check size={13} className="text-on-accent/40" />;
   }
 
   return message.read_at
-    ? <CheckCheck size={13} className="text-white/90" />
-    : <Check size={13} className="text-white/70" />;
+    ? <CheckCheck size={13} className="text-on-accent/90" />
+    : <Check size={13} className="text-on-accent/70" />;
 };

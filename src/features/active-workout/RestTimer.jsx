@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
-import { Play, Pause, RotateCcw, Plus, Minus, X } from 'lucide-react';
+import { Pause, RotateCcw, Plus, Minus, X } from 'lucide-react';
+import { IconButton } from '../../shared/ui/IconButton.jsx';
 
 export const RestTimer = ({ initial = 120, onClose }) => {
   const [total, setTotal] = useState(initial);
@@ -45,18 +46,17 @@ export const RestTimer = ({ initial = 120, onClose }) => {
         </span>
 
         <div className="ml-auto flex items-center gap-1">
-          <button onClick={() => adjust(-15)} className="flex h-8 w-8 items-center justify-center rounded-lg bg-surface-2 text-text-muted hover:text-text" aria-label="-15 сек">
-            <Minus size={16} />
-          </button>
-          <button onClick={() => adjust(15)} className="flex h-8 w-8 items-center justify-center rounded-lg bg-surface-2 text-text-muted hover:text-text" aria-label="+15 сек">
-            <Plus size={16} />
-          </button>
-          <button onClick={running ? () => setRunning(false) : reset} className="flex h-8 w-8 items-center justify-center rounded-lg bg-accent text-white" aria-label={running ? 'Пауза' : 'Заново'}>
-            {running ? <Pause size={16} /> : <RotateCcw size={16} />}
-          </button>
-          <button onClick={onClose} className="flex h-8 w-8 items-center justify-center rounded-lg text-text-muted hover:text-text" aria-label="Закрыть">
-            <X size={16} />
-          </button>
+          <IconButton icon={Minus} onClick={() => adjust(-15)}
+            className="bg-surface-2 text-text-muted hover:text-text" aria-label="Минус 15 секунд" />
+          <IconButton icon={Plus} onClick={() => adjust(15)}
+            className="bg-surface-2 text-text-muted hover:text-text" aria-label="Плюс 15 секунд" />
+          <IconButton
+            icon={running ? Pause : RotateCcw}
+            onClick={running ? () => setRunning(false) : reset}
+            className="bg-accent text-on-accent"
+            aria-label={running ? 'Пауза' : 'Заново'} />
+          <IconButton icon={X} onClick={onClose}
+            className="text-text-muted hover:text-text" aria-label="Закрыть таймер отдыха" />
         </div>
       </div>
     </div>

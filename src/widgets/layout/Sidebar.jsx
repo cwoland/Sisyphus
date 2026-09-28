@@ -1,6 +1,7 @@
 import { NavLink } from 'react-router-dom';
 import { clsx } from 'clsx';
 import { navItems } from '../../app/config/navigation.js';
+import { prefetchRoute } from '../../app/router/routeLoaders.js';
 import { Logo } from '../../shared/ui/Logo.jsx';
 
 export const Sidebar = ({ onNavigate }) => (
@@ -15,6 +16,8 @@ export const Sidebar = ({ onNavigate }) => (
             to={to}
             end={end}
             onClick={onNavigate}
+            onMouseEnter={() => prefetchRoute(to)}
+            onFocus={() => prefetchRoute(to)}
             className={({ isActive }) =>
             clsx(
                 'flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors',

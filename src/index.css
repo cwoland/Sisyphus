@@ -14,34 +14,39 @@
 
 @layer base {
   :root {
-    --color-coral: 17 34 80;
-    --color-cornsilk: 255 248 231;
-    --color-sapphire: 40 80 112;
-    --color-royal-blue: 17 34 80;
-    --color-crimson: 200 55 60;
+    --color-crimson: 176 38 44;
     --color-burgundy: 150 40 50;
+    --color-on-crimson: 255 255 255;
+
+    --alert: 150 40 50;
+    --on-alert: 255 255 255;
 
     --bg: 210 213 220;
     --surface: 236 237 240;
     --surface-2: 222 224 230;
-    --border: 202 206 216;
+    --border: 184 189 203;
+    --border-strong: 124 131 150;
     --text: 17 34 80;
-    --text-muted: 92 104 132;
+    --text-muted: 74 84 108;
     --accent: 17 34 80;
     --accent-hover: 40 80 112;
+    --on-accent: 255 255 255;
   }
 
   html.dark {
     --bg: 18 22 34;
     --surface: 26 32 48;
     --surface-2: 36 44 64;
-    --border: 52 62 88;
+    --border: 70 82 110;
+    --border-strong: 108 122 155;
     --text: 226 230 240;
     --text-muted: 140 152 180;
     --accent: 120 158 220;
     --accent-hover: 150 182 235;
-    --color-crimson: 220 90 95;
-    --color-burgundy: 180 70 78;
+    --on-accent: 12 18 32;
+    --color-crimson: 240 130 134;
+    --color-burgundy: 248 150 153;
+    --color-on-crimson: 18 22 34;
   }
 
   html {
@@ -83,6 +88,15 @@
     opacity: 0.9;
     -webkit-mask-image: linear-gradient(to left, black 45%, transparent 100%);
     mask-image: linear-gradient(to left, black 45%, transparent 100%);
+  }
+
+  @media (max-width: 639px) {
+    .card-art {
+      max-width: 48%;
+      object-position: right bottom;
+      -webkit-mask-image: linear-gradient(to left, black 22%, transparent 92%);
+      mask-image: linear-gradient(to left, black 22%, transparent 92%);
+    }
   }
 
   .card-art-dark { display: none; }

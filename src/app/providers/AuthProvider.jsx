@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { useAuthStore } from '../../entities/user/auth.store.js';
 import { meRequest } from '../../entities/user/auth.api.js';
-import { api } from '../../shared/lib/axios.js';
+import { refreshSession } from '../../shared/lib/axios.js';
 import { SplashScreen } from '../../shared/ui/SplashScreen.jsx';
 
 export const AuthProvider = ({ children }) => {
@@ -10,11 +10,9 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     const restoreSession = async () => {
       try {
-        const { data } = await api.post('/auth/refresh');
-        useAuthStore.getState().setAccessToken(data.accessToken);
-
+        const accessToken = await refreshSession();
         const meData = await meRequest();
-        login(meData.user, data.accessToken);
+        login(meData.user, accessToken);
       } catch {
         setAuthChecked(true);
       }

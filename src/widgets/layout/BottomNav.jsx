@@ -2,6 +2,7 @@ import { NavLink } from 'react-router-dom';
 import { Menu } from 'lucide-react';
 import { clsx } from 'clsx';
 import { bottomNavItems } from '../../app/config/navigation.js';
+import { prefetchRoute } from '../../app/router/routeLoaders.js';
 
 export const BottomNav = ({ onOpenMenu }) => (
     <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-surface/95 backdrop-blur pad-safe-bottom lg:hidden">
@@ -11,6 +12,8 @@ export const BottomNav = ({ onOpenMenu }) => (
                 key={to}
                 to={to}
                 end={end}
+                onTouchStart={() => prefetchRoute(to)}
+                onMouseEnter={() => prefetchRoute(to)}
                 className={({ isActive }) =>
                 clsx(
                     'flex flex-1 flex-col items-center gap-1 py-2.5 text-[11px] font-medium transition-colors',

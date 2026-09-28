@@ -4,6 +4,7 @@ import {
 } from '../../entities/friend/friend.api.js';
 import { getFeed } from '../../entities/feed/feed.api.js';
 import { toast } from '../../shared/ui/toast/toast.store.js';
+import { pollWhenVisible } from '../../shared/lib/pollWhenVisible.js';
 
 const requestsKey = ['friends', 'requests'];
 
@@ -21,7 +22,8 @@ export const usePendingRequests = () =>
   useQuery({
     queryKey: ['friends', 'requests'],
     queryFn: getPendingRequests,
-    refetchInterval: 30_000,
+    refetchInterval: pollWhenVisible(30_000),
+    refetchOnWindowFocus: true,
   });
 
 export const useFriendsFeed = (options = {}) =>

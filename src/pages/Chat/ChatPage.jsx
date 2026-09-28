@@ -63,7 +63,7 @@ export const ChatPage = () => {
                       {chat.last_message_text || 'Нет сообщений'}
                     </p>
                     {Number(chat.unread_count) > 0 && (
-                      <span className="flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full bg-accent px-1.5 text-[10px] font-semibold text-white">
+                      <span className="flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full bg-accent px-1.5 text-[10px] font-semibold text-on-accent">
                         {chat.unread_count}
                       </span>
                     )}

@@ -13,10 +13,10 @@ export const Button = ({
   const base = 'inline-flex items-center justify-center gap-2 font-medium rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed';
 
   const variants = {
-    primary: 'bg-accent text-white hover:bg-accent-hover',
+    primary: 'bg-accent text-on-accent hover:bg-accent-hover',
     secondary: 'bg-surface-2 text-text hover:bg-border',
     ghost: 'text-text hover:bg-surface-2',
-    danger: 'bg-crimson text-white hover:bg-burgundy',
+    danger: 'bg-crimson text-on-crimson hover:bg-burgundy',
   };
 
   const sizes = {

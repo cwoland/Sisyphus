@@ -46,7 +46,7 @@ export const HeaderSearch = () => {
         onChange={(e) => { setInput(e.target.value); setOpen(true); }}
         onFocus={() => setOpen(true)}
         placeholder="Люди и программы"
-        className="w-full rounded-xl border border-border bg-surface-2 py-2 pl-9 pr-3 text-sm text-text placeholder:text-text-muted focus:outline-none focus:ring-1 focus:ring-accent"
+        className="w-full rounded-xl border border-border-strong bg-surface-2 py-2 pl-9 pr-3 text-sm text-text placeholder:text-text-muted focus:outline-none focus:ring-1 focus:ring-accent"
       />
 
       {open && active && (

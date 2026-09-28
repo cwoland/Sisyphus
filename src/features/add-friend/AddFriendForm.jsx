@@ -33,7 +33,7 @@ export const AddFriendForm = ({ onDone }) => {
           value={input}
           onChange={(e) => setInput(e.target.value)}
           placeholder="Введите никнейм"
-          className="w-full rounded-xl border border-border bg-surface py-3 pl-10 pr-4 text-sm text-text placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-accent"
+          className="w-full rounded-xl border border-border-strong bg-surface py-3 pl-10 pr-4 text-sm text-text placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-accent"
         />
       </div>
 
@@ -57,7 +57,7 @@ export const AddFriendForm = ({ onDone }) => {
                 <button
                   onClick={() => handleAdd(user)}
                   disabled={sent || sendRequest.isPending}
-                  className="flex h-9 items-center gap-1 rounded-lg bg-accent px-3 text-sm text-white hover:bg-accent-hover disabled:opacity-60"
+                  className="flex h-9 items-center gap-1 rounded-lg bg-accent px-3 text-sm text-on-accent hover:bg-accent-hover disabled:opacity-60"
                 >
                   {sent ? <><Check size={16} /> Отправлено</> : <><UserPlus size={16} /> Добавить</>}
                 </button>

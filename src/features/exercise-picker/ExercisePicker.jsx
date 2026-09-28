@@ -29,7 +29,7 @@ export const ExercisePicker = ({ isOpen, onClose, onPick }) => {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Поиск упражнения"
-              className="w-full rounded-xl border border-border bg-surface py-2.5 pl-10 pr-3 text-sm text-text focus:outline-none focus:ring-1 focus:ring-accent"
+              className="w-full rounded-xl border border-border-strong bg-surface py-2.5 pl-10 pr-3 text-sm text-text focus:outline-none focus:ring-1 focus:ring-accent"
             />
           </div>
 
@@ -82,7 +82,7 @@ const FilterChip = ({ active, children, ...props }) => (
   <button
     className={clsx(
       'shrink-0 rounded-full px-3 py-1.5 text-sm transition-colors',
-      active ? 'bg-accent text-white' : 'bg-surface-2 text-text-muted hover:text-text'
+      active ? 'bg-accent text-on-accent' : 'bg-surface-2 text-text-muted hover:text-text'
     )}
     {...props}
   >
@@ -110,15 +110,15 @@ const NewExerciseForm = ({ onDone, onCreated }) => {
         value={name}
         onChange={(e) => setName(e.target.value)}
         placeholder="Название упражнения"
-        className="w-full rounded-xl border border-border bg-surface px-4 py-3 text-sm text-text focus:outline-none focus:ring-1 focus:ring-accent"
+        className="w-full rounded-xl border border-border-strong bg-surface px-4 py-3 text-sm text-text focus:outline-none focus:ring-1 focus:ring-accent"
       />
       <div className="grid grid-cols-2 gap-3">
         <select value={muscleGroup} onChange={(e) => setMuscleGroup(e.target.value)}
-          className="rounded-xl border border-border bg-surface px-3 py-3 text-sm text-text focus:outline-none focus:ring-1 focus:ring-accent">
+          className="rounded-xl border border-border-strong bg-surface px-3 py-3 text-sm text-text focus:outline-none focus:ring-1 focus:ring-accent">
           {muscleGroups.map((g) => <option key={g.value} value={g.value}>{g.label}</option>)}
         </select>
         <select value={equipment} onChange={(e) => setEquipment(e.target.value)}
-          className="rounded-xl border border-border bg-surface px-3 py-3 text-sm text-text focus:outline-none focus:ring-1 focus:ring-accent">
+          className="rounded-xl border border-border-strong bg-surface px-3 py-3 text-sm text-text focus:outline-none focus:ring-1 focus:ring-accent">
           {equipmentTypes.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
         </select>
       </div>

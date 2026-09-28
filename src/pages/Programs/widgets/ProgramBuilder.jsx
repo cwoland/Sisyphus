@@ -62,7 +62,7 @@ const SortableExercise = ({ ex, dayTempId, onUpdate, onRemove }) => {
             type="number" min="1" max="20"
             value={ex.targetSets}
             onChange={(e) => onUpdate(dayTempId, ex.tempId, { targetSets: e.target.value })}
-            className="w-full rounded-lg border border-border bg-surface px-2 py-1.5 text-center text-sm text-text focus:outline-none focus:ring-1 focus:ring-accent"
+            className="w-full rounded-lg border border-border-strong bg-surface px-2 py-1.5 text-center text-sm text-text focus:outline-none focus:ring-1 focus:ring-accent"
           />
         </div>
         <div className="flex-1">
@@ -71,7 +71,7 @@ const SortableExercise = ({ ex, dayTempId, onUpdate, onRemove }) => {
             value={ex.targetReps}
             onChange={(e) => onUpdate(dayTempId, ex.tempId, { targetReps: e.target.value })}
             placeholder="8-12"
-            className="w-full rounded-lg border border-border bg-surface px-2 py-1.5 text-center text-sm text-text focus:outline-none focus:ring-1 focus:ring-accent"
+            className="w-full rounded-lg border border-border-strong bg-surface px-2 py-1.5 text-center text-sm text-text focus:outline-none focus:ring-1 focus:ring-accent"
           />
         </div>
       </div>
@@ -208,7 +208,7 @@ export const ProgramBuilder = ({ initial, submitLabel = 'Создать прог
           onChange={(e) => setDescription(e.target.value)}
           rows={2}
           placeholder="Кратко о целях и структуре"
-          className="w-full rounded-xl border border-border bg-surface px-4 py-3 text-sm text-text placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-accent"
+          className="w-full rounded-xl border border-border-strong bg-surface px-4 py-3 text-sm text-text placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-accent"
         />
       </div>
 
@@ -228,7 +228,7 @@ export const ProgramBuilder = ({ initial, submitLabel = 'Создать прог
               <input
                 value={day.title}
                 onChange={(e) => updateDayTitle(day.tempId, e.target.value)}
-                className="flex-1 rounded-lg bg-surface-2 px-3 py-2 text-sm font-medium text-text focus:outline-none focus:ring-1 focus:ring-accent"
+                className="flex-1 rounded-lg border border-border-strong bg-surface-2 px-3 py-2 text-sm font-medium text-text focus:outline-none focus:ring-1 focus:ring-accent"
               />
               {days.length > 1 && (
                 <button onClick={() => removeDay(day.tempId)} className="rounded-lg p-2 text-text-muted hover:text-crimson" aria-label="Удалить день">

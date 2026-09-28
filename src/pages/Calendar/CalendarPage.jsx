@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ChevronLeft, ChevronRight, Plus, Trash2 } from 'lucide-react';
 import { clsx } from 'clsx';
@@ -165,7 +165,7 @@ export const CalendarPage = () => {
           <div className="space-y-6">
             <WorkoutMetaEditor
               workout={detailsQuery.data}
-              onSave={(data) => updateMutation.mutate({ id: openWorkoutId, ...data })} />
+              onSave={(data, options) => updateMutation.mutate({ id: openWorkoutId, ...data }, options)} />
             {groupedSets.length === 0 ? (
               <p className="py-6 text-center text-sm text-text-muted">
                 В этой тренировке пока нет упражнений. Добавь первое.
@@ -190,7 +190,7 @@ export const CalendarPage = () => {
 
               <WorkoutNotes
                 workout={detailsQuery.data}
-                onSave={(data) => updateMutation.mutate({ id: openWorkoutId, ...data })} />
+                onSave={(data, options) => updateMutation.mutate({ id: openWorkoutId, ...data }, options)} />
 
               <button 
                 onClick={handleDeleteWorkout}
@@ -213,11 +213,14 @@ const WorkoutMetaEditor = ({ workout, onSave }) => {
   const [title, setTitle] = useState(workout?.title ?? '');
   const [date, setDate] = useState(workout?.date ?? '');
   const [saved, setSaved] = useState(false);
+  const savedTimer = useRef(null);
 
   useEffect(() => {
     setTitle(workout?.title ?? '');
     setDate(workout?.date ?? '');
   }, [workout?.id]);
+
+  useEffect(() => () => clearTimeout(savedTimer.current), []);
 
   if (!workout) return null;
 
@@ -225,11 +228,15 @@ const WorkoutMetaEditor = ({ workout, onSave }) => {
     const patch = {};
     if (title.trim() && title !== workout.title) patch.title = title.trim();
     if (date && date !== workout.date) patch.date = date;
-    if (Object.keys(patch).length) {
-      onSave(patch);
-      setSaved(true);
-      setTimeout(() => setSaved(false), 2000);
-    };
+    if (!Object.keys(patch).length) return;
+
+    onSave(patch, {
+      onSuccess: () => {
+        setSaved(true);
+        clearTimeout(savedTimer.current);
+        savedTimer.current = setTimeout(() => setSaved(false), 2000);
+      },
+    });
   };
 
   return (
@@ -243,13 +250,13 @@ const WorkoutMetaEditor = ({ workout, onSave }) => {
         onChange={(e) => setTitle(e.target.value)}
         onBlur={commit}
         placeholder="Название тренировки"
-        className="flex-1 rounded-xl border border-border bg-surface-2 px-3 py-2 text-sm text-text focus:outline-none focus:ring-1 focus:ring-accent" />
+        className="flex-1 rounded-xl border border-border-strong bg-surface-2 px-3 py-2 text-sm text-text focus:outline-none focus:ring-1 focus:ring-accent" />
         <input
           type="date"
           value={date}
           onChange={(e) => setDate(e.target.value)}
           onBlur={commit}
-          className="rounded-xl border border-border bg-surface-2 px-3 py-2 text-sm text-text focus:outline-none focus:ring-accent" />
+          className="rounded-xl border border-border-strong bg-surface-2 px-3 py-2 text-sm text-text focus:outline-none focus:ring-accent" />
     </div>
     </div>
   );
@@ -258,17 +265,24 @@ const WorkoutMetaEditor = ({ workout, onSave }) => {
 const WorkoutNotes = ({ workout, onSave }) => {
   const [value, setValue] = useState(workout?.notes ?? '');
   const [saved, setSaved] = useState(false);
+  const savedTimer = useRef(null);
 
   useEffect(() => { setValue(workout?.notes ?? ''); }, [workout?.id]);
+
+  useEffect(() => () => clearTimeout(savedTimer.current), []);
 
   if (!workout) return null;
 
   const commit = () => {
     const next = value.trim();
     if (next === (workout.notes ?? '')) return;
-    onSave({ notes: next || null });
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2000);
+    onSave({ notes: next || null }, {
+      onSuccess: () => {
+        setSaved(true);
+        clearTimeout(savedTimer.current);
+        savedTimer.current = setTimeout(() => setSaved(false), 2000);
+      },
+    });
   };
 
   return (
@@ -283,7 +297,7 @@ const WorkoutNotes = ({ workout, onSave }) => {
         onBlur={commit}
         rows={3}
         placeholder="Самочувствие, техника, что поменять"
-        className="w-full rounded-xl border border-border bg-surface-2 px-3 py-2 text-sm text-text placeholder:text-text-muted focus:outline-none focus:ring-1 focus:ring-accent" />
+        className="w-full rounded-xl border border-border-strong bg-surface-2 px-3 py-2 text-sm text-text placeholder:text-text-muted focus:outline-none focus:ring-1 focus:ring-accent" />
     </div>
   );
 }

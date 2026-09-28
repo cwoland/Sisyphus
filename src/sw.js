@@ -1,4 +1,3 @@
-/* eslint-disable no-restricted-globals */
 import { precacheAndRoute, cleanupOutdatedCaches } from 'workbox-precaching';
 import { registerRoute } from 'workbox-routing';
 import { NetworkFirst, CacheFirst, StaleWhileRevalidate } from 'workbox-strategies';
@@ -7,9 +6,14 @@ import { ExpirationPlugin } from 'workbox-expiration';
 precacheAndRoute(self.__WB_MANIFEST);
 cleanupOutdatedCaches();
 
+const NEVER_CACHE = ['/api/chats', '/api/ai', '/api/auth'];
+
 registerRoute(
   ({ url, request }) =>
-    request.method === 'GET' && url.pathname.startsWith('/api/'),
+    request.method === 'GET' &&
+    url.origin === self.location.origin &&
+    url.pathname.startsWith('/api/') &&
+    !NEVER_CACHE.some((prefix) => url.pathname.startsWith(prefix)),
   new NetworkFirst({
     cacheName: 'api-cache',
     networkTimeoutSeconds: 5,

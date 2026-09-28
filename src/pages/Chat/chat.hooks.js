@@ -4,12 +4,15 @@ import {
   getChats, startChat, getMessages, sendMessage, markChatRead,
 } from '../../entities/chat/chat.api.js';
 import { toast } from '../../shared/ui/toast/toast.store.js';
+import { pollWhenVisible } from '../../shared/lib/pollWhenVisible.js';
+import { useAuthStore } from '../../entities/user/auth.store.js';
 
 export const useChats = () =>
   useQuery({
     queryKey: ['chats'],
     queryFn: getChats,
-    refetchInterval: 15_000,
+    refetchInterval: pollWhenVisible(15_000),
+    refetchOnWindowFocus: true,
   });
 
 export const useStartChat = () => {
@@ -24,6 +27,9 @@ export const useStartChat = () => {
 export const useChatMessages = (chatId) => {
   const [messages, setMessages] = useState([]);
   const cursorRef = useRef(null);
+  const currentUserId = useAuthStore((s) => s.user?.id);
+  const messagesRef = useRef(messages);
+  useEffect(() => { messagesRef.current = messages; }, [messages]);
 
   const mergeMessages = useCallback((incoming) => {
     if (!incoming?.length) return;
@@ -58,26 +64,28 @@ export const useChatMessages = (chatId) => {
     cursorRef.current = null;
   }, [chatId]);
 
-  const incrementalQuery = useQuery({
-    queryKey: ['messages', chatId, 'incremental'],
-    queryFn: () => getMessages(chatId, { after: cursorRef.current }),
+  const pollQuery = useQuery({
+    queryKey: ['messages', chatId],
+    queryFn: async () => {
+      const awaitingRead = messagesRef.current.some(
+        (m) => m.sender_id === currentUserId && !m.read_at && !String(m.id).startsWith('temp-')
+      );
+      const [fresh, tail] = await Promise.all([
+        getMessages(chatId, { after: cursorRef.current }),
+        awaitingRead ? getMessages(chatId, { limit: 20 }) : Promise.resolve([]),
+      ]);
+      return [...tail, ...fresh];
+    },
     enabled: !!chatId,
-    refetchInterval: 4000,
+    refetchInterval: pollWhenVisible(5000),
+    refetchOnWindowFocus: true,
   });
 
-  const statusQuery = useQuery({
-    queryKey: ['messages', chatId, 'status'],
-    queryFn: () => getMessages(chatId, { limit: 20 }),
-    enabled: !!chatId,
-    refetchInterval: 6000,
-  });
-
-  useEffect(() => { mergeMessages(incrementalQuery.data); }, [incrementalQuery.data, mergeMessages]);
-  useEffect(() => { mergeMessages(statusQuery.data); }, [statusQuery.data, mergeMessages]);
+  useEffect(() => { mergeMessages(pollQuery.data); }, [pollQuery.data, mergeMessages]);
 
   return {
     messages,
-    isLoading: incrementalQuery.isLoading && messages.length === 0,
+    isLoading: pollQuery.isLoading && messages.length === 0,
     appendLocal: mergeMessages,
   };
 };

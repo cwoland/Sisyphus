@@ -42,7 +42,7 @@ export const DashboardPage = () => {
         <button
           onClick={() => navigate(`/workout/${active.id}/active`)}
           className="flex w-full items-center gap-3 rounded-2xl border border-accent/40 bg-accent/10 p-4 text-left transition-colors hover:bg-accent/15">
-            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-accent text-white">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-accent text-on-accent">
               <Flame size={22} />
             </div>
             <div className="min-w-0 flex-1">

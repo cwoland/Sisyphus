@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
@@ -15,16 +15,19 @@ import { registerSW } from 'virtual:pwa-register';
 
 import { LoginPage } from './pages/auth/LoginPage.jsx';
 import { RegisterPage } from './pages/auth/RegisterPage.jsx';
-import { DashboardPage } from './pages/Dashboard/DashboardPage.jsx';
-import { CalendarPage } from './pages/Calendar/CalendarPage.jsx';
-import { ProgramsPage } from './pages/Programs/ProgramsPage.jsx';
-import { NutritionPage } from './pages/Nutrition/NutritionPage.jsx';
-import { FriendsPage } from './pages/Friends/FriendsPage.jsx';
-import { ChatPage } from './pages/Chat/ChatPage.jsx';
-import { AiPage } from './pages/AI/AiPage.jsx';
-import { ProfilePage } from './pages/Profile/ProfilePage.jsx';
-import { NotFoundPage } from './pages/NotFound/NotFoundPage.jsx';
-import { ActiveWorkoutPage } from './pages/ActiveWorkout/ActiveWorkoutPage.jsx';
+import { routeLoaders } from './app/router/routeLoaders.js';
+
+const DashboardPage     = lazy(routeLoaders.dashboard);
+const CalendarPage      = lazy(routeLoaders.calendar);
+const ProgramsPage      = lazy(routeLoaders.programs);
+const NutritionPage     = lazy(routeLoaders.nutrition);
+const FriendsPage       = lazy(routeLoaders.friends);
+const ChatPage          = lazy(routeLoaders.chat);
+const AiPage            = lazy(routeLoaders.ai);
+const ProfilePage       = lazy(routeLoaders.profile);
+const ActiveWorkoutPage = lazy(routeLoaders.activeWorkout);
+const NotFoundPage      = lazy(routeLoaders.notFound);
+
 
 registerSW({ immediate: true });
 
@@ -49,6 +52,7 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
         <AuthProvider>
+          <Suspense fallback={<RouteFallback />}>
           <Routes>
             <Route path="/login" element={<PublicOnlyRoute><LoginPage /></PublicOnlyRoute>} />
             <Route path="/register" element={<PublicOnlyRoute><RegisterPage /></PublicOnlyRoute>} />
@@ -73,6 +77,7 @@ function App() {
 
             <Route path="*" element={<NotFoundPage />} />
           </Routes>
+          </Suspense>
         </AuthProvider>
         <OfflineIndicator />
         <UpdatePrompt />
@@ -83,3 +88,11 @@ function App() {
 }
 
 export default App;
+
+const RouteFallback = () => (
+  <div className="flex min-h-[50dvh] items-center justify-center" role="status" aria-label="Загрузка страницы">
+    <div className="h-1 w-32 overflow-hidden rounded-full bg-surface-2">
+      <div className="h-full w-1/4 rounded-full bg-accent animate-loading-bar" />
+    </div>
+  </div>
+);

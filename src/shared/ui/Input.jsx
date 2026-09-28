@@ -14,7 +14,7 @@ export const Input = forwardRef(({ label, error, className, id, ...props }, ref)
       className={clsx(
         'w-full rounded-xl border bg-surface px-4 py-3 text-sm text-text placeholder:text-text-muted transition-colors',
         'focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-1 focus:ring-offset-bg',
-        error ? 'border-crimson' : 'border-border',
+        error ? 'border-crimson' : 'border-border-strong',
         className
       )}
       {...props}
