@@ -16,8 +16,8 @@ export default defineConfig({
         name: 'Sisyphus',
         short_name: 'Sisyphus',
         description: 'Твой камень ждёт тебя',
-        theme_color: '#D2D5DC',
-        background_color: '#D2D5DC',
+        theme_color: '#CD7044',
+        background_color: '#CD7044',
         display: 'standalone',
         orientation: 'any',
         scope: '/',
@@ -40,7 +40,7 @@ export default defineConfig({
 
       injectManifest: {
         globPatterns: ['**/*.{js,css,html,svg,png,webp,woff2}'],
-        globIgnores: ['art/*.png'],
+        globIgnores: ['art/*.png', 'art/scenes/*'],
       },
 
       devOptions: {

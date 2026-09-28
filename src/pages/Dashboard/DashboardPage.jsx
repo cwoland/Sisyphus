@@ -9,6 +9,7 @@ import { CalorieRing } from './widgets/CalorieRing.jsx';
 import { Skeleton, SkeletonCard } from '../../shared/ui/Skeleton.jsx';
 import { EmptyState } from '../../shared/ui/EmptyState.jsx';
 import { CardArt } from '../../shared/ui/CardArt.jsx';
+import { SectionLink } from '../../shared/ui/SectionLink.jsx';
 import { Button } from '../../shared/ui/Button.jsx';
 import { greetings, pickRandom } from '../../shared/lib/sisyphusPhrases.js';
 import { todayApi } from '../../shared/lib/date.js';
@@ -41,7 +42,7 @@ export const DashboardPage = () => {
       {active && (
         <button
           onClick={() => navigate(`/workout/${active.id}/active`)}
-          className="flex w-full items-center gap-3 rounded-2xl border border-accent/40 bg-accent/10 p-4 text-left transition-colors hover:bg-accent/15">
+          className="flex w-full items-center gap-3 rounded-2xl border border-border bg-surface p-4 text-left transition-colors hover:bg-surface-2">
             <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-accent text-on-accent">
               <Flame size={22} />
             </div>
@@ -56,15 +57,13 @@ export const DashboardPage = () => {
         <h1 className="font-display text-2xl font-bold text-text">
           Привет, {user?.name || 'атлет'}
         </h1>
-        <p className="mt-1 text-text-muted">{greeting}</p>
+        <p className="mt-1 text-sm font-medium text-text">{greeting}</p>
       </div>
 
       <section>
         <div className="mb-3 flex items-center justify-between">
           <h2 className="font-display text-lg font-semibold text-text">Сегодня</h2>
-          <Link to="/calendar" className="flex items-center gap-1 text-sm text-accent hover:text-accent-hover">
-            Календарь <ChevronRight size={16} />
-          </Link>
+          <SectionLink to="/calendar">Календарь</SectionLink>
         </div>
 
         {workoutsQuery.isLoading ? (
@@ -118,9 +117,7 @@ export const DashboardPage = () => {
       <section>
         <div className="mb-3 flex items-center justify-between">
           <h2 className="font-display text-lg font-semibold text-text">Питание</h2>
-          <Link to="/nutrition" className="flex items-center gap-1 text-sm text-accent hover:text-accent-hover">
-            Дневник <ChevronRight size={16} />
-          </Link>
+          <SectionLink to="/nutrition">Дневник</SectionLink>
         </div>
 
         {nutritionQuery.isLoading ? (
@@ -154,9 +151,7 @@ export const DashboardPage = () => {
       <section>
         <div className="mb-3 flex items-center justify-between">
           <h2 className="font-display text-lg font-semibold text-text">Рекорды</h2>
-          <Link to="/calendar" className="flex items-center gap-1 text-sm text-accent hover:text-accent-hover">
-            Все <ChevronRight size={16} />
-          </Link>
+          <SectionLink to="/calendar">Все</SectionLink>
         </div>
 
         {recordsQuery.isLoading ? (
