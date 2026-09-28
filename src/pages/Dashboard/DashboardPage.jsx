@@ -57,7 +57,7 @@ export const DashboardPage = () => {
         <h1 className="font-display text-2xl font-bold text-text">
           Привет, {user?.name || 'атлет'}
         </h1>
-        <p className="mt-1 text-sm font-medium text-text">{greeting}</p>
+        <p className="mt-1 text-text-muted">{greeting}</p>
       </div>
 
       <section>

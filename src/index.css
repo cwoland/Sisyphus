@@ -14,25 +14,25 @@
 
 @layer base {
   :root {
-    --bg: 205 112 68;
-    --surface: 250 242 231;
-    --surface-2: 234 218 198;
-    --border: 196 176 150;
-    --border-strong: 146 118 86;
-    --text: 31 24 19;
-    --text-muted: 104 84 66;
-    --accent: 24 82 130;
-    --accent-hover: 16 62 100;
-    --on-accent: 247 240 230;
-    --terracotta: 178 80 42;
-    --terracotta-ink: 150 58 26;
-    --gold: 164 122 40;
-    --gold-ink: 128 93 24;
-    --on-gold: 31 24 19;
-    --danger: 150 40 28;
-    --on-danger: 247 240 230;
-    --alert: 150 40 28;
-    --on-alert: 247 240 230;
+    --bg: 243 240 234;
+    --surface: 255 255 255;
+    --surface-2: 236 232 224;
+    --border: 226 221 213;
+    --border-strong: 146 138 127;
+    --text: 26 24 22;
+    --text-muted: 107 101 93;
+    --accent: 27 77 120;
+    --accent-hover: 18 58 94;
+    --on-accent: 255 255 255;
+    --terracotta: 186 86 46;
+    --terracotta-ink: 154 60 28;
+    --gold: 196 158 70;
+    --gold-ink: 132 95 24;
+    --on-gold: 26 24 22;
+    --danger: 166 40 30;
+    --on-danger: 255 255 255;
+    --alert: 166 40 30;
+    --on-alert: 255 255 255;
   }
 
   html.dark {
@@ -67,7 +67,7 @@
   }
 
   *:focus-visible {
-    @apply outline-none ring-2 ring-accent ring-offset-2 ring-offset-bg;
+    @apply outline-none ring-2 ring-accent;
   }
 }
 
@@ -106,6 +106,33 @@
   .card-art-dark { display: none; }
   html.dark .card-art-light { display: none; }
   html.dark .card-art-dark { display: block; opacity: 0.9; }
+
+
+  .auth-figure {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    z-index: 0;
+    height: 100%;
+    width: auto;
+    max-width: none;
+    object-fit: contain;
+    object-position: right bottom;
+    pointer-events: none;
+    user-select: none;
+  }
+
+  @media (max-width: 1023px) {
+    .auth-figure {
+      height: 62%;
+      opacity: 0.32;
+      right: -12%;
+    }
+  }
+
+  .auth-figure-dark { display: none; }
+  html.dark .auth-figure-light { display: none; }
+  html.dark .auth-figure-dark { display: block; }
 
   .no-scrollbar::-webkit-scrollbar { display: none; }
   .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }

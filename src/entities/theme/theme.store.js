@@ -3,7 +3,7 @@ import { create } from 'zustand';
 const MODES = ['light', 'dark', 'system'];
 const prefersDark = () => window.matchMedia('(prefers-color-scheme: dark)').matches;
 const resolve = (mode) => (mode === 'system' ? (prefersDark() ? 'dark' : 'light') : mode);
-const THEME_COLOR = { light: '#CD7044', dark: '#100C0A' };
+const THEME_COLOR = { light: '#F3F0EA', dark: '#100C0A' };
 
 const apply = (theme) => {
   document.documentElement.classList.toggle('dark', theme === 'dark');

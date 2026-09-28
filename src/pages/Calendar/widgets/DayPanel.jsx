@@ -27,7 +27,7 @@ export const DayPanel = ({ date, workouts, onOpenWorkout, onSync, onSetStatus, o
     </div>
 
     {workouts.length === 0 ? (
-      <EmptyState icon={Dumbbell} {...emptyStates.workouts} />
+      <EmptyState icon={Dumbbell} scene="calendar-page" {...emptyStates.workouts} />
     ) : (
       <div className="space-y-3">
         {workouts.map((w) => {

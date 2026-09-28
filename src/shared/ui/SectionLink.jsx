@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 import { ChevronRight } from 'lucide-react';
 import { clsx } from 'clsx';
 
-export const SectionLink = ({ to, children, onField = true, className }) => (
+export const SectionLink = ({ to, children, onField = false, className }) => (
   <Link
     to={to}
     className={clsx(

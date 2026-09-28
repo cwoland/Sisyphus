@@ -1,42 +1,45 @@
 import { forwardRef, useState } from 'react';
 import { Eye, EyeOff } from 'lucide-react';
 import { clsx } from 'clsx';
+import { inputVariants, labelVariants, fieldSpacing, idleBorder } from './field.styles.js';
 
-export const PasswordInput = forwardRef(({ label, error, id, ...props }, ref) => {
-  const [visible, setVisible] = useState(false);
+export const PasswordInput = forwardRef(
+  ({ label, error, id, variant = 'box', ...props }, ref) => {
+    const [visible, setVisible] = useState(false);
 
-  return (
-    <div className="space-y-1.5">
-      {label && (
-        <label htmlFor={id} className="block text-sm font-medium text-text">
-          {label}
-        </label>
-      )}
-      <div className="relative">
-        <input
-          ref={ref}
-          id={id}
-          type={visible ? 'text' : 'password'}
-          className={clsx(
-            'w-full rounded-xl border bg-surface px-4 py-3 pr-11 text-sm text-text placeholder:text-text-muted transition-colors',
-            'focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-1 focus:ring-offset-bg',
-            error ? 'border-crimson' : 'border-border-strong'
-          )}
-          {...props}
-        />
-        <button
-          type="button"
-          onClick={() => setVisible((v) => !v)}
-          className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted hover:text-text transition-colors"
-          aria-label={visible ? 'Скрыть пароль' : 'Показать пароль'}
-          tabIndex={-1}
-        >
-          {visible ? <EyeOff size={18} /> : <Eye size={18} />}
-        </button>
+    return (
+      <div className={fieldSpacing[variant]}>
+        {label && (
+          <label htmlFor={id} className={labelVariants[variant]}>
+            {label}
+          </label>
+        )}
+        <div className="relative">
+          <input
+            ref={ref}
+            id={id}
+            type={visible ? 'text' : 'password'}
+            className={clsx(
+              inputVariants[variant],
+              variant === 'rule' ? 'pr-11' : 'pr-11',
+              error ? 'border-crimson' : idleBorder[variant]
+            )}
+            {...props}
+          />
+          <button
+            type="button"
+            onClick={() => setVisible((v) => !v)}
+            className="absolute right-0 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center text-text-muted transition-colors hover:text-text"
+            aria-label={visible ? 'Скрыть пароль' : 'Показать пароль'}
+            tabIndex={-1}
+          >
+            {visible ? <EyeOff size={18} /> : <Eye size={18} />}
+          </button>
+        </div>
+        {error && <p className="text-xs text-crimson">{error}</p>}
       </div>
-      {error && <p className="text-xs text-crimson">{error}</p>}
-    </div>
-  );
-});
+    );
+  }
+);
 
 PasswordInput.displayName = 'PasswordInput';

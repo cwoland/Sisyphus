@@ -66,10 +66,11 @@ export const RegisterPage = () => {
     >
       <form
         onSubmit={handleSubmit(onSubmit)}
-        className={clsx('space-y-4', shake && 'animate-shake')}
+        className={clsx('space-y-6', shake && 'animate-shake')}
         noValidate
       >
         <Input
+          variant="rule"
           id="name"
           label="Имя"
           placeholder="Как вас зовут?"
@@ -79,6 +80,7 @@ export const RegisterPage = () => {
         />
 
         <Input
+          variant="rule"
           id="username"
           label="Никнейм"
           placeholder="например, sisyphusboulder"
@@ -87,6 +89,7 @@ export const RegisterPage = () => {
           {...register('username')} />
 
         <Input
+          variant="rule"
           id="email"
           label="Email"
           type="email"
@@ -97,6 +100,7 @@ export const RegisterPage = () => {
         />
 
         <PasswordInput
+          variant="rule"
           id="password"
           label="Пароль"
           placeholder="Минимум 8 символов"
@@ -106,10 +110,11 @@ export const RegisterPage = () => {
         />
 
         {serverError && (
-          <p className="text-sm font-medium text-crimson text-center">{serverError}</p>
+          <p className="text-sm font-medium text-crimson">{serverError}</p>
         )}
 
-        <Button type="submit" isLoading={mutation.isPending} className="w-full" size="lg">
+        <Button type="submit" shape="square" isLoading={mutation.isPending}
+          className="mt-2 w-full uppercase tracking-[0.14em]" size="lg">
           Создать аккаунт
         </Button>
       </form>

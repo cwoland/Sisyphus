@@ -5,12 +5,18 @@ export const Button = ({
   children,
   variant = 'primary',
   size = 'md',
+  shape = 'rounded',
   isLoading = false,
   disabled,
   className,
   ...props
 }) => {
-  const base = 'inline-flex items-center justify-center gap-2 font-medium rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed';
+  const base = 'inline-flex items-center justify-center gap-2 font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed';
+
+  const shapes = {
+    rounded: 'rounded-xl',
+    square: 'rounded-none',
+  };
 
   const variants = {
     primary: 'bg-accent text-on-accent hover:bg-accent-hover',
@@ -28,7 +34,7 @@ export const Button = ({
   return (
     <button
       disabled={disabled || isLoading}
-      className={clsx(base, variants[variant], sizes[size], className)}
+      className={clsx(base, shapes[shape], variants[variant], sizes[size], className)}
       {...props}
     >
       {isLoading && <Spinner size="sm" className="border-current border-t-transparent" />}

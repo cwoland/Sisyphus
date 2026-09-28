@@ -23,6 +23,14 @@ const useResponsiveView = () => {
   const [view, setView] = useState(() =>
     window.matchMedia('(min-width: 1024px)').matches ? 'month' : 'week'
   );
+
+  useEffect(() => {
+    const mq = window.matchMedia('(min-width: 1024px)');
+    const sync = (e) => setView(e.matches ? 'month' : 'week');
+    mq.addEventListener('change', sync);
+    return () => mq.removeEventListener('change', sync);
+  }, []);
+
   return [view, setView];
 };
 
