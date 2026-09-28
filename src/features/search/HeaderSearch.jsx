@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search, UserPlus, Dumbbell } from 'lucide-react';
+import { clsx } from 'clsx';
 import { useUserSearch, useFriendMutations } from '../../pages/Friends/friends.hooks.js';
 import { usePublicPrograms } from '../../pages/Programs/programs.hooks.js';
 import { Avatar } from '../../shared/ui/Avatar.jsx';

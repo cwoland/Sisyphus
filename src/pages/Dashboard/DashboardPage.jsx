@@ -1,198 +1,190 @@
-import { useMemo } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { Calendar, ChevronRight, CheckCircle2, Trophy, Play, Flame } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Play, Check, Plus, Trophy, Flame } from 'lucide-react';
 
 import { useAuthStore } from '../../entities/user/auth.store.js';
 import { useWeekWorkouts, useTodayNutrition, useTopRecords } from './dashboard.hooks.js';
 import { useActiveWorkout, useStartWorkout } from '../Calendar/calendar.hooks.js';
+import { WeekStrip } from './widgets/WeekStrip.jsx';
 import { CalorieRing } from './widgets/CalorieRing.jsx';
 import { Skeleton, SkeletonCard } from '../../shared/ui/Skeleton.jsx';
-import { EmptyState } from '../../shared/ui/EmptyState.jsx';
 import { CardArt } from '../../shared/ui/CardArt.jsx';
 import { SectionLink } from '../../shared/ui/SectionLink.jsx';
 import { Button } from '../../shared/ui/Button.jsx';
-import { greetings, pickRandom } from '../../shared/lib/sisyphusPhrases.js';
 import { todayApi } from '../../shared/lib/date.js';
 
+const num = (v) => Math.round(Number(v) || 0);
+
 export const DashboardPage = () => {
-  const user = useAuthStore((s) => s.user);
-
   const navigate = useNavigate();
-  const activeQuery = useActiveWorkout();
-  const startWorkout = useStartWorkout();
-  const active = activeQuery.data;
-
-  const handleStart = (w) => {
-    if (w.status === 'in_progress') return navigate(`/workout/${w.id}/active`);
-    startWorkout.mutate(w.id, { onSuccess: () => navigate(`/workout/${w.id}/active`) });
-  };
+  const user = useAuthStore((s) => s.user);
 
   const workoutsQuery = useWeekWorkouts();
   const nutritionQuery = useTodayNutrition();
   const recordsQuery = useTopRecords();
+  const activeQuery = useActiveWorkout();
+  const startWorkout = useStartWorkout();
 
-  const greeting = useMemo(() => pickRandom(greetings), []);
-
+  const active = activeQuery.data;
+  const week = workoutsQuery.data || [];
   const today = todayApi();
-  const todayWorkouts = (workoutsQuery.data || []).filter((w) => w.date === today);
-  const topRecords = (recordsQuery.data || []).slice(0, 3);
+
+  const todayWorkout =
+    active ?? week.find((w) => w.date === today && w.status !== 'skipped') ?? null;
+
+  const open = () => {
+    if (!todayWorkout) return;
+    if (todayWorkout.status === 'in_progress') {
+      return navigate(`/workout/${todayWorkout.id}/active`);
+    }
+    startWorkout.mutate(todayWorkout.id, {
+      onSuccess: () => navigate(`/workout/${todayWorkout.id}/active`),
+    });
+  };
+
+  const consumed = num(nutritionQuery.data?.consumed?.total_calories);
+  const target = nutritionQuery.data?.target?.calories || 2000;
+  const records = (recordsQuery.data || []).slice(0, 3);
 
   return (
-    <div className="space-y-4">
-      {active && (
-        <button
-          onClick={() => navigate(`/workout/${active.id}/active`)}
-          className="flex w-full items-center gap-3 rounded-2xl border border-border bg-surface p-4 text-left transition-colors hover:bg-surface-2">
-            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-accent text-on-accent">
-              <Flame size={22} />
-            </div>
-            <div className="min-w-0 flex-1">
-              <p className="font-display font-semibold text-text">Тренировка идёт</p>
-              <p className="truncate text-sm text-text-muted">{active.title} - продолжить</p>
-            </div>
-            <ChevronRight size={20} className="shrink-0 text-accent" />
-          </button>
+    <div className="space-y-10">
+      <TodayBlock
+        name={user?.name}
+        workout={todayWorkout}
+        isLoading={workoutsQuery.isLoading || activeQuery.isLoading}
+        isStarting={startWorkout.isPending}
+        onOpen={open}
+        onPlan={() => navigate('/calendar')}
+      />
+
+      {workoutsQuery.isLoading ? (
+        <Skeleton className="h-20 w-full" />
+      ) : (
+        <WeekStrip workouts={week} />
       )}
-      <div>
-        <h1 className="font-display text-2xl font-bold text-text">
-          Привет, {user?.name || 'атлет'}
-        </h1>
-        <p className="mt-1 text-text-muted">{greeting}</p>
-      </div>
 
-      <section>
+      <section aria-label="Питание">
         <div className="mb-3 flex items-center justify-between">
-          <h2 className="font-display text-lg font-semibold text-text">Сегодня</h2>
-          <SectionLink to="/calendar">Календарь</SectionLink>
-        </div>
-
-        {workoutsQuery.isLoading ? (
-          <SkeletonCard />
-        ) : (
-          <div className="relative isolate clip-card-art flex min-h-[13rem] flex-col justify-center rounded-2xl border border-border bg-surface p-4 sm:p-6">
-            <CardArt name="warrior" />
-            <div className="relative pr-16 sm:pr-24">
-              {todayWorkouts.length === 0 ? (
-                <EmptyState
-                  icon={Calendar}
-                  title="Сегодня подъёма нет"
-                  description="Отдых — часть маршрута. Или добавьте тренировку в календаре."
-                />
-              ) : (
-                <div className="space-y-3">
-                  {todayWorkouts.map((w) => (
-                    <div key={w.id} className="rounded-xl border border-border p-3">
-                      <div className="mb-2 flex items-center gap-3">
-                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-accent/10 text-accent">
-                          {w.status === 'completed' ? <CheckCircle2 size={20} /> : <Calendar size={20} />}
-                        </div>
-                        <div className="min-w-0">
-                          <p className="truncate font-medium text-text">{w.title}</p>
-                          <p className="text-xs text-text-muted">
-                            {w.status === 'completed' ? 'Завершена'
-                              : w.status === 'in_progress' ? 'В процессе'
-                              : w.status === 'skipped' ? 'Пропущена' : 'Запланирована'}
-                          </p>
-                        </div>
-                      </div>
-
-                      {w.status === 'completed' || w.status === 'skipped' ? (
-                        <Link to="/calendar" className="flex items-center gap-1 text-sm text-accent hover:text-accent-hover">
-                          Открыть в календаре <ChevronRight size={15} />
-                        </Link>
-                      ) : (
-                        <Button size="sm" className="w-full" onClick={() => handleStart(w)} isLoading={startWorkout.isPending}>
-                          <Play size={16} /> {w.status === 'in_progress' ? 'Продолжить' : 'Начать тренировку'}
-                        </Button>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-      </section>
-
-      <section>
-        <div className="mb-3 flex items-center justify-between">
-          <h2 className="font-display text-lg font-semibold text-text">Питание</h2>
+          <h2 className="font-display text-sm font-semibold uppercase tracking-[0.14em] text-text-muted">
+            Питание
+          </h2>
           <SectionLink to="/nutrition">Дневник</SectionLink>
         </div>
 
         {nutritionQuery.isLoading ? (
-          <div className="rounded-2xl border border-border bg-surface p-6">
-            <div className="flex items-center gap-6">
-              <Skeleton className="h-32 w-32 rounded-full" />
-              <div className="flex-1 space-y-2">
-                <Skeleton className="h-4 w-2/3" />
-                <Skeleton className="h-4 w-1/2" />
-              </div>
-            </div>
-          </div>
+          <Skeleton className="h-28 w-full" />
         ) : (
-          <div className="relative isolate clip-card-art rounded-2xl border border-border bg-surface p-6">
-            <CardArt name="back" />
-            <div className="relative flex flex-col items-center gap-6 sm:flex-row">
-              <CalorieRing
-                consumed={Number(nutritionQuery.data?.consumed?.total_calories) || 0}
-                target={nutritionQuery.data?.target?.calories || 2000}
-              />
-              <div className="grid flex-1 grid-cols-3 gap-3 text-center sm:text-left">
-                <Macro label="Белки" value={nutritionQuery.data?.consumed?.total_protein} />
-                <Macro label="Жиры" value={nutritionQuery.data?.consumed?.total_fat} />
-                <Macro label="Углеводы" value={nutritionQuery.data?.consumed?.total_carbs} />
-              </div>
-            </div>
+          <div className="flex items-center gap-5 rounded-2xl border border-border bg-surface p-4 sm:gap-7 sm:p-5">
+            <CalorieRing consumed={consumed} target={target} />
+            <dl className="grid min-w-0 flex-1 grid-cols-3 gap-3">
+              <Macro label="Белки" value={nutritionQuery.data?.consumed?.total_protein} />
+              <Macro label="Жиры" value={nutritionQuery.data?.consumed?.total_fat} />
+              <Macro label="Углеводы" value={nutritionQuery.data?.consumed?.total_carbs} />
+            </dl>
           </div>
         )}
       </section>
 
-      <section>
+      <section aria-label="Рекорды">
         <div className="mb-3 flex items-center justify-between">
-          <h2 className="font-display text-lg font-semibold text-text">Рекорды</h2>
+          <h2 className="font-display text-sm font-semibold uppercase tracking-[0.14em] text-text-muted">
+            Рекорды
+          </h2>
           <SectionLink to="/calendar">Все</SectionLink>
         </div>
 
         {recordsQuery.isLoading ? (
           <SkeletonCard />
+        ) : records.length === 0 ? (
+          <p className="rounded-2xl border border-dashed border-border px-4 py-5 text-sm text-text-muted">
+            Завершите тренировку с отмеченными подходами — максимум запомнится сам.
+          </p>
         ) : (
-          <div className="relative isolate clip-card-art flex min-h-[13rem] flex-col justify-center rounded-2xl border border-border bg-surface p-4 sm:p-6">
-            <CardArt name="smith" />
-            <div className="relative pr-16 sm:pr-24">
-              {topRecords.length === 0 ? (
-                <EmptyState
-                  icon={Trophy}
-                  title="Пока нет рекордов"
-                  description="Завершите тренировку с отмеченными подходами — вершина запомнит максимум."
-                />
-              ) : (
-                <div className="space-y-2">
-                  {topRecords.map((r) => (
-                    <div
-                      key={r.id}
-                      className="flex items-center justify-between rounded-xl border border-border px-3 py-2"
-                    >
-                      <span className="truncate text-sm text-text">{r.exercise_name}</span>
-                      <div className="shrink-0 text-right">
-                        <span className="font-display font-bold text-text">{Math.round(Number(r.one_rm))} кг</span>
-                        <span className="ml-2 text-xs text-text-muted">{Number(r.weight)}×{r.reps}</span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
+          <ol className="divide-y divide-border overflow-hidden rounded-2xl border border-border bg-surface">
+            {records.map((r) => (
+              <li key={r.id} className="flex items-center gap-3 px-4 py-3">
+                <Trophy size={16} className="shrink-0 text-gold-ink" />
+                <span className="min-w-0 flex-1 truncate text-sm text-text">{r.exercise_name}</span>
+                <span className="shrink-0 text-right">
+                  <span className="font-display font-bold tabular-nums text-text">
+                    {num(r.one_rm)} кг
+                  </span>
+                  <span className="ml-2 text-xs tabular-nums text-text-muted">
+                    {Number(r.weight)}×{r.reps}
+                  </span>
+                </span>
+              </li>
+            ))}
+          </ol>
         )}
       </section>
     </div>
   );
 };
 
+const TodayBlock = ({ name, workout, isLoading, isStarting, onOpen, onPlan }) => {
+  if (isLoading) return <Skeleton className="h-64 w-full rounded-2xl" />;
+
+  const running = workout?.status === 'in_progress';
+  const done = workout?.status === 'completed';
+
+  return (
+    <section
+      aria-label="Сегодня"
+      className="relative isolate clip-card-art overflow-hidden rounded-2xl border border-border bg-surface p-5 sm:p-7"
+    >
+      <CardArt name="warrior" />
+
+      <div className="relative max-w-[32ch] pr-16 sm:pr-24">
+        <p className="font-display text-sm font-semibold uppercase tracking-[0.14em] text-text-muted">
+          {running ? 'Тренировка идёт' : done ? 'Сегодня закрыто' : 'Сегодня'}
+        </p>
+
+        {workout ? (
+          <>
+            <h1 className="mt-2 font-display text-3xl font-extrabold leading-tight tracking-tight text-text sm:text-4xl">
+              {workout.title}
+            </h1>
+
+            <div className="mt-6">
+              {done ? (
+                <p className="flex items-center gap-2 text-sm font-medium text-accent">
+                  <Check size={18} /> Камень на вершине
+                </p>
+              ) : (
+                <Button size="lg" onClick={onOpen} isLoading={isStarting}>
+                  {running ? <Flame size={18} /> : <Play size={18} />}
+                  {running ? 'Продолжить' : 'Начать тренировку'}
+                </Button>
+              )}
+            </div>
+          </>
+        ) : (
+          <>
+            <h1 className="mt-2 font-display text-3xl font-extrabold leading-tight tracking-tight text-text sm:text-4xl">
+              День отдыха
+            </h1>
+            <p className="mt-2 text-sm text-text-muted">
+              {name ? `${name}, отдых — часть маршрута.` : 'Отдых — часть маршрута.'}
+              {' '}Или поставьте тренировку в календарь.
+            </p>
+            <div className="mt-6">
+              <Button variant="secondary" size="lg" onClick={onPlan}>
+                <Plus size={18} /> В календарь
+              </Button>
+            </div>
+          </>
+        )}
+      </div>
+    </section>
+  );
+};
+
 const Macro = ({ label, value }) => (
-  <div className="rounded-xl bg-surface-2 p-3">
-    <p className="font-display text-lg font-bold text-text">{Math.round(Number(value) || 0)}<span className="text-xs font-normal text-text-muted"> г</span></p>
-    <p className="text-xs text-text-muted">{label}</p>
+  <div className="min-w-0">
+    <dt className="truncate text-xs text-text-muted">{label}</dt>
+    <dd className="font-display text-xl font-bold tabular-nums text-text">
+      {num(value)}
+      <span className="text-xs font-normal text-text-muted"> г</span>
+    </dd>
   </div>
 );
