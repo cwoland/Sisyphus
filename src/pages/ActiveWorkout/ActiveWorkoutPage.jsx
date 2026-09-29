@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Flag, Pause, Play, ChevronLeft, ChevronRight, Check, ArrowRight } from 'lucide-react';
+import { Flag, Pause, Play, ChevronLeft, ChevronRight, Check, ArrowRight, ListChecks } from 'lucide-react';
 import { clsx } from 'clsx';
 
 import { useWorkoutDetails, useWorkoutMutations } from '../Calendar/calendar.hooks.js';
@@ -11,6 +11,7 @@ import { useRestTimer } from '../../features/active-workout/useRestTimer.js';
 import { Skeleton } from '../../shared/ui/Skeleton.jsx';
 import { Button } from '../../shared/ui/Button.jsx';
 import { IconButton } from '../../shared/ui/IconButton.jsx';
+import { Sheet } from '../../shared/ui/Sheet.jsx';
 import { BottomNav } from '../../widgets/layout/BottomNav.jsx';
 import { epley1RM } from '../../shared/lib/oneRepMax.js';
 import { completionPhrases, pickRandom } from '../../shared/lib/sisyphusPhrases.js';
@@ -29,20 +30,30 @@ export const ActiveWorkoutPage = () => {
   const elapsed = useElapsed(workout?.started_at);
 
   const groups = useMemo(() => {
-    const map = new Map();
+    const out = [];
     for (const s of workout?.sets || []) {
-      if (!map.has(s.exercise_id)) {
-        map.set(s.exercise_id, { id: s.exercise_id, name: s.exercise_name, sets: [] });
+      const last = out[out.length - 1];
+      if (last && last.exerciseId === s.exercise_id) {
+        last.sets.push(s);
+      } else {
+        out.push({
+          key: `${s.exercise_id}:${out.length}`,
+          exerciseId: s.exercise_id,
+          name: s.exercise_name,
+          sets: [s],
+        });
       }
-      map.get(s.exercise_id).sets.push(s);
     }
-    return [...map.values()];
+    return out;
   }, [workout]);
 
   const [index, setIndex] = useState(0);
-  const current = groups[index];
-  const prev = groups[index - 1];
-  const next = groups[index + 1];
+  const [setsOpen, setSetsOpen] = useState(false);
+
+  const safeIndex = groups.length ? Math.min(index, groups.length - 1) : 0;
+  const current = groups[safeIndex];
+  const prev = groups[safeIndex - 1];
+  const next = groups[safeIndex + 1];
 
   const done = current ? current.sets.filter((s) => s.is_completed).length : 0;
   const total = current ? current.sets.length : 0;
@@ -57,7 +68,7 @@ export const ActiveWorkoutPage = () => {
       weight: String(pending.weight ?? lastDone?.weight ?? ''),
       reps: String(pending.reps ?? lastDone?.reps ?? ''),
     });
-  }, [pending?.id, current?.id]);
+  }, [pending?.id, current?.key]);
 
   const commitSet = () => {
     if (!pending) return;
@@ -73,11 +84,13 @@ export const ActiveWorkoutPage = () => {
 
   const goNext = () => {
     rest.stop();
-    setIndex((i) => Math.min(groups.length - 1, i + 1));
+    setSetsOpen(false);
+    setIndex(Math.min(groups.length - 1, safeIndex + 1));
   };
   const goPrev = () => {
     rest.stop();
-    setIndex((i) => Math.max(0, i - 1));
+    setSetsOpen(false);
+    setIndex(Math.max(0, safeIndex - 1));
   };
 
   const finish = () => {
@@ -135,7 +148,7 @@ export const ActiveWorkoutPage = () => {
               </button>
 
               <span className="font-display text-xs uppercase tracking-[0.16em] text-text-muted">
-                {index + 1} / {groups.length}
+                {safeIndex + 1} / {groups.length}
               </span>
 
               <button
@@ -233,33 +246,44 @@ export const ActiveWorkoutPage = () => {
               ))}
             </div>
 
-            <ul className="flex w-full max-w-sm flex-col gap-1.5">
-              {current.sets.map((s, i) => (
-                <li
-                  key={s.id}
-                  className={clsx(
-                    'flex items-center justify-between rounded-xl border px-3 py-2 text-sm',
-                    s.is_completed
-                      ? 'border-accent/40 bg-accent/5 text-text'
-                      : s.id === pending?.id
-                        ? 'border-accent bg-surface text-text'
-                        : 'border-border bg-surface text-text-muted'
-                  )}
-                >
-                  <span className="flex items-center gap-2 font-medium">
-                    {s.is_completed && <Check size={14} className="text-accent" />}
-                    Подход {i + 1}
-                  </span>
-                  <span className="tabular-nums">
-                    {s.is_completed
-                      ? `${s.weight ?? '—'} кг × ${s.reps ?? '—'}`
-                      : s.id === pending?.id
-                        ? `${draft.weight || '—'} кг × ${draft.reps || '—'}`
-                        : '—'}
-                  </span>
-                </li>
-              ))}
-            </ul>
+            <button
+              onClick={() => setSetsOpen(true)}
+              className="flex min-h-[44px] items-center gap-2 rounded-xl border border-border bg-surface/80 px-4 text-sm font-medium text-text backdrop-blur-sm transition-colors hover:bg-surface"
+            >
+              <ListChecks size={18} className="text-text-muted" />
+              Подходы
+              <span className="tabular-nums text-text-muted">{done} / {total}</span>
+            </button>
+
+            <Sheet isOpen={setsOpen} onClose={() => setSetsOpen(false)} title={current.name}>
+              <ol className="flex flex-col gap-1.5">
+                {current.sets.map((s, i) => (
+                  <li
+                    key={s.id}
+                    className={clsx(
+                      'flex items-center justify-between rounded-xl border px-3 py-2.5 text-sm',
+                      s.is_completed
+                        ? 'border-accent/40 bg-accent/5 text-text'
+                        : s.id === pending?.id
+                          ? 'border-accent bg-surface text-text'
+                          : 'border-border bg-surface text-text-muted'
+                    )}
+                  >
+                    <span className="flex items-center gap-2 font-medium">
+                      {s.is_completed && <Check size={14} className="text-accent" />}
+                      Подход {i + 1}
+                    </span>
+                    <span className="tabular-nums">
+                      {s.is_completed
+                        ? `${s.weight ?? '—'} кг × ${s.reps ?? '—'}`
+                        : s.id === pending?.id
+                          ? `${draft.weight || '—'} кг × ${draft.reps || '—'}`
+                          : '—'}
+                    </span>
+                  </li>
+                ))}
+              </ol>
+            </Sheet>
           </>
         )}
       </main>
