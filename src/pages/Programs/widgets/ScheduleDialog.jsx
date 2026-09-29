@@ -4,6 +4,7 @@ import { Sheet } from '../../../shared/ui/Sheet.jsx';
 import { Button } from '../../../shared/ui/Button.jsx';
 import { Input } from '../../../shared/ui/Input.jsx';
 import { todayApi } from '../../../shared/lib/date.js';
+import { plural } from '../../../shared/lib/plural.js';
 
 const WEEKDAYS = [
   { value: 1, label: 'Пн' },
@@ -19,6 +20,8 @@ export const ScheduleDialog = ({ isOpen, onClose, program, onSchedule, isSchedul
   const [startDate, setStartDate] = useState(todayApi());
   const [weeksCount, setWeeksCount] = useState(4);
   const [weekdays, setWeekdays] = useState([1, 3, 5]);
+
+  const programDays = program?.days?.length ?? Number(program?.days_count) ?? 0;
 
   const toggleDay = (value) => {
     setWeekdays((prev) =>
@@ -41,7 +44,8 @@ export const ScheduleDialog = ({ isOpen, onClose, program, onSchedule, isSchedul
     <Sheet isOpen={isOpen} onClose={onClose} title="Запланировать в календарь">
       <div className="space-y-4">
         <p className="text-sm text-text-muted">
-          Выберите дни тренировок — остальные станут днями отдыха. Программа разложится по ним циклически.
+          Выберите дни тренировок — остальные станут днями отдыха.
+          {programDays > 0 && ` В программе ${programDays} ${plural(programDays, ['день', 'дня', 'дней'])} — они разложатся по выбранным дням циклически.`}
         </p>
 
         <Input
