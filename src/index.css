@@ -149,6 +149,12 @@
   html.dark .card-art-light { display: none; }
   html.dark .card-art-dark { display: block; opacity: 0.9; }
 
+  .card-art-hero { max-width: 40%; }
+
+  @media (max-width: 639px) {
+    .card-art-hero { max-width: 34%; }
+  }
+
 
   .auth-figure {
     position: absolute;

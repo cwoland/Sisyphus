@@ -1,25 +1,29 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Plus, Settings2, Pencil, Trash2, ChevronLeft, ChevronRight, Apple, Scale } from 'lucide-react';
+import { Settings2, ChevronLeft, ChevronRight, Scale } from 'lucide-react';
 import { addDays } from 'date-fns';
 import { ru } from 'date-fns/locale';
+import { clsx } from 'clsx';
 
 import { useDayEntries, useDaySummary, useTargets, useNutritionMutations, useTargetsMutation } from './nutrition.hooks.js';
 import { EntryForm } from './widgets/EntryForm.jsx';
 import { TargetsForm } from './widgets/TargetsForm.jsx';
 import { MacroProgress } from './widgets/MacroProgress.jsx';
+import { DayLedger } from './widgets/DayLedger.jsx';
 import { Sheet } from '../../shared/ui/Sheet.jsx';
 import { Button } from '../../shared/ui/Button.jsx';
-import { EmptyState } from '../../shared/ui/EmptyState.jsx';
-import { Skeleton } from '../../shared/ui/Skeleton.jsx';
-import { mealTypes, mealTypeLabel, mealTypeIcon } from '../../entities/nutrition/mealTypes.js';
 import { IconButton } from '../../shared/ui/IconButton.jsx';
+import { CardArt } from '../../shared/ui/CardArt.jsx';
+import { CalorieRing } from '../../shared/ui/CalorieRing.jsx';
+import { Skeleton } from '../../shared/ui/Skeleton.jsx';
 import { emptyStates } from '../../shared/lib/sisyphusPhrases.js';
 import { toApiDate, todayApi, safeFormat } from '../../shared/lib/date.js';
 import { useLatestBody } from '../../features/body/body.hooks.js';
 
+const num = (v) => Math.round(Number(v) || 0);
+
 export const NutritionPage = () => {
-  const [date, setDate] = useState(todayApi());
+  const [date, setDate] = useState(todayApi);
   const [entryForm, setEntryForm] = useState(null);
   const [targetsOpen, setTargetsOpen] = useState(false);
 
@@ -30,12 +34,20 @@ export const NutritionPage = () => {
   const targetsMutation = useTargetsMutation();
   const latestBody = useLatestBody();
 
+  const isToday = date === todayApi();
   const shiftDay = (dir) => setDate((d) => toApiDate(addDays(new Date(d), dir)));
 
   const byMeal = (entriesQuery.data || []).reduce((acc, e) => {
     (acc[e.meal_type] = acc[e.meal_type] || []).push(e);
     return acc;
   }, {});
+
+  const consumed = summaryQuery.data?.consumed;
+  const target = targetsQuery.data;
+  const eaten = num(consumed?.total_calories);
+  const goal = num(target?.calories);
+  const remaining = goal - eaten;
+  const over = goal > 0 && remaining < 0;
 
   const handleSubmitEntry = (payload) => {
     if (entryForm?.entry) {
@@ -45,119 +57,115 @@ export const NutritionPage = () => {
     }
   };
 
-  const isEmpty = !entriesQuery.isLoading && (entriesQuery.data?.length === 0);
+  const isEmptyDay = !entriesQuery.isLoading && (entriesQuery.data?.length ?? 0) === 0;
+  const weight = latestBody.data?.current?.weight;
+  const prevWeight = latestBody.data?.previous?.weight;
+  const delta = weight != null && prevWeight != null ? Number(weight) - Number(prevWeight) : null;
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
+    <div className="space-y-5">
+      <div className="flex flex-wrap items-center justify-between gap-2">
         <h1 className="font-display text-2xl font-bold text-text">Питание</h1>
-        <Button variant="secondary" size="sm" onClick={() => setTargetsOpen(true)}>
-          <Settings2 size={16} /> Цели
-        </Button>
-      </div>
 
-      <div className="flex items-center justify-between rounded-2xl border border-border bg-surface p-3">
-        <button onClick={() => shiftDay(-1)} className="rounded-lg p-2 text-text-muted hover:bg-surface-2 hover:text-text" aria-label="Предыдущий день">
-          <ChevronLeft size={20} />
-        </button>
-        <div className="text-center">
-          <p className="font-medium capitalize text-text">
-            {safeFormat(date, 'd MMMM', { locale: ru })}
-          </p>
-          <p className="text-xs capitalize text-text-muted">
-            {safeFormat(date, 'EEEE', { locale: ru })}
-          </p>
-        </div>
-        <button onClick={() => shiftDay(1)} className="rounded-lg p-2 text-text-muted hover:bg-surface-2 hover:text-text" aria-label="Следующий день">
-          <ChevronRight size={20} />
-        </button>
-      </div>
-
-      {latestBody.data?.current && (
-        <Link
-          to="/profile"
-          className="flex items-center justify-between rounded-2xl border border-border bg-surface px-4 py-3 transition-colors hover:bg-surface-2">
-            <div className="flex items-center gap-2">
-              <Scale size={16} className="text-accent" />
-              <span className="font-display font-bold text-text">
-                {Number(latestBody.data.current.weight)} кг
-              </span>
-              {latestBody.data.previous?.weight && (
-                <span className="text-xs text-text-muted">
-                  {(Number(latestBody.data.current.weight) - Number(latestBody.data.previous.weight) > 0 ? '+' : '')}
-                  {(Number(latestBody.data.current.weight) - Number(latestBody.data.previous.weight)).toFixed(1)}
+        <div className="flex items-center gap-2">
+          {weight != null && (
+            <Link
+              to="/profile"
+              className="flex min-h-[36px] items-center gap-1.5 rounded-xl border border-border bg-surface px-3 text-sm transition-colors hover:bg-surface-2"
+            >
+              <Scale size={15} className="text-text-muted" />
+              <span className="font-display font-bold tabular-nums text-text">{Number(weight)} кг</span>
+              {delta != null && delta !== 0 && (
+                <span className="text-xs tabular-nums text-text-muted">
+                  {delta > 0 ? '+' : ''}{delta.toFixed(1)}
                 </span>
               )}
-            </div>
-          </Link>
-      )}
+            </Link>
+          )}
 
-      <div className="rounded-2xl border border-border bg-surface p-4">
-        {summaryQuery.isLoading ? (
-          <div className="space-y-3">
-            {Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-6 w-full" />)}
-          </div>
-        ) : (
-          <MacroProgress consumed={summaryQuery.data?.consumed} target={targetsQuery.data} />
-        )}
-      </div>
-
-      {entriesQuery.isLoading ? (
-        <div className="space-y-3">
-          {Array.from({ length: 2 }).map((_, i) => <Skeleton key={i} className="h-24 w-full" />)}
-        </div>
-      ) : isEmpty ? (
-        <div className="rounded-2xl border border-border bg-surface">
-          <EmptyState
-            icon={Apple}
-            {...emptyStates.nutrition}
-            action={<Button onClick={() => setEntryForm({})}><Plus size={18} /> Добавить приём</Button>}
-          />
-        </div>
-      ) : (
-        <div className="space-y-4">
-          {mealTypes.map((meal) => {
-            const entries = byMeal[meal.value] || [];
-            if (entries.length === 0) return null;
-            const Icon = meal.icon;
-            const mealCalories = entries.reduce((sum, e) => sum + (Number(e.calories) || 0), 0);
-
-            return (
-              <div key={meal.value} className="rounded-2xl border border-border bg-surface p-4">
-                <div className="mb-3 flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Icon size={18} className="text-accent" />
-                    <h3 className="font-medium text-text">{meal.label}</h3>
-                  </div>
-                  <span className="text-sm text-text-muted">{mealCalories} ккал</span>
-                </div>
-
-                <div className="space-y-2">
-                  {entries.map((e) => (
-                    <div key={e.id} className="flex items-center justify-between rounded-xl bg-surface-2 px-3 py-2">
-                      <div className="min-w-0">
-                        <p className="truncate text-sm text-text">{e.name}</p>
-                        <p className="text-xs text-text-muted">
-                          {Number(e.calories)} ккал · Б{Math.round(Number(e.protein))} Ж{Math.round(Number(e.fat))} У{Math.round(Number(e.carbs))}
-                        </p>
-                      </div>
-                      <div className="flex shrink-0 gap-1">
-                        <IconButton icon={Pencil} size={15} onClick={() => setEntryForm({ entry: e })}
-                          className="text-text-muted hover:text-accent" aria-label={`Изменить: ${e.name}`} />
-                        <IconButton icon={Trash2} size={15} onClick={() => remove.mutate(e.id)}
-                          className="text-text-muted hover:text-crimson" aria-label={`Удалить: ${e.name}`} />
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            );
-          })}
-
-          <Button variant="secondary" className="w-full" onClick={() => setEntryForm({})}>
-            <Plus size={18} /> Добавить приём пищи
+          <Button variant="secondary" size="sm" onClick={() => setTargetsOpen(true)}>
+            <Settings2 size={16} /> Цели
           </Button>
         </div>
+      </div>
+
+      <div className="flex items-center gap-1">
+        <IconButton
+          icon={ChevronLeft} size={20} onClick={() => shiftDay(-1)}
+          className="text-text-muted hover:bg-surface-2 hover:text-text"
+          aria-label="Предыдущий день"
+        />
+        <p className="min-w-0 flex-1 truncate text-center">
+          <span className="font-display font-semibold capitalize text-text">
+            {safeFormat(date, 'd MMMM', { locale: ru })}
+          </span>
+          <span className="ml-2 text-sm capitalize text-text-muted">
+            {safeFormat(date, 'EEEE', { locale: ru })}
+          </span>
+        </p>
+        <button
+          onClick={() => setDate(todayApi())}
+          className={clsx(
+            'shrink-0 rounded-lg px-3 py-2 text-sm text-text-muted transition-colors hover:bg-surface-2 hover:text-text',
+            isToday && 'invisible'
+          )}
+          aria-label="Вернуться к сегодняшнему дню"
+        >
+          Сегодня
+        </button>
+        <IconButton
+          icon={ChevronRight} size={20} onClick={() => shiftDay(1)}
+          className="text-text-muted hover:bg-surface-2 hover:text-text"
+          aria-label="Следующий день"
+        />
+      </div>
+
+      {summaryQuery.isLoading ? (
+        <Skeleton className="h-52 w-full rounded-2xl" />
+      ) : (
+        <section
+          aria-label="Итог дня"
+          className="relative isolate clip-card-art overflow-hidden rounded-2xl border border-border bg-surface p-5 sm:p-6"
+        >
+          <CardArt name="back" className="card-art-hero" />
+
+          <div className="relative pr-[36%] sm:pr-40">
+            <p className="font-display text-xs font-semibold uppercase tracking-[0.14em] text-text-muted">
+              {goal > 0 ? `Съедено ${eaten} из ${goal}` : `Съедено ${eaten} ккал`}
+            </p>
+
+            <div className="mt-4 flex items-center gap-5">
+              <CalorieRing
+                consumed={eaten}
+                target={goal || 2000}
+                size={124}
+                primary={goal > 0 ? Math.abs(remaining) : eaten}
+                caption={goal > 0 ? (over ? 'перебор, ккал' : 'осталось, ккал') : 'ккал'}
+                tone={over ? 'over' : undefined}
+              />
+            </div>
+
+            <div className="mt-5">
+              <MacroProgress
+                consumed={consumed}
+                target={target}
+                onSetTargets={() => setTargetsOpen(true)}
+              />
+            </div>
+          </div>
+        </section>
+      )}
+
+      {entriesQuery.isLoading ? (
+        <Skeleton className="h-72 w-full rounded-2xl" />
+      ) : (
+        <DayLedger
+          byMeal={byMeal}
+          hint={isEmptyDay ? emptyStates.nutrition.description : null}
+          onAdd={(mealType) => setEntryForm({ defaultMealType: mealType })}
+          onEdit={(entry) => setEntryForm({ entry })}
+          onDelete={(entry) => remove.mutate(entry.id)}
+        />
       )}
 
       <Sheet

@@ -5,7 +5,7 @@ import { useAuthStore } from '../../entities/user/auth.store.js';
 import { useWeekWorkouts, useTodayNutrition, useTopRecords } from './dashboard.hooks.js';
 import { useActiveWorkout, useStartWorkout } from '../Calendar/calendar.hooks.js';
 import { WeekStrip } from './widgets/WeekStrip.jsx';
-import { CalorieRing } from './widgets/CalorieRing.jsx';
+import { CalorieRing } from '../../shared/ui/CalorieRing.jsx';
 import { Skeleton, SkeletonCard } from '../../shared/ui/Skeleton.jsx';
 import { CardArt } from '../../shared/ui/CardArt.jsx';
 import { SectionLink } from '../../shared/ui/SectionLink.jsx';

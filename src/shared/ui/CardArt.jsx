@@ -1,3 +1,5 @@
+import { clsx } from 'clsx';
+
 const ART_SIZE = {
   warrior: { width: 289, height: 440 },
   back: { width: 352, height: 440 },
@@ -6,7 +8,7 @@ const ART_SIZE = {
 
 const FALLBACK_SIZE = { width: 289, height: 440 };
 
-export const CardArt = ({ name }) => {
+export const CardArt = ({ name, className }) => {
   const { width, height } = ART_SIZE[name] || FALLBACK_SIZE;
 
   return (
@@ -18,7 +20,7 @@ export const CardArt = ({ name }) => {
           alt="" aria-hidden="true" draggable="false"
           width={width} height={height}
           loading="lazy" decoding="async"
-          className="card-art card-art-light"
+          className={clsx('card-art card-art-light', className)}
         />
       </picture>
       <picture>
@@ -28,7 +30,7 @@ export const CardArt = ({ name }) => {
           alt="" aria-hidden="true" draggable="false"
           width={width} height={height}
           loading="lazy" decoding="async"
-          className="card-art card-art-dark"
+          className={clsx('card-art card-art-dark', className)}
         />
       </picture>
     </>
