@@ -42,8 +42,8 @@
     --rail-edge:       28 24 21;
 
     --cta:       154 60 28;
-    --cta-hover: 228 136 90;
-    --on-cta:    26 16 10;
+    --cta-hover: 120 44 18;
+    --on-cta:    255 255 255;
   }
 
   html.dark {
@@ -71,6 +71,10 @@
     --rail-ink-muted:  172 160 145;
     --rail-mark:       214 118 70;
     --rail-edge:       84 68 56;
+
+    --cta:       214 118 70;
+    --cta-hover: 228 136 90;
+    --on-cta:    26 16 10;
   }
 
   html {

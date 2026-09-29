@@ -11,6 +11,10 @@ export const lockScroll = () => {
   style.top = `-${savedY}px`;
   style.left = '0';
   style.right = '0';
+  // bottom вместе с top держит бокс body до нижней границы вьюпорта.
+  // Без него сдвинутый вверх body заканчивается раньше экрана, и снизу
+  // остаётся полоса фона html.
+  style.bottom = '0';
   style.width = '100%';
   style.overflow = 'hidden';
 };
@@ -24,6 +28,7 @@ export const unlockScroll = () => {
   style.top = '';
   style.left = '';
   style.right = '';
+  style.bottom = '';
   style.width = '';
   style.overflow = '';
   window.scrollTo(0, savedY);

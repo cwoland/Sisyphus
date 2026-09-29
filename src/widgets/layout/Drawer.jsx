@@ -26,16 +26,21 @@ export const Drawer = ({ isOpen, onClose }) => {
     <>
       <div
         className={clsx(
-          'fixed inset-0 z-50 bg-rail/60 transition-opacity duration-300 lg:hidden',
+          'fixed inset-0 z-50 transition-opacity duration-300 lg:hidden',
           isOpen ? 'opacity-100' : 'pointer-events-none opacity-0'
         )}
         onClick={onClose}
         aria-hidden="true"
-      />
+      >
+        {/* Непрозрачная подложка: под ней не видно ни страницы, ни полосы
+            безопасной зоны, что бы там ни оказалось по геометрии. */}
+        <div className="absolute inset-0 bg-bg" />
+        <div className="absolute inset-0 bg-rail/60" />
+      </div>
       <aside
         ref={panelRef}
         className={clsx(
-          'fixed inset-y-0 left-0 z-50 w-72 max-w-[85%] bg-rail shadow-2xl lg:hidden',
+          'fixed inset-y-0 left-0 z-[60] w-72 max-w-[85%] bg-rail shadow-2xl lg:hidden',
           'transition-transform duration-300 ease-[cubic-bezier(.16,1,.3,1)]',
           'pad-safe-top pad-safe-bottom',
           isOpen ? 'translate-x-0' : '-translate-x-full'

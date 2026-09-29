@@ -15,7 +15,7 @@ export const NumberStepper = ({ label, value, onChange, step = 1, min = 0, max, 
   return (
     <div className={clsx('flex flex-col items-center gap-2', className)}>
       <span className="font-display text-[11px] font-semibold uppercase tracking-[0.16em] text-text-muted">
-        {label}
+        {suffix ? `${label}, ${suffix}` : label}
       </span>
       <div className="flex items-center gap-1">
         <button
@@ -36,7 +36,7 @@ export const NumberStepper = ({ label, value, onChange, step = 1, min = 0, max, 
           value={value ?? ''}
           onChange={(e) => onChange(e.target.value)}
           aria-label={label}
-          className="h-11 w-[4.5rem] rounded-xl border border-border-strong bg-surface text-center font-display text-xl font-bold tabular-nums text-text focus:outline-none focus:ring-2 focus:ring-accent"
+          className="h-11 w-20 rounded-xl border border-border-strong bg-surface text-center font-display text-xl font-bold tabular-nums text-text focus:outline-none focus:ring-2 focus:ring-accent"
         />
 
         <button
@@ -48,7 +48,6 @@ export const NumberStepper = ({ label, value, onChange, step = 1, min = 0, max, 
           <Plus size={18} />
         </button>
       </div>
-      {suffix && <span className="text-xs text-text-muted">{suffix}</span>}
     </div>
   );
 };

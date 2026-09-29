@@ -19,7 +19,7 @@ export const Button = ({
   };
 
   const variants = {
-    primary: 'bg-accent text-on-cta hover:bg-cta-hover',
+    primary: 'bg-accent text-on-accent hover:bg-accent-hover',
     secondary: 'bg-surface-2 text-text hover:bg-border',
     ghost: 'text-text hover:bg-surface-2',
     danger: 'bg-crimson text-on-crimson hover:bg-burgundy',
