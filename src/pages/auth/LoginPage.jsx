@@ -66,7 +66,7 @@ export const LoginPage = () => {
         noValidate
       >
         <Input
-          variant="rule"
+          variant="soft"
           id="email"
           label="Email"
           type="email"
@@ -77,7 +77,7 @@ export const LoginPage = () => {
         />
 
         <PasswordInput
-          variant="rule"
+          variant="soft"
           id="password"
           label="Пароль"
           placeholder="••••••••"
@@ -90,8 +90,8 @@ export const LoginPage = () => {
           <p className="text-sm font-medium text-crimson">{serverError}</p>
         )}
 
-        <Button type="submit" shape="square" isLoading={mutation.isPending}
-          className="mt-2 w-full uppercase tracking-[0.14em]" size="lg">
+        <Button type="submit" isLoading={mutation.isPending}
+          className="mt-2 w-full rounded-2xl uppercase tracking-[0.14em]" size="lg">
           Войти
         </Button>
       </form>

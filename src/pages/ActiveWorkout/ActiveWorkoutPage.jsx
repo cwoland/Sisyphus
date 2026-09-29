@@ -124,24 +124,24 @@ export const ActiveWorkoutPage = () => {
           </p>
         ) : (
           <>
-            <nav className="flex w-full items-center justify-between gap-3">
+            <nav className="grid w-full grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-3">
               <button
                 onClick={goPrev}
                 disabled={!prev}
-                className="flex min-w-0 flex-1 items-center gap-2 rounded-xl p-2 text-left text-sm text-text-muted transition-colors hover:text-text disabled:invisible"
+                className="flex min-h-[44px] w-full min-w-0 items-center gap-2 rounded-xl p-2 text-left text-sm text-text-muted transition-colors hover:text-text disabled:invisible"
               >
                 <ChevronLeft size={20} className="shrink-0" />
                 <span className="truncate">{prev?.name}</span>
               </button>
 
-              <span className="shrink-0 font-display text-xs uppercase tracking-[0.16em] text-text-muted">
+              <span className="font-display text-xs uppercase tracking-[0.16em] text-text-muted">
                 {index + 1} / {groups.length}
               </span>
 
               <button
                 onClick={goNext}
                 disabled={!next}
-                className="flex min-w-0 flex-1 items-center justify-end gap-2 rounded-xl p-2 text-right text-sm text-text-muted transition-colors hover:text-text disabled:invisible"
+                className="flex min-h-[44px] w-full min-w-0 items-center justify-end gap-2 rounded-xl p-2 text-right text-sm text-text-muted transition-colors hover:text-text disabled:invisible"
               >
                 <span className="truncate">{next?.name}</span>
                 <ChevronRight size={20} className="shrink-0" />

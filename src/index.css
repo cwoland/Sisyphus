@@ -40,6 +40,10 @@
     --rail-ink-muted:  166 155 140;
     --rail-mark:       214 118 70;
     --rail-edge:       28 24 21;
+
+    --cta:       154 60 28;
+    --cta-hover: 228 136 90;
+    --on-cta:    26 16 10;
   }
 
   html.dark {
@@ -70,6 +74,7 @@
   }
 
   html {
+    @apply bg-bg;
     -webkit-tap-highlight-color: transparent;
   }
 
@@ -108,12 +113,35 @@
     mask-image: linear-gradient(to left, black 45%, transparent 100%);
   }
 
+  .scene-art {
+    position: absolute;
+    left: 50%;
+    bottom: -2rem;
+    z-index: -1;
+    height: 122%;
+    width: auto;
+    max-width: none;
+    transform: translateX(-50%);
+    object-fit: contain;
+    object-position: bottom center;
+    pointer-events: none;
+    user-select: none;
+    opacity: 0.38;
+    -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 32%);
+    mask-image: linear-gradient(to bottom, transparent 0%, black 32%);
+  }
+
   @media (max-width: 639px) {
     .card-art {
       max-width: 48%;
       object-position: right bottom;
       -webkit-mask-image: linear-gradient(to left, black 22%, transparent 92%);
       mask-image: linear-gradient(to left, black 22%, transparent 92%);
+    }
+
+    .scene-art {
+      height: 108%;
+      bottom: -1.25rem;
     }
   }
 

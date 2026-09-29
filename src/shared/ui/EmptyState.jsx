@@ -7,7 +7,7 @@ export const EmptyState = ({ icon: Icon, title, description, action, scene }) =>
         src={`/art/scenes/${scene}.webp`}
         alt="" aria-hidden="true" draggable="false"
         loading="lazy" decoding="async"
-        className="pointer-events-none absolute inset-0 -z-10 h-full w-full select-none object-contain object-center opacity-40"
+        className="scene-art"
       />
     )}
     <div className="flex flex-col items-center justify-center px-4 py-16 text-center">

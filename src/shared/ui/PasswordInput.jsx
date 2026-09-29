@@ -21,7 +21,7 @@ export const PasswordInput = forwardRef(
             type={visible ? 'text' : 'password'}
             className={clsx(
               inputVariants[variant],
-              variant === 'rule' ? 'pr-11' : 'pr-11',
+              'pr-12',
               error ? 'border-crimson' : idleBorder[variant]
             )}
             {...props}
@@ -29,7 +29,10 @@ export const PasswordInput = forwardRef(
           <button
             type="button"
             onClick={() => setVisible((v) => !v)}
-            className="absolute right-0 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center text-text-muted transition-colors hover:text-text"
+            className={clsx(
+              'absolute top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center text-text-muted transition-colors hover:text-text',
+              variant === 'rule' ? 'right-0' : 'right-1.5'
+            )}
             aria-label={visible ? 'Скрыть пароль' : 'Показать пароль'}
             tabIndex={-1}
           >

@@ -73,13 +73,16 @@ export const DashboardPage = () => {
         {nutritionQuery.isLoading ? (
           <Skeleton className="h-28 w-full" />
         ) : (
-          <div className="flex items-center gap-5 rounded-2xl border border-border bg-surface p-4 sm:gap-7 sm:p-5">
-            <CalorieRing consumed={consumed} target={target} />
-            <dl className="grid min-w-0 flex-1 grid-cols-3 gap-3">
-              <Macro label="Белки" value={nutritionQuery.data?.consumed?.total_protein} />
-              <Macro label="Жиры" value={nutritionQuery.data?.consumed?.total_fat} />
-              <Macro label="Углеводы" value={nutritionQuery.data?.consumed?.total_carbs} />
-            </dl>
+          <div className="relative isolate clip-card-art flex items-center gap-5 overflow-hidden rounded-2xl border border-border bg-surface p-4 sm:gap-7 sm:p-5">
+            <CardArt name="back" />
+            <div className="relative flex min-w-0 flex-1 items-center gap-5 sm:gap-7">
+              <CalorieRing consumed={consumed} target={target} />
+              <dl className="grid min-w-0 flex-1 grid-cols-3 gap-3">
+                <Macro label="Белки" value={nutritionQuery.data?.consumed?.total_protein} />
+                <Macro label="Жиры" value={nutritionQuery.data?.consumed?.total_fat} />
+                <Macro label="Углеводы" value={nutritionQuery.data?.consumed?.total_carbs} />
+              </dl>
+            </div>
           </div>
         )}
       </section>

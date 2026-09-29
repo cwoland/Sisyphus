@@ -8,19 +8,27 @@ export const inputVariants = {
     'placeholder:text-text-muted transition-colors',
     'focus:outline-none focus:border-accent',
   ].join(' '),
+  soft: [
+    'w-full rounded-2xl border bg-surface/70 px-4 py-3.5 text-base text-text backdrop-blur-sm',
+    'placeholder:text-text-muted transition-colors',
+    'focus:outline-none focus:border-cta focus:bg-surface',
+  ].join(' '),
 };
 
 export const labelVariants = {
   box: 'block text-sm font-medium text-text',
   rule: 'block text-xs font-semibold uppercase tracking-[0.14em] text-text-muted',
+  soft: 'block text-xs font-semibold uppercase tracking-[0.14em] text-text-muted',
 };
 
 export const fieldSpacing = {
   box: 'space-y-1.5',
   rule: 'space-y-2',
+  soft: 'space-y-2',
 };
 
 export const idleBorder = {
   box: 'border-border-strong',
   rule: 'border-border-strong',
+  soft: 'border-border-strong',
 };

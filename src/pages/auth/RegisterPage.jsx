@@ -70,7 +70,7 @@ export const RegisterPage = () => {
         noValidate
       >
         <Input
-          variant="rule"
+          variant="soft"
           id="name"
           label="Имя"
           placeholder="Как вас зовут?"
@@ -80,7 +80,7 @@ export const RegisterPage = () => {
         />
 
         <Input
-          variant="rule"
+          variant="soft"
           id="username"
           label="Никнейм"
           placeholder="например, sisyphusboulder"
@@ -89,7 +89,7 @@ export const RegisterPage = () => {
           {...register('username')} />
 
         <Input
-          variant="rule"
+          variant="soft"
           id="email"
           label="Email"
           type="email"
@@ -100,7 +100,7 @@ export const RegisterPage = () => {
         />
 
         <PasswordInput
-          variant="rule"
+          variant="soft"
           id="password"
           label="Пароль"
           placeholder="Минимум 8 символов"

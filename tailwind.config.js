@@ -33,6 +33,10 @@ export default {
         'rail-ink-muted': 'rgb(var(--rail-ink-muted) / <alpha-value>)',
         'rail-mark': 'rgb(var(--rail-mark) / <alpha-value>)',
         'rail-edge': 'rgb(var(--rail-edge) / <alpha-value>)',
+        
+        cta: 'rgb(var(--cta) / <alpha-value>)',
+        'cta-hover': 'rgb(var(--cta-hover) / <alpha-value>)',
+        'on-cta': 'rgb(var(--on-cta) / <alpha-value>)',
       },
       fontFamily: {
         sans: ['Archivo', 'system-ui', 'sans-serif'],
