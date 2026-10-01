@@ -2,7 +2,7 @@ import { clsx } from 'clsx';
 
 const circumference = (r) => 2 * Math.PI * r;
 
-export const ProgressRings = ({ done, total, restLeft, restTotal, isResting, size = 240, children }) => {
+export const ProgressRings = ({ done, total, restLeft, restTotal, isResting, sealing, size = 240, children }) => {
     const center = size / 2;
     const restR = size * 0.457;
     const activityR = size * 0.371;
@@ -18,6 +18,10 @@ export const ProgressRings = ({ done, total, restLeft, restTotal, isResting, siz
                 width={size} height={size} viewBox={`0 0 ${size} ${size}`}
                 className="-rotate-90" aria-hidden="true"
             >
+                <g
+                    className={clsx(sealing && 'animate-ring-seal')}
+                    style={{ transformOrigin: `${center}px ${center}px` }}
+                >
                 <circle cx={center} cy={center} r={restR} fill="none" strokeWidth={restStroke}
                     className={clsx('transition-opacity', isResting ? 'stroke-surface-2 opacity-100' : 'opacity-0')} />
                 <circle cx={center} cy={center} r={restR} fill="none" strokeWidth={restStroke} strokeLinecap="round"
@@ -33,6 +37,14 @@ export const ProgressRings = ({ done, total, restLeft, restTotal, isResting, siz
                     strokeDashoffset={circumference(activityR) * (1 - activity)}
                     className="stroke-accent"
                     style={{ transition: 'stroke-dashoffset .6s cubic-bezier(.16,1,.3,1)' }} />
+                {sealing && (
+                    <circle
+                        cx={center} cy={center} r={activityR} fill="none"
+                        strokeWidth={activityStroke} strokeLinecap="round"
+                        className="stroke-gold animate-ring-glow"
+                    />
+                )}
+                </g>
             </svg>
 
             <div className="absolute inset-0 flex flex-col items-center justify-center text-center">

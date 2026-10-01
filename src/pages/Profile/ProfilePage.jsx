@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import {
-  LogOut, Moon, Sun, Monitor, Sparkles, Download, Bell, BellOff,
-  Pencil, KeyRound, Check, UserCircle,
+  LogOut, Moon, Sun, Monitor, Sparkles, Download, Bell,
+  Pencil, KeyRound, Check, UserCircle, ChevronRight, Palette,
 } from 'lucide-react';
 import { clsx } from 'clsx';
 
@@ -14,12 +14,14 @@ import {
 import { avatarIcons, avatarIconNames } from '../../entities/user/avatarIcons.js';
 import { useInstallPrompt } from '../../shared/pwa/useInstallPrompt.js';
 import { usePushNotifications } from '../../features/push/usePushNotifications.js';
-import { Avatar } from '../../shared/ui/Avatar.jsx';
 import { Button } from '../../shared/ui/Button.jsx';
 import { Input } from '../../shared/ui/Input.jsx';
 import { PasswordInput } from '../../shared/ui/PasswordInput.jsx';
 import { Sheet } from '../../shared/ui/Sheet.jsx';
+import { Switch } from '../../shared/ui/Switch.jsx';
 import { BodyMetricsCard } from '../../features/body/BodyMetricsCard.jsx';
+import { ProfileHero } from './widgets/ProfileHero.jsx';
+import { SettingsRow } from './widgets/SettingsRow.jsx';
 import { toast } from '../../shared/ui/toast/toast.store.js';
 
 const THEME_MODES = [
@@ -27,6 +29,15 @@ const THEME_MODES = [
   { value: 'dark', label: 'Тёмная', icon: Moon },
   { value: 'system', label: 'Системная', icon: Monitor },
 ];
+
+const Group = ({ title, children }) => (
+  <section className="space-y-2">
+    <h2 className="px-1 font-display text-xs font-semibold uppercase tracking-[0.14em] text-text-muted">
+      {title}
+    </h2>
+    {children}
+  </section>
+);
 
 export const ProfilePage = () => {
   const user = useAuthStore((s) => s.user);
@@ -96,105 +107,98 @@ export const ProfilePage = () => {
   const currentIcon = user?.avatar_url?.startsWith('lucide:') ? user.avatar_url.slice(7) : null;
 
   return (
-    <div className="mx-auto max-w-lg space-y-4">
-      <h1 className="font-display text-2xl font-bold text-text">Профиль</h1>
+    <div className="mx-auto max-w-lg space-y-6">
+      <ProfileHero user={user} onEditAvatar={() => setAvatarOpen(true)} />
 
-      <div className="flex items-center gap-4 rounded-2xl border border-border bg-surface p-5">
-        <button onClick={() => setAvatarOpen(true)} className="relative shrink-0" aria-label="Сменить аватар">
-          <Avatar name={user?.name} src={user?.avatar_url} size="xl" />
-          <span className="absolute -bottom-1 -right-1 flex h-7 w-7 items-center justify-center rounded-full border-2 border-surface bg-accent text-on-accent">
-            <Pencil size={13} />
-          </span>
-        </button>
-        <div className="min-w-0 flex-1">
-          <p className="truncate font-display text-lg font-semibold text-text">{user?.name}</p>
-          <p className="truncate text-sm text-text-muted">@{user?.username}</p>
-          <p className="truncate text-xs text-text-muted">{user?.email}</p>
-        </div>
-      </div>
-
-      <div className="space-y-2">
-        <p className="px-1 text-sm font-medium text-text-muted">Аккаунт</p>
+      <Group title="Аккаунт">
         <div className="divide-y divide-border overflow-hidden rounded-2xl border border-border bg-surface">
-          <button onClick={openEdit} className="flex w-full items-center justify-between p-4 transition-colors hover:bg-surface-2">
-            <div className="flex items-center gap-3">
-              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-surface-2 text-text">
-                <UserCircle size={18} />
-              </div>
-              <span className="text-sm font-medium text-text">Имя и юзернейм</span>
-            </div>
-            <Pencil size={16} className="text-text-muted" />
-          </button>
-
-          <button onClick={() => setPasswordOpen(true)} className="flex w-full items-center justify-between p-4 transition-colors hover:bg-surface-2">
-            <div className="flex items-center gap-3">
-              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-surface-2 text-text">
-                <KeyRound size={18} />
-              </div>
-              <span className="text-sm font-medium text-text">Сменить пароль</span>
-            </div>
-            <Pencil size={16} className="text-text-muted" />
-          </button>
+          <SettingsRow
+            icon={UserCircle}
+            label="Имя и юзернейм"
+            hint={user?.username ? `@${user.username}` : undefined}
+            onClick={openEdit}
+            action={<ChevronRight size={16} className="shrink-0 text-text-muted" />}
+          />
+          <SettingsRow
+            icon={KeyRound}
+            label="Сменить пароль"
+            onClick={() => setPasswordOpen(true)}
+            action={<ChevronRight size={16} className="shrink-0 text-text-muted" />}
+          />
         </div>
-      </div>
+      </Group>
 
-      <BodyMetricsCard />
+      <Group title="Тело">
+        <BodyMetricsCard />
+      </Group>
 
-      <div className="space-y-2">
-        <p className="px-1 text-sm font-medium text-text-muted">Оформление</p>
-        <div className="rounded-2xl border border-border bg-surface p-4">
-          <p className="mb-3 text-sm font-medium text-text">Тема</p>
-          <div className="grid grid-cols-3 gap-2">
-            {THEME_MODES.map((m) => {
-              const Icon = m.icon;
-              const active = mode === m.value;
-              return (
-                <button
-                  key={m.value}
-                  onClick={() => setMode(m.value)}
-                  className={clsx(
-                    'flex flex-col items-center gap-1.5 rounded-xl border p-3 text-xs font-medium transition-colors',
-                    active ? 'border-accent bg-accent/10 text-accent' : 'border-border text-text-muted hover:bg-surface-2'
-                  )}
-                >
-                  <Icon size={20} />
-                  {m.label}
-                </button>
-              );
-            })}
+      <Group title="Настройки">
+        <div className="divide-y divide-border overflow-hidden rounded-2xl border border-border bg-surface">
+          <div className="p-4">
+            <div className="mb-3 flex items-center gap-3">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-surface-2 text-text">
+                <Palette size={18} />
+              </div>
+              <p className="text-sm font-medium text-text">Тема</p>
+            </div>
+            <div className="grid grid-cols-3 gap-2">
+              {THEME_MODES.map((m) => {
+                const Icon = m.icon;
+                const active = mode === m.value;
+                return (
+                  <button
+                    key={m.value}
+                    onClick={() => setMode(m.value)}
+                    aria-pressed={active}
+                    className={clsx(
+                      'flex min-h-[64px] flex-col items-center justify-center gap-1.5 rounded-xl border text-xs font-medium transition-colors',
+                      active
+                        ? 'border-accent bg-accent/10 text-accent'
+                        : 'border-border text-text-muted hover:bg-surface-2'
+                    )}
+                  >
+                    <Icon size={20} />
+                    {m.label}
+                  </button>
+                );
+              })}
+            </div>
           </div>
+
+          {push.isSupported && (
+            <SettingsRow
+              as="div"
+              icon={Bell}
+              label="Напоминания"
+              hint="Утром в день тренировки"
+              action={
+                <Switch
+                  checked={push.isSubscribed}
+                  disabled={push.isLoading}
+                  onChange={(next) => (next ? push.subscribe() : push.unsubscribe())}
+                  label="Push-уведомления"
+                />
+              }
+            />
+          )}
+
+          {isInstallable && (
+            <SettingsRow
+              icon={Download}
+              label="Установить приложение"
+              hint="Ярлык на экране и работа офлайн"
+              onClick={promptInstall}
+              action={<ChevronRight size={16} className="shrink-0 text-text-muted" />}
+            />
+          )}
         </div>
-      </div>
+      </Group>
 
-      {push.isSupported && (
-        <div className="overflow-hidden rounded-2xl border border-border bg-surface">
-          <button
-            onClick={push.isSubscribed ? push.unsubscribe : push.subscribe}
-            disabled={push.isLoading}
-            className="flex w-full items-center justify-between p-4 transition-colors hover:bg-surface-2 disabled:opacity-60"
-          >
-            <div className="flex items-center gap-3">
-              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-surface-2 text-text">
-                {push.isSubscribed ? <Bell size={18} /> : <BellOff size={18} />}
-              </div>
-              <span className="text-sm font-medium text-text">Уведомления</span>
-            </div>
-            <span className="text-sm text-text-muted">{push.isSubscribed ? 'Вкл' : 'Выкл'}</span>
-          </button>
-        </div>
-      )}
-
-      {isInstallable && (
-        <Button variant="secondary" className="w-full" onClick={promptInstall}>
-          <Download size={18} /> Установить приложение
-        </Button>
-      )}
-
-      <Button variant="danger" className="w-full" onClick={handleLogout}>
+      <Button variant="ghost" className="w-full text-danger hover:bg-danger/10" onClick={handleLogout}>
         <LogOut size={18} /> Выйти
       </Button>
 
-      <p className="flex items-center justify-center gap-1.5 text-center text-xs text-text-muted">
+      <p className="flex items-center justify-center gap-1.5 pb-2 text-center text-xs text-text-muted">
         <Sparkles size={12} />
         Нужно представлять Сизифа счастливым
       </p>
@@ -210,9 +214,12 @@ export const ProfilePage = () => {
                   key={iconName}
                   onClick={() => pickAvatar(iconName)}
                   disabled={profileMutation.isPending}
+                  aria-pressed={active}
                   className={clsx(
                     'relative flex aspect-square items-center justify-center rounded-2xl border transition-colors',
-                    active ? 'border-accent bg-accent/10 text-accent' : 'border-border text-text-muted hover:bg-surface-2'
+                    active
+                      ? 'border-accent bg-accent/10 text-accent'
+                      : 'border-border text-text-muted hover:bg-surface-2'
                   )}
                 >
                   <Icon size={26} />
@@ -234,12 +241,14 @@ export const ProfilePage = () => {
       <Sheet isOpen={editOpen} onClose={() => setEditOpen(false)} title="Имя и юзернейм">
         <div className="space-y-4">
           <Input
+            id="profile-name"
             label="Имя"
             value={form.name}
             onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
             placeholder="Как вас зовут?"
           />
           <Input
+            id="profile-username"
             label="Юзернейм"
             value={form.username}
             onChange={(e) => setForm((f) => ({ ...f, username: e.target.value }))}
@@ -258,12 +267,14 @@ export const ProfilePage = () => {
       <Sheet isOpen={passwordOpen} onClose={() => setPasswordOpen(false)} title="Сменить пароль">
         <div className="space-y-4">
           <PasswordInput
+            id="pwd-current"
             label="Текущий пароль"
             autoComplete="current-password"
             value={pwd.current}
             onChange={(e) => setPwd((p) => ({ ...p, current: e.target.value }))}
           />
           <PasswordInput
+            id="pwd-next"
             label="Новый пароль"
             placeholder="Минимум 8 символов"
             autoComplete="new-password"
@@ -271,6 +282,7 @@ export const ProfilePage = () => {
             onChange={(e) => setPwd((p) => ({ ...p, next: e.target.value }))}
           />
           <PasswordInput
+            id="pwd-confirm"
             label="Повторите новый пароль"
             autoComplete="new-password"
             value={pwd.confirm}

@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Flag, Pause, Play, ChevronLeft, ChevronRight, Check, ArrowRight } from 'lucide-react';
 import { clsx } from 'clsx';
@@ -9,6 +9,8 @@ import { SetTicks } from '../../features/active-workout/SetTicks.jsx';
 import { NumberStepper } from '../../features/active-workout/NumberStepper.jsx';
 import { useElapsed } from '../../features/active-workout/useElapsed.js';
 import { useRestTimer } from '../../features/active-workout/useRestTimer.js';
+import { WorkoutFinale } from '../../features/active-workout/WorkoutFinale.jsx';
+import { isQueuedError } from '../../shared/offline/isQueued.js';
 import { Skeleton } from '../../shared/ui/Skeleton.jsx';
 import { Button } from '../../shared/ui/Button.jsx';
 import { IconButton } from '../../shared/ui/IconButton.jsx';
@@ -16,14 +18,15 @@ import { Sheet } from '../../shared/ui/Sheet.jsx';
 import { BottomNav } from '../../widgets/layout/BottomNav.jsx';
 import { epley1RM } from '../../shared/lib/oneRepMax.js';
 import { completionPhrases, pickRandom } from '../../shared/lib/sisyphusPhrases.js';
-import { toast } from '../../shared/ui/toast/toast.store.js';
 
 const mmss = (s) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
 
-// numeric из Postgres приходит строкой «110.00» — в поле ввода это мусор.
 const numStr = (v) => (v == null || v === '' ? '' : String(Number(v)));
 
 const RING_SIZE = 240;
+
+const SEAL_MS = 700;
+const MIN_FINALE_MS = 1200;
 
 export const ActiveWorkoutPage = () => {
   const { id } = useParams();
@@ -35,9 +38,6 @@ export const ActiveWorkoutPage = () => {
   const workout = detailsQuery.data;
   const elapsed = useElapsed(workout?.started_at);
 
-  // Группируем сериями подряд идущих подходов, а не по exercise_id:
-  // одно упражнение может встречаться в дне дважды (круговые, суперсеты),
-  // и это должны быть два отдельных блока, а не один общий счётчик.
   const groups = useMemo(() => {
     const out = [];
     for (const s of workout?.sets || []) {
@@ -58,6 +58,15 @@ export const ActiveWorkoutPage = () => {
 
   const [index, setIndex] = useState(0);
   const [setsOpen, setSetsOpen] = useState(false);
+  const [sealing, setSealing] = useState(false);
+  const [finalePhrase, setFinalePhrase] = useState(null);
+  const sealTimer = useRef(null);
+  const finaleTimer = useRef(null);
+
+  useEffect(() => () => {
+    clearTimeout(sealTimer.current);
+    clearTimeout(finaleTimer.current);
+  }, []);
 
   const safeIndex = groups.length ? Math.min(index, groups.length - 1) : 0;
   const current = groups[safeIndex];
@@ -70,8 +79,6 @@ export const ActiveWorkoutPage = () => {
 
   const [draft, setDraft] = useState({ weight: '', reps: '', forId: null });
 
-  // Подстройка состояния под смену подхода делается во время рендера, а не
-  // в эффекте: так React перерисовывает сразу, без лишнего коммита.
   const lastDone = current ? [...current.sets].reverse().find((s) => s.is_completed) : null;
 
   if (pending && draft.forId !== pending.id) {
@@ -84,6 +91,8 @@ export const ActiveWorkoutPage = () => {
 
   const commitSet = () => {
     if (!pending) return;
+    const isClosing = done + 1 >= total;
+
     setMutation.mutate({
       workoutId: id,
       setId: pending.id,
@@ -91,23 +100,53 @@ export const ActiveWorkoutPage = () => {
       reps: draft.reps === '' ? null : Number(draft.reps),
       isCompleted: true,
     });
-    rest.start();
+
+    if (!isClosing) return rest.start();
+
+    if (navigator.vibrate) navigator.vibrate([60, 50, 60]);
+    setSealing(true);
+    clearTimeout(sealTimer.current);
+    sealTimer.current = setTimeout(() => { setSealing(false); rest.start(); }, SEAL_MS);
+  };
+
+  const stopSeal = () => {
+    clearTimeout(sealTimer.current);
+    setSealing(false);
   };
 
   const goNext = () => {
+    stopSeal();
     rest.stop();
     setSetsOpen(false);
     setIndex(Math.min(groups.length - 1, safeIndex + 1));
   };
   const goPrev = () => {
+    stopSeal();
     rest.stop();
     setSetsOpen(false);
     setIndex(Math.max(0, safeIndex - 1));
   };
 
   const finish = () => {
+    if (finalePhrase) return;
+
+    const phrase = pickRandom(completionPhrases);
+    const startedAt = Date.now();
+    setFinalePhrase(phrase);
+
     statusMutation.mutate({ id, status: 'completed' }, {
-      onSuccess: () => { toast.success(pickRandom(completionPhrases)); navigate('/'); },
+      onSuccess: () => {
+        const wait = Math.max(0, MIN_FINALE_MS - (Date.now() - startedAt));
+        finaleTimer.current = setTimeout(() => navigate('/'), wait);
+      },
+      onError: (error) => {
+        if (isQueuedError(error)) {
+          const wait = Math.max(0, MIN_FINALE_MS - (Date.now() - startedAt));
+          finaleTimer.current = setTimeout(() => navigate('/'), wait);
+          return;
+        }
+        setFinalePhrase(null);
+      },
     });
   };
 
@@ -177,6 +216,7 @@ export const ActiveWorkoutPage = () => {
               <div className="flex items-center justify-center gap-3">
                 <ProgressRings
                   size={RING_SIZE}
+                  sealing={sealing}
                   done={done} total={total}
                   restLeft={rest.left} restTotal={rest.duration} isResting={rest.isResting}
                 >
@@ -185,6 +225,13 @@ export const ActiveWorkoutPage = () => {
                       <span className="font-display text-xs uppercase tracking-[0.16em] text-terracotta-ink">Отдых</span>
                       <span className="font-display text-5xl font-extrabold tabular-nums text-text">{mmss(rest.left)}</span>
                     </>
+                  ) : exerciseDone ? (
+                    <div key="sealed" className="flex animate-fade-in flex-col items-center gap-2">
+                      <Check size={30} className="text-gold-ink" />
+                      <span className="max-w-[9rem] font-display text-sm font-semibold leading-tight text-text">
+                        Упражнение закрыто
+                      </span>
+                    </div>
                   ) : (
                     <>
                       <span className="max-w-[9rem] font-display text-sm font-semibold leading-tight text-text">
@@ -208,7 +255,6 @@ export const ActiveWorkoutPage = () => {
 
               {exerciseDone ? (
                 <div className="flex flex-col items-center gap-3">
-                  <p className="text-sm text-text-muted">Упражнение закрыто</p>
                   {next ? (
                     <Button size="lg" onClick={goNext}>
                       Следующее: {next.name} <ArrowRight size={18} />
@@ -304,6 +350,13 @@ export const ActiveWorkoutPage = () => {
       </main>
 
       <BottomNav onOpenMenu={() => navigate('/')} />
+      {finalePhrase && (
+        <WorkoutFinale
+          phrase={finalePhrase}
+          isSaving={statusMutation.isPending}
+          onSkip={() => navigate('/')}
+        />
+      )}
     </div>
   );
 };

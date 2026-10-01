@@ -76,6 +76,37 @@ export default {
           '0%': { transform: 'translateX(-100%)' },
           '100%': { transform: 'translateX(400%)' },
         },
+        'stone-climb': {
+          '0%':   { transform: 'translate(0,0) rotate(0deg)', opacity: '0' },
+          '5%':   { transform: 'translate(10px,-4.6px) rotate(63deg)', opacity: '1' },
+          '50%':  {
+            transform: 'translate(130px,-59.2px) rotate(816deg)',
+            opacity: '1',
+            animationTimingFunction: 'cubic-bezier(.55,0,.9,.35)',
+          },
+          '58%':  { transform: 'translate(110px,-50.1px) rotate(691deg)', opacity: '1' },
+          '90%':  { transform: 'translate(200px,-91px) rotate(1256deg)', opacity: '1' },
+          '97%':  { transform: 'translate(200px,-91px) rotate(1256deg)', opacity: '0' },
+          '100%': { transform: 'translate(0,0) rotate(0deg)', opacity: '0' },
+        },
+        'stone-summit': {
+          '0%':   { transform: 'translate(130px,-59.2px) rotate(816deg)', opacity: '0' },
+          '18%':  { opacity: '1' },
+          '100%': { transform: 'translate(200px,-91px) rotate(1256deg)', opacity: '1' },
+        },
+        'ring-seal': {
+          '0%':   { transform: 'scale(1)' },
+          '35%':  { transform: 'scale(1.045)' },
+          '100%': { transform: 'scale(1)' },
+        },
+        'ring-glow': {
+          '0%, 100%': { opacity: '0' },
+          '22%, 58%': { opacity: '1' },
+        },
+        'rise-in': {
+          from: { opacity: '0', transform: 'translateY(10px)' },
+          to:   { opacity: '1', transform: 'translateY(0)' },
+        },
       },
       animation: {
         shimmer:       'shimmer 1.5s infinite',
@@ -83,6 +114,20 @@ export default {
         'fade-in':     'fade-in 0.2s ease-out',
         'shake':       'shake 0.4s ease-in-out',
         'loading-bar': 'loading-bar 1.4s ease-in-out infinite',
+        'stone-climb':  'stone-climb 6.5s ease-in-out infinite',
+        'stone-summit': 'stone-summit 900ms var(--ease-out) forwards',
+        'ring-seal':    'ring-seal var(--dur-moment) var(--ease-out)',
+        'ring-glow':    'ring-glow var(--dur-moment) ease-out',
+        'rise-in':      'rise-in 500ms var(--ease-out)',
+      },
+      transitionTimingFunction: {
+        brand: 'var(--ease-out)',
+      },
+      transitionDuration: {
+        tap: 'var(--dur-tap)',
+        ui: 'var(--dur-ui)',
+        panel: 'var(--dur-panel)',
+        moment: 'var(--dur-moment)',
       },
     },
   },
