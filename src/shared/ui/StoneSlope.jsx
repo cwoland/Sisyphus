@@ -19,9 +19,8 @@ export const StoneSlope = ({ variant = 'climb', className }) => (
       style={STONE}
       className={clsx(
         'fill-terracotta',
-        variant === 'summit'
-          ? 'animate-stone-summit'
-          : 'animate-stone-climb motion-reduce:animate-none'
+        variant === 'summit' && 'animate-stone-summit',
+        variant === 'climb' && 'animate-stone-climb motion-reduce:animate-none'
       )}
     />
   </svg>

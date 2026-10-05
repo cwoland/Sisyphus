@@ -10,6 +10,8 @@ import { NumberStepper } from '../../features/active-workout/NumberStepper.jsx';
 import { useElapsed } from '../../features/active-workout/useElapsed.js';
 import { useRestTimer } from '../../features/active-workout/useRestTimer.js';
 import { WorkoutFinale } from '../../features/active-workout/WorkoutFinale.jsx';
+import { RpePicker } from '../../features/active-workout/RpePicker.jsx';
+import { RecordBanner } from '../../features/active-workout/RecordBanner.jsx';
 import { isQueuedError } from '../../shared/offline/isQueued.js';
 import { Skeleton } from '../../shared/ui/Skeleton.jsx';
 import { Button } from '../../shared/ui/Button.jsx';
@@ -27,6 +29,7 @@ const RING_SIZE = 240;
 
 const SEAL_MS = 700;
 const MIN_FINALE_MS = 1200;
+const RECORD_MS = 4800;
 
 export const ActiveWorkoutPage = () => {
   const { id } = useParams();
@@ -60,12 +63,15 @@ export const ActiveWorkoutPage = () => {
   const [setsOpen, setSetsOpen] = useState(false);
   const [sealing, setSealing] = useState(false);
   const [finalePhrase, setFinalePhrase] = useState(null);
+  const [record, setRecord] = useState(null);
   const sealTimer = useRef(null);
   const finaleTimer = useRef(null);
+  const recordTimer = useRef(null);
 
   useEffect(() => () => {
     clearTimeout(sealTimer.current);
     clearTimeout(finaleTimer.current);
+    clearTimeout(recordTimer.current);
   }, []);
 
   const safeIndex = groups.length ? Math.min(index, groups.length - 1) : 0;
@@ -77,7 +83,7 @@ export const ActiveWorkoutPage = () => {
   const total = current ? current.sets.length : 0;
   const pending = current?.sets.find((s) => !s.is_completed) ?? null;
 
-  const [draft, setDraft] = useState({ weight: '', reps: '', forId: null });
+  const [draft, setDraft] = useState({ weight: '', reps: '', rpe: null, forId: null });
 
   const lastDone = current ? [...current.sets].reverse().find((s) => s.is_completed) : null;
 
@@ -85,6 +91,7 @@ export const ActiveWorkoutPage = () => {
     setDraft({
       weight: numStr(pending.weight ?? lastDone?.weight),
       reps: numStr(pending.reps ?? lastDone?.reps),
+      rpe: pending.rpe != null ? Number(pending.rpe) : null,
       forId: pending.id,
     });
   }
@@ -92,14 +99,27 @@ export const ActiveWorkoutPage = () => {
   const commitSet = () => {
     if (!pending) return;
     const isClosing = done + 1 >= total;
+    const exerciseName = current.name;
 
-    setMutation.mutate({
-      workoutId: id,
-      setId: pending.id,
-      weight: draft.weight === '' ? null : Number(draft.weight),
-      reps: draft.reps === '' ? null : Number(draft.reps),
-      isCompleted: true,
-    });
+    setMutation.mutate(
+      {
+        workoutId: id,
+        setId: pending.id,
+        weight: draft.weight === '' ? null : Number(draft.weight),
+        reps: draft.reps === '' ? null : Number(draft.reps),
+        rpe: draft.rpe,
+        isCompleted: true,
+      },
+      {
+        onSuccess: (data) => {
+          if (!data?.record) return;
+          clearTimeout(recordTimer.current);
+          setRecord({ ...data.record, exerciseName });
+          if (navigator.vibrate) navigator.vibrate([40, 60, 40, 60, 140]);
+          recordTimer.current = setTimeout(() => setRecord(null), RECORD_MS);
+        },
+      }
+    );
 
     if (!isClosing) return rest.start();
 
@@ -125,6 +145,11 @@ export const ActiveWorkoutPage = () => {
     rest.stop();
     setSetsOpen(false);
     setIndex(Math.max(0, safeIndex - 1));
+  };
+
+  const dismissRecord = () => {
+    clearTimeout(recordTimer.current);
+    setRecord(null);
   };
 
   const finish = () => {
@@ -286,6 +311,11 @@ export const ActiveWorkoutPage = () => {
                     </p>
                   )}
 
+                  <RpePicker
+                    value={draft.rpe}
+                    onChange={(v) => setDraft((d) => ({ ...d, rpe: v }))}
+                  />
+
                   <Button size="lg" onClick={commitSet} disabled={!pending}>
                     <Check size={18} /> Подход {done + 1} из {total} выполнен
                   </Button>
@@ -333,12 +363,17 @@ export const ActiveWorkoutPage = () => {
                         {s.is_completed && <Check size={14} className="text-accent" />}
                         Подход {i + 1}
                       </span>
-                      <span className="tabular-nums">
+                      <span className="flex shrink-0 items-center gap-2 tabular-nums">
+                        {s.rpe != null && (
+                          <span className="rounded-md bg-gold/15 px-1.5 py-0.5 text-[11px] font-medium text-gold-ink">
+                            RPE {Number(s.rpe)}
+                          </span>
+                        )}
                         {s.is_completed
-                          ? `${numStr(s.weight) || '—'} кг × ${s.reps ?? '—'}`
+                          ? `${numStr(s.weight) || '-'} кг × ${s.reps ?? '-'}`
                           : s.id === pending?.id
-                            ? `${draft.weight || '—'} кг × ${draft.reps || '—'}`
-                            : '—'}
+                            ? `${draft.weight || '-'} кг × ${draft.reps || '-'}`
+                            : '-'}
                       </span>
                     </li>
                   ))}
@@ -350,6 +385,8 @@ export const ActiveWorkoutPage = () => {
       </main>
 
       <BottomNav onOpenMenu={() => navigate('/')} />
+      {record && <RecordBanner record={record} onDismiss={dismissRecord} />}
+
       {finalePhrase && (
         <WorkoutFinale
           phrase={finalePhrase}

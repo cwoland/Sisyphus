@@ -124,11 +124,17 @@ export const useWorkoutMutations = () => {
         if (vars.setId) {
           return {
             ...old,
-            sets: sets.map((s) =>
+            sets: sets.map((s) => 
               s.id === vars.setId
-                ? { ...s, weight: vars.weight, reps: vars.reps, is_completed: vars.isCompleted ?? s.is_completed }
-                : s
-            ),
+              ? {
+                ...s,
+                weight: vars.weight !== undefined ? vars.weight : s.weight,
+                reps: vars.reps !== undefined ? vars.reps : s.reps,
+                rpe: vars.rpe !== undefined ? vars.rpe : s.rpe,
+                is_completed: vars.isCompleted ?? s.is_completed,
+              }
+            : s
+          ),
           };
         }
 
@@ -154,7 +160,10 @@ export const useWorkoutMutations = () => {
     onError: onMutationError((ctx) => {
       if (ctx?.previous) qc.setQueryData(ctx.key, ctx.previous);
     }, 'Не удалось сохранить подход'),
-    onSettled: skipWhenQueued((_d, _e, vars) => invalidateAll(vars.workoutId)),
+    onSettled: skipWhenQueued((data, _e, vars) => {
+      invalidateAll(vars.workoutId);
+      if (data?.record) qc.invalidateQueries({ queryKey: ['records'] });
+    }),
   });
 
   const deleteSetMutation = useMutation({

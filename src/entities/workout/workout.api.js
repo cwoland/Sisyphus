@@ -31,7 +31,7 @@ export const scheduleProgram = (payload) =>
     api.post('/workouts/schedule-program', payload).then((r) => r.data.workouts);
 
 export const upsertWorkoutSet = ({ workoutId, ...body }) => 
-    api.put(`/workouts/${workoutId}/sets`, body).then((r) => r.data.set);
+    api.put(`/workouts/${workoutId}/sets`, body).then((r) => r.data);
 
 export const deleteWorkoutSet = ({ workoutId, setId }) =>
     api.delete(`/workouts/${workoutId}/sets/${setId}`).then((r) => r.data);

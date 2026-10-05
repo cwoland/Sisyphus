@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   LogOut, Moon, Sun, Monitor, Sparkles, Download, Bell,
-  Pencil, KeyRound, Check, UserCircle, ChevronRight, Palette,
+  KeyRound, Check, UserCircle, ChevronRight, Palette,
 } from 'lucide-react';
 import { clsx } from 'clsx';
 

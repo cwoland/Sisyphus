@@ -107,6 +107,16 @@ export default {
           from: { opacity: '0', transform: 'translateY(10px)' },
           to:   { opacity: '1', transform: 'translateY(0)' },
         },
+        'record-flash': {
+          '0%':   { opacity: '0', transform: 'translateY(-14px)' },
+          '7%':   { opacity: '1', transform: 'translateY(0)' },
+          '90%':  { opacity: '1', transform: 'translateY(0)' },
+          '100%': { opacity: '0', transform: 'translateY(-10px)' },
+        },
+        typing: {
+          '0%, 60%, 100%': { opacity: '0.25' },
+          '30%': { opacity: '1' },
+        },
       },
       animation: {
         shimmer:       'shimmer 1.5s infinite',
@@ -119,6 +129,8 @@ export default {
         'ring-seal':    'ring-seal var(--dur-moment) var(--ease-out)',
         'ring-glow':    'ring-glow var(--dur-moment) ease-out',
         'rise-in':      'rise-in 500ms var(--ease-out)',
+        'record-flash': 'record-flash 4.5s var(--ease-out) forwards',
+        typing:         'typing 1.4s ease-in-out infinite',
       },
       transitionTimingFunction: {
         brand: 'var(--ease-out)',

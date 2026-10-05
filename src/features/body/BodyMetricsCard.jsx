@@ -1,22 +1,18 @@
 import { useState } from 'react';
-import { Scale, Plus, Trash2, TrendingDown, TrendingUp, History } from 'lucide-react';
+import { Scale, Plus, TrendingDown, TrendingUp, History } from 'lucide-react';
 import { ru } from 'date-fns/locale';
 
 import { useBodyMetrics, useBodyMutations } from './body.hooks.js';
 import { WeightSparkline } from './WeightSparkline.jsx';
+import { BodyHistory } from './BodyHistory.jsx';
+import { BODY_FIELDS, emptyBodyForm } from './bodyFields.js';
 import { Sheet } from '../../shared/ui/Sheet.jsx';
 import { Button } from '../../shared/ui/Button.jsx';
 import { todayApi, safeFormat } from '../../shared/lib/date.js';
 
-const FIELDS = [
-  { key: 'weight', label: 'Вес, кг', step: '0.1' },
-  { key: 'biceps', label: 'Бицепс, см', step: '0.5' },
-  { key: 'chest', label: 'Грудь, см', step: '0.5' },
-  { key: 'waist', label: 'Талия, см', step: '0.5' },
-  { key: 'hip', label: 'Бедро, см', step: '0.5' },
-];
+const FIELDS = BODY_FIELDS;
 
-const emptyForm = () => ({ date: todayApi(), weight: '', biceps: '', chest: '', waist: '', hip: '' });
+const emptyForm = () => emptyBodyForm(todayApi());
 
 export const BodyMetricsCard = () => {
   const metricsQuery = useBodyMetrics();
@@ -41,6 +37,12 @@ export const BodyMetricsCard = () => {
     .filter((m) => m.weight != null)
     .slice(-14)
     .map((m) => ({ date: m.date, value: Number(m.weight) }));
+
+  const handleDelete = (metric) => {
+    const label = safeFormat(metric.date, 'd MMMM yyyy', { locale: ru });
+    if (!window.confirm(`Удалить замер за ${label}?`)) return;
+    remove.mutate(metric.id);
+  };
 
   const submit = () => {
     const payload = { date: form.date };
@@ -87,7 +89,7 @@ export const BodyMetricsCard = () => {
                   <dd className="font-display text-base font-bold tabular-nums text-text">
                     {value != null ? Number(value) : '—'}
                   </dd>
-                  <dt className="text-[11px] text-text-muted">{f.label.split(',')[0]}</dt>
+                  <dt className="text-[11px] text-text-muted">{f.label}</dt>
                   {d != null && (
                     <p className="flex items-center justify-center gap-0.5 text-[11px] tabular-nums text-text-muted">
                       {d < 0 ? <TrendingDown size={10} /> : <TrendingUp size={10} />}
@@ -132,7 +134,9 @@ export const BodyMetricsCard = () => {
           <div className="grid grid-cols-2 gap-3">
             {FIELDS.map((f) => (
               <div key={f.key} className="space-y-1">
-                <label htmlFor={`body-${f.key}`} className="block text-xs text-text-muted">{f.label}</label>
+                <label htmlFor={`body-${f.key}`} className="block text-xs text-text-muted">
+                  {f.label}, {f.unit}
+                </label>
                 <input
                   id={`body-${f.key}`}
                   type="number" inputMode="decimal" step={f.step} min="0"
@@ -157,28 +161,9 @@ export const BodyMetricsCard = () => {
       </Sheet>
 
       <Sheet isOpen={historyOpen} onClose={() => setHistoryOpen(false)} title="История замеров">
-        <ul className="divide-y divide-border">
-          {metrics.map((m) => (
-            <li key={m.id} className="flex items-center justify-between py-3">
-              <span className="text-sm text-text">
-                {safeFormat(m.date, 'd MMMM yyyy', { locale: ru })}
-              </span>
-              <div className="flex items-center gap-3">
-                <span className="text-sm tabular-nums text-text-muted">
-                  {m.weight != null ? `${Number(m.weight)} кг` : '—'}
-                </span>
-                <button
-                  onClick={() => remove.mutate(m.id)}
-                  className="rounded-lg p-1.5 text-text-muted transition-colors hover:text-danger"
-                  aria-label={`Удалить замер за ${safeFormat(m.date, 'd MMMM yyyy', { locale: ru })}`}
-                >
-                  <Trash2 size={15} />
-                </button>
-              </div>
-            </li>
-          ))}
-        </ul>
+        <BodyHistory metrics={metrics} onDelete={handleDelete} />
       </Sheet>
+
     </section>
   );
 };

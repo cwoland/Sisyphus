@@ -4,6 +4,7 @@ import { useChatMessages, useSendMessage, useMarkRead } from '../chat.hooks.js';
 import { MessageBubble } from './MessageBubble.jsx';
 import { Avatar } from '../../../shared/ui/Avatar.jsx';
 import { Spinner } from '../../../shared/ui/Spinner.jsx';
+import { IconButton } from '../../../shared/ui/IconButton.jsx';
 import { useAuthStore } from '../../../entities/user/auth.store.js';
 
 export const Conversation = ({ chat, onBack }) => {
@@ -13,18 +14,23 @@ export const Conversation = ({ chat, onBack }) => {
   const markRead = useMarkRead();
 
   const [text, setText] = useState('');
-  const scrollRef = useRef(null);
   const bottomRef = useRef(null);
+  const settled = useRef(false);
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+    if (!messages.length) return;
+    // Первая прокрутка — мгновенная: плавная пролистывала бы всю историю.
+    bottomRef.current?.scrollIntoView({ behavior: settled.current ? 'smooth' : 'auto' });
+    settled.current = true;
   }, [messages.length]);
 
+  const hasUnread = messages.some((m) => m.sender_id !== currentUserId && !m.read_at);
+  const markReadRef = useRef(markRead);
+  markReadRef.current = markRead;
+
   useEffect(() => {
-    if (chat.chat_id && messages.some((m) => m.sender_id !== currentUserId && !m.read_at)) {
-      markRead.mutate(chat.chat_id);
-    }
-  }, [messages.length, chat.chat_id]);
+    if (hasUnread) markReadRef.current.mutate(chat.chat_id);
+  }, [hasUnread, chat.chat_id]);
 
   const handleSend = () => {
     const trimmed = text.trim();
@@ -35,15 +41,17 @@ export const Conversation = ({ chat, onBack }) => {
 
   return (
     <div className="flex h-full flex-col">
-      <div className="flex items-center gap-3 border-b border-border p-3">
-        <button onClick={onBack} className="rounded-lg p-1.5 text-text-muted hover:bg-surface-2 hover:text-text lg:hidden" aria-label="Назад">
-          <ArrowLeft size={20} />
-        </button>
+      <div className="flex shrink-0 items-center gap-3 border-b border-border p-3">
+        <IconButton
+          icon={ArrowLeft} size={20} onClick={onBack}
+          className="text-text-muted hover:bg-surface-2 hover:text-text lg:hidden"
+          aria-label="К списку диалогов"
+        />
         <Avatar name={chat.friend_name} src={chat.friend_avatar} size="sm" />
-        <p className="font-medium text-text">{chat.friend_name}</p>
+        <p className="min-w-0 flex-1 truncate font-medium text-text">{chat.friend_name}</p>
       </div>
 
-      <div ref={scrollRef} className="flex-1 space-y-2 overflow-y-auto p-4 no-scrollbar">
+      <div className="flex-1 space-y-2 overflow-y-auto overscroll-contain p-4 no-scrollbar">
         {isLoading ? (
           <div className="flex justify-center py-8"><Spinner /></div>
         ) : messages.length === 0 ? (
@@ -58,7 +66,7 @@ export const Conversation = ({ chat, onBack }) => {
         <div ref={bottomRef} />
       </div>
 
-      <div className="flex items-end gap-2 border-t border-border p-3 pad-safe-bottom">
+      <div className="flex shrink-0 items-end gap-2 border-t border-border p-3">
         <textarea
           value={text}
           onChange={(e) => setText(e.target.value)}
@@ -66,8 +74,9 @@ export const Conversation = ({ chat, onBack }) => {
             if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); }
           }}
           rows={1}
-          placeholder="Сообщение..."
-          className="max-h-32 flex-1 resize-none rounded-xl border border-border-strong bg-surface px-3.5 py-2.5 text-sm text-text focus:outline-none focus:ring-2 focus:ring-accent"
+          placeholder="Сообщение…"
+          aria-label="Текст сообщения"
+          className="max-h-32 flex-1 resize-none rounded-xl border border-border-strong bg-surface px-3.5 py-2.5 text-sm text-text transition-colors focus:border-accent focus:outline-none"
         />
         <button
           onClick={handleSend}

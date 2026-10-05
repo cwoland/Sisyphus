@@ -25,6 +25,7 @@ const FriendsPage       = lazy(routeLoaders.friends);
 const ChatPage          = lazy(routeLoaders.chat);
 const AiPage            = lazy(routeLoaders.ai);
 const ProfilePage       = lazy(routeLoaders.profile);
+const RecordsPage       = lazy(routeLoaders.records);
 const ActiveWorkoutPage = lazy(routeLoaders.activeWorkout);
 const NotFoundPage      = lazy(routeLoaders.notFound);
 
@@ -73,6 +74,7 @@ function App() {
               <Route path="/chat" element={<ChatPage />} />
               <Route path="/ai" element={<AiPage />} />
               <Route path="/profile" element={<ProfilePage />} />
+              <Route path="/records" element={<RecordsPage />} />
             </Route>
 
             <Route path="*" element={<NotFoundPage />} />

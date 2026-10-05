@@ -1,19 +1,30 @@
 import { Link } from 'react-router-dom';
-import { Compass } from 'lucide-react';
 import { Button } from '../../shared/ui/Button.jsx';
+import { StoneSlope } from '../../shared/ui/StoneSlope.jsx';
+import { GreekPatternBg } from '../../shared/ui/GreekPatternBg.tsx';
 
 export const NotFoundPage = () => (
-  <div className="flex min-h-[100dvh] flex-col items-center justify-center px-4 text-center">
-    <div className="mb-4 flex h-20 w-20 items-center justify-center rounded-3xl bg-surface-2 text-accent">
-      <Compass size={40} strokeWidth={1.5} />
+  <div className="relative isolate flex min-h-[100dvh] flex-col items-center justify-center gap-8 bg-bg px-6 text-center">
+    <GreekPatternBg />
+
+    <div className="relative flex flex-col items-center gap-6">
+      <StoneSlope variant="rest" />
+
+      <div className="flex max-w-sm flex-col items-center gap-2">
+        <p className="font-display text-sm font-semibold uppercase tracking-[0.16em] text-text-muted">
+          404
+        </p>
+        <h1 className="font-display text-2xl font-extrabold tracking-tight text-text">
+          Камень скатился
+        </h1>
+        <p className="text-sm text-text-muted">
+          Такой страницы нет. Но подъём начинается заново — в этом вся суть.
+        </p>
+      </div>
+
+      <Link to="/">
+        <Button size="lg">К подножию</Button>
+      </Link>
     </div>
-    <p className="font-display text-6xl font-bold text-accent">404</p>
-    <h1 className="mt-2 font-display text-xl font-semibold text-text">Страница не найдена</h1>
-    <p className="mt-1 max-w-sm text-sm text-text-muted">
-      Похоже, этот камень укатился слишком далеко. Вернёмся к началу подъёма.
-    </p>
-    <Link to="/" className="mt-6">
-      <Button>На главную</Button>
-    </Link>
   </div>
 );

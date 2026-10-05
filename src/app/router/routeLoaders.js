@@ -9,6 +9,7 @@ export const routeLoaders = {
   chat:          () => import('../../pages/Chat/ChatPage.jsx').then(named('ChatPage')),
   ai:            () => import('../../pages/AI/AiPage.jsx').then(named('AiPage')),
   profile:       () => import('../../pages/Profile/ProfilePage.jsx').then(named('ProfilePage')),
+  records:       () => import('../../pages/Records/RecordsPage.jsx').then(named('RecordsPage')),
   activeWorkout: () => import('../../pages/ActiveWorkout/ActiveWorkoutPage.jsx').then(named('ActiveWorkoutPage')),
   notFound:      () => import('../../pages/NotFound/NotFoundPage.jsx').then(named('NotFoundPage')),
 };
@@ -22,6 +23,7 @@ export const routeKeyByPath = {
   '/chat': 'chat',
   '/ai': 'ai',
   '/profile': 'profile',
+  '/records': 'records',
 };
 
 const prefetched = new Set();

@@ -92,7 +92,7 @@ export const DashboardPage = () => {
           <h2 className="font-display text-sm font-semibold uppercase tracking-[0.14em] text-text-muted">
             Рекорды
           </h2>
-          <SectionLink to="/calendar">Все</SectionLink>
+          <SectionLink to="/records">Все</SectionLink>
         </div>
 
         {recordsQuery.isLoading ? (

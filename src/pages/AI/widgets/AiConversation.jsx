@@ -3,6 +3,7 @@ import { ArrowLeft, Send, Sparkles, Trash2 } from 'lucide-react';
 import { clsx } from 'clsx';
 import { useConversationMessages, useSendAiMessage } from '../ai.hooks.js';
 import { Spinner } from '../../../shared/ui/Spinner.jsx';
+import { IconButton } from '../../../shared/ui/IconButton.jsx';
 import { contextLabel } from '../../../entities/ai/ContextTypes.js';
 
 export const AiConversation = ({ conversationId, onBack, onDelete }) => {
@@ -10,12 +11,16 @@ export const AiConversation = ({ conversationId, onBack, onDelete }) => {
   const sendMutation = useSendAiMessage(conversationId);
   const [text, setText] = useState('');
   const bottomRef = useRef(null);
+  const settled = useRef(false);
 
   const messages = data?.messages || [];
   const conversation = data?.conversation;
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+    if (!messages.length) return;
+    // Первая прокрутка — мгновенная: плавная пролистывала бы всю историю.
+    bottomRef.current?.scrollIntoView({ behavior: settled.current ? 'smooth' : 'auto' });
+    settled.current = true;
   }, [messages.length]);
 
   const handleSend = () => {
@@ -25,33 +30,47 @@ export const AiConversation = ({ conversationId, onBack, onDelete }) => {
     sendMutation.mutate(trimmed);
   };
 
+  const handleDelete = () => {
+    if (window.confirm('Удалить диалог? Переписка не восстановится.')) onDelete(conversationId);
+  };
+
   return (
     <div className="flex h-full flex-col">
-      <div className="flex items-center gap-3 border-b border-border p-3">
-        <button onClick={onBack} className="rounded-lg p-1.5 text-text-muted hover:bg-surface-2 hover:text-text lg:hidden" aria-label="Назад">
-          <ArrowLeft size={20} />
-        </button>
-        <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-accent/10 text-accent">
+      <div className="flex shrink-0 items-center gap-3 border-b border-border p-3">
+        <IconButton
+          icon={ArrowLeft} size={20} onClick={onBack}
+          className="text-text-muted hover:bg-surface-2 hover:text-text lg:hidden"
+          aria-label="К списку диалогов"
+        />
+
+        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-terracotta/15 text-terracotta-ink">
           <Sparkles size={18} />
         </div>
-        <div className="flex-1">
-          <p className="font-medium text-text">AI-тренер</p>
+
+        <div className="min-w-0 flex-1">
+          <p className="truncate font-medium text-text">ИИ-тренер</p>
           {conversation && (
-            <p className="text-xs text-text-muted">{contextLabel(conversation.context_type)}</p>
+            <p className="truncate text-xs text-text-muted">
+              {contextLabel(conversation.context_type)}
+            </p>
           )}
         </div>
-        <button onClick={() => onDelete(conversationId)} className="rounded-lg p-1.5 text-text-muted hover:text-crimson" aria-label="Удалить диалог">
-          <Trash2 size={18} />
-        </button>
+
+        <IconButton
+          icon={Trash2} size={18}
+          onClick={handleDelete}
+          className="text-text-muted hover:text-danger"
+          aria-label="Удалить диалог"
+        />
       </div>
 
-      <div className="flex-1 space-y-3 overflow-y-auto p-4 no-scrollbar">
+      <div className="flex-1 space-y-3 overflow-y-auto overscroll-contain p-4 no-scrollbar">
         {isLoading ? (
           <div className="flex justify-center py-8"><Spinner /></div>
         ) : messages.length === 0 ? (
           <div className="py-8 text-center">
-            <Sparkles size={32} className="mx-auto mb-3 text-accent" />
-            <p className="text-sm text-text-muted">
+            <Sparkles size={32} className="mx-auto mb-3 text-terracotta-ink" />
+            <p className="mx-auto max-w-xs text-sm text-text-muted">
               Задайте вопрос оракулу — о технике, нагрузке или питании.
             </p>
           </div>
@@ -61,7 +80,7 @@ export const AiConversation = ({ conversationId, onBack, onDelete }) => {
         <div ref={bottomRef} />
       </div>
 
-      <div className="flex items-end gap-2 border-t border-border p-3 pad-safe-bottom">
+      <div className="flex shrink-0 items-end gap-2 border-t border-border p-3">
         <textarea
           value={text}
           onChange={(e) => setText(e.target.value)}
@@ -69,9 +88,10 @@ export const AiConversation = ({ conversationId, onBack, onDelete }) => {
             if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); }
           }}
           rows={1}
-          placeholder="Спросить AI-тренера..."
+          placeholder="Спросить ИИ-тренера…"
+          aria-label="Вопрос ИИ-тренеру"
           disabled={sendMutation.isPending}
-          className="max-h-32 flex-1 resize-none rounded-xl border border-border-strong bg-surface px-3.5 py-2.5 text-sm text-text focus:outline-none focus:ring-2 focus:ring-accent disabled:opacity-60"
+          className="max-h-32 flex-1 resize-none rounded-xl border border-border-strong bg-surface px-3.5 py-2.5 text-sm text-text transition-colors focus:border-accent focus:outline-none disabled:opacity-60"
         />
         <button
           onClick={handleSend}
@@ -93,7 +113,7 @@ const AiBubble = ({ message }) => {
     <div className={clsx('flex', isUser ? 'justify-end' : 'justify-start')}>
       <div
         className={clsx(
-          'max-w-[80%] rounded-2xl px-4 py-2.5 text-sm',
+          'max-w-[80%] rounded-2xl px-4 py-2.5 text-sm shadow-sm',
           isUser ? 'rounded-br-md bg-accent text-on-accent' : 'rounded-bl-md bg-surface-2 text-text'
         )}
       >
@@ -108,12 +128,12 @@ const AiBubble = ({ message }) => {
 };
 
 const TypingDots = () => (
-  <div className="flex gap-1 py-1">
+  <div className="flex gap-1 py-1" role="status" aria-label="Оракул печатает">
     {[0, 1, 2].map((i) => (
       <span
         key={i}
-        className="h-2 w-2 animate-bounce rounded-full bg-text-muted"
-        style={{ animationDelay: `${i * 0.15}s` }}
+        className="h-1.5 w-1.5 animate-typing rounded-full bg-text-muted"
+        style={{ animationDelay: `${i * 0.18}s` }}
       />
     ))}
   </div>

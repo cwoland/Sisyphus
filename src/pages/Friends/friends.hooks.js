@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   getFriends, getPendingRequests, sendFriendRequest, respondToRequest, removeFriend, searchUsers,
 } from '../../entities/friend/friend.api.js';
@@ -26,10 +26,18 @@ export const usePendingRequests = () =>
     refetchOnWindowFocus: true,
   });
 
+const FEED_PAGE = 30;
+
 export const useFriendsFeed = (options = {}) =>
-  useQuery({
+  useInfiniteQuery({
     queryKey: ['feed'],
-    queryFn: () => getFeed(),
+    queryFn: ({ pageParam }) => getFeed(pageParam),
+    initialPageParam: undefined,
+    getNextPageParam: (lastPage) => {
+      if (!lastPage || lastPage.length < FEED_PAGE) return undefined;
+      const last = lastPage[lastPage.length - 1];
+      return { before: last.occurred_at, beforeId: last.id };
+    },
     ...options,
   });
 
@@ -38,6 +46,7 @@ export const useFriendMutations = () => {
 
   const invalidate = () => {
     qc.invalidateQueries({ queryKey: ['friends'] });
+    qc.invalidateQueries({ queryKey: ['feed'] });
   };
 
   const sendRequest = useMutation({

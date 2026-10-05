@@ -13,7 +13,6 @@ export const NewConversationDialog = ({ isOpen, onClose, onCreate, isCreating })
   const needsProgram = contextType === 'program';
 
   const handleCreate = () => {
-    console.log('handleCreate done', { contextType, contextId });
     onCreate({
       contextType,
       contextId: needsProgram ? contextId : undefined,
@@ -37,10 +36,10 @@ export const NewConversationDialog = ({ isOpen, onClose, onCreate, isCreating })
                   onClick={() => { setContextType(c.value); setContextId(null); }}
                   className={clsx(
                     'flex flex-col items-start gap-1 rounded-xl border p-3 text-left transition-colors',
-                    contextType === c.value ? 'border-accent bg-accent/10' : 'border-border hover:bg-surface-2'
+                    contextType === c.value ? 'border-cta bg-cta/10' : 'border-border hover:bg-surface-2'
                   )}
                 >
-                  <Icon size={20} className={contextType === c.value ? 'text-accent' : 'text-text-muted'} />
+                  <Icon size={20} className={contextType === c.value ? 'text-terracotta-ink' : 'text-text-muted'} />
                   <span className="text-sm font-medium text-text">{c.label}</span>
                   <span className="text-xs text-text-muted">{c.description}</span>
                 </button>

@@ -59,11 +59,6 @@ export const useChatMessages = (chatId) => {
     });
   }, []);
 
-  useEffect(() => {
-    setMessages([]);
-    cursorRef.current = null;
-  }, [chatId]);
-
   const pollQuery = useQuery({
     queryKey: ['messages', chatId],
     queryFn: async () => {

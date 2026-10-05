@@ -1,143 +1,178 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { UserPlus, Check, X, MessageCircle, UserMinus, Users, Newspaper } from 'lucide-react';
+import { clsx } from 'clsx';
 
 import { useFriends, usePendingRequests, useFriendMutations, useFriendsFeed } from './friends.hooks.js';
 import { useStartChat } from '../Chat/chat.hooks.js';
 import { AddFriendForm } from '../../features/add-friend/AddFriendForm.jsx';
-import { Avatar } from '../../shared/ui/Avatar.jsx';
+import { PersonRow } from './widgets/PersonRow.jsx';
+import { FeedList } from './widgets/FeedList.jsx';
+import { IconButton } from '../../shared/ui/IconButton.jsx';
 import { Sheet } from '../../shared/ui/Sheet.jsx';
 import { Button } from '../../shared/ui/Button.jsx';
 import { EmptyState } from '../../shared/ui/EmptyState.jsx';
 import { SkeletonList } from '../../shared/ui/Skeleton.jsx';
 import { emptyStates } from '../../shared/lib/sisyphusPhrases.js';
-import { FeedList } from './widgets/FeedList.jsx';
+import { plural } from '../../shared/lib/plural.js';
+
+const TABS = [
+  { id: 'feed', label: 'Лента', icon: Newspaper },
+  { id: 'friends', label: 'Друзья', icon: Users },
+];
 
 export const FriendsPage = () => {
   const navigate = useNavigate();
+  const [params, setParams] = useSearchParams();
+  const tab = params.get('tab') === 'friends' ? 'friends' : 'feed';
+  const setTab = (next) =>
+    setParams(next === 'friends' ? { tab: 'friends' } : {}, { replace: true });
+
   const friendsQuery = useFriends();
   const requestsQuery = usePendingRequests();
   const { respond, remove } = useFriendMutations();
   const startChat = useStartChat();
 
   const [addOpen, setAddOpen] = useState(false);
-  const [tab, setTab] = useState('feed');
-
   const feedQuery = useFriendsFeed({ enabled: tab === 'feed' });
-
-  const openChatWith = (friendId) => {
-    startChat.mutate(friendId, {
-      onSuccess: (chat) => navigate('/chat', { state: { chatId: chat.id } }),
-    });
-  };
 
   const friends = friendsQuery.data || [];
   const requests = requestsQuery.data || [];
 
+  const openChatWith = (friendId) => {
+    startChat.mutate(friendId, {
+      onSuccess: (chat) => navigate(`/chat?chat=${chat.chat_id ?? chat.id}`), 
+    });
+  };
+
+  const removeFriend = (friend) => {
+    if (!window.confirm(`Удалить ${friend.name} из друзей?`)) return;
+    remove.mutate(friend.friendship_id);
+  };
+
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h1 className="font-display text-2xl font-bold text-text">Друзья</h1>
+    <div className="space-y-5">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div className="min-w-0">
+          <h1 className="font-display text-2xl font-bold text-text">Друзья</h1>
+          {friends.length > 0 && (
+            <p className="text-sm text-text-muted">
+              {friends.length} {plural(friends.length, ['человек', 'человека', 'человек'])} рядом
+            </p>
+          )}
+        </div>
         <Button onClick={() => setAddOpen(true)}>
           <UserPlus size={18} /> Добавить
         </Button>
       </div>
 
-      <div className="flex gap-1 rounded-xl bg-surface-2 p-1">
-        <button
-          onClick={() => setTab('feed')}
-          className={`flex flex-1 items-center justify-center gap-1.5 rounded-lg py-2 text-sm font-medium transition-colors ${tab === 'feed' ? 'bg-surface text-text shadow-sm' : 'text-text-muted'}`}
-        >
-          <Newspaper size={16} /> Лента
-        </button>
-        <button
-          onClick={() => setTab('friends')}
-          className={`flex flex-1 items-center justify-center gap-1.5 rounded-lg py-2 text-sm font-medium transition-colors ${tab === 'friends' ? 'bg-surface text-text shadow-sm' : 'text-text-muted'}`}
-        >
-          <Users size={16} /> Друзья
-        </button>
+      <div role="tablist" aria-label="Раздел" className="flex gap-1 border-b border-border">
+        {TABS.map(({ id, label, icon: Icon }) => (
+          <button
+            key={id}
+            role="tab"
+            aria-selected={tab === id}
+            onClick={() => setTab(id)}
+            className={clsx(
+              '-mb-px flex min-h-[44px] items-center gap-2 border-b-2 px-3 text-sm font-medium transition-colors',
+              tab === id
+                ? 'border-cta text-text'
+                : 'border-transparent text-text-muted hover:text-text'
+            )}
+          >
+            <Icon size={16} /> {label}
+            {id === 'friends' && requests.length > 0 && (
+              <span
+                className="ml-0.5 flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-cta px-1 text-[11px] font-bold tabular-nums text-on-cta"
+                aria-label={`${requests.length} ${plural(requests.length, ['новая заявка', 'новые заявки', 'новых заявок'])}`}
+              >
+                {requests.length}
+              </span>
+            )}
+          </button>
+        ))}
       </div>
 
       {tab === 'feed' && <FeedList query={feedQuery} />}
 
       {tab === 'friends' && (
-      requests.length > 0 && (
-        <section>
-          <h2 className="mb-3 font-display text-lg font-semibold text-text">
-            Заявки <span className="text-sm font-normal text-text-muted">({requests.length})</span>
-          </h2>
-          <div className="space-y-2">
-            {requests.map((req) => (
-              <div key={req.friendship_id} className="flex items-center gap-3 rounded-2xl border border-border bg-surface p-3">
-                <Avatar name={req.name} src={req.avatar_url} />
-                <div className="min-w-0 flex-1">
-                  <p className="truncate font-medium text-text">{req.name}</p>
-                  <p className="truncate text-xs text-text-muted">@{req.username}</p>
-                </div>
-                <div className="flex gap-1">
-                  <button
+        <div className="space-y-6">
+          {requests.length > 0 && (
+            <section aria-label="Входящие заявки" className="space-y-2">
+              <h2 className="px-1 font-display text-xs font-semibold uppercase tracking-[0.14em] text-text-muted">
+                Заявки
+              </h2>
+              {requests.map((req) => (
+                <PersonRow
+                  key={req.friendship_id}
+                  name={req.name}
+                  username={req.username}
+                  avatar={req.avatar_url}
+                >
+                  <IconButton
+                    icon={Check} size={18}
                     onClick={() => respond.mutate({ id: req.friendship_id, accept: true })}
-                    className="flex h-9 w-9 items-center justify-center rounded-lg bg-accent text-on-accent hover:bg-accent-hover"
-                    aria-label="Принять"
-                  >
-                    <Check size={18} />
-                  </button>
-                  <button
+                    className="bg-accent text-on-accent hover:bg-accent-hover"
+                    aria-label={`Принять заявку: ${req.name}`}
+                  />
+                  <IconButton
+                    icon={X} size={18}
                     onClick={() => respond.mutate({ id: req.friendship_id, accept: false })}
-                    className="flex h-9 w-9 items-center justify-center rounded-lg bg-surface-2 text-text-muted hover:text-crimson"
-                    aria-label="Отклонить"
-                  >
-                    <X size={18} />
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
-      ))}
-    
+                    className="bg-surface-2 text-text-muted hover:text-danger"
+                    aria-label={`Отклонить заявку: ${req.name}`}
+                  />
+                </PersonRow>
+              ))}
+            </section>
+          )}
 
-      <section>
-        <h2 className="mb-3 font-display text-lg font-semibold text-text">Мои друзья</h2>
+          <section aria-label="Мои друзья" className="space-y-2">
+            {requests.length > 0 && (
+              <h2 className="px-1 font-display text-xs font-semibold uppercase tracking-[0.14em] text-text-muted">
+                Мои друзья
+              </h2>
+            )}
 
-        {friendsQuery.isLoading ? (
-          <SkeletonList count={3} />
-        ) : friendsQuery.data?.length === 0 ? (
-          <div className="rounded-2xl border border-border bg-surface">
-            <EmptyState
-              icon={Users}
-              {...emptyStates.friends}
-              action={<Button onClick={() => setAddOpen(true)}><UserPlus size={18} /> Добавить друга</Button>}
-            />
-          </div>
-        ) : (
-          <div className="space-y-2">
-            {friendsQuery.data.map((friend) => (
-              <div key={friend.friendship_id} className="flex items-center gap-3 rounded-2xl border border-border bg-surface p-3">
-                <Avatar name={friend.name} src={friend.avatar_url} />
-                <div className="min-w-0 flex-1">
-                  <p className="truncate font-medium text-text">{friend.name}</p>
-                  <p className="truncate text-xs text-text-muted">@{friend.username}</p>
-                </div>
-                <button
-                  onClick={() => openChatWith(friend.id)}
-                  className="flex h-9 w-9 items-center justify-center rounded-lg bg-surface-2 text-text-muted hover:text-accent"
-                  aria-label="Написать"
-                >
-                  <MessageCircle size={18} />
-                </button>
-                <button
-                  onClick={() => remove.mutate(friend.friendship_id)}
-                  className="flex h-9 w-9 items-center justify-center rounded-lg bg-surface-2 text-text-muted hover:text-crimson"
-                  aria-label="Удалить из друзей"
-                >
-                  <UserMinus size={18} />
-                </button>
+            {friendsQuery.isLoading ? (
+              <SkeletonList count={3} />
+            ) : friends.length === 0 ? (
+              <div className="rounded-2xl border border-border bg-surface">
+                <EmptyState
+                  icon={Users}
+                  {...emptyStates.friends}
+                  action={
+                    <Button onClick={() => setAddOpen(true)}>
+                      <UserPlus size={18} /> Добавить друга
+                    </Button>
+                  }
+                />
               </div>
-            ))}
-          </div>
-        )}
-      </section>
+            ) : (
+              friends.map((friend) => (
+                <PersonRow
+                  key={friend.friendship_id}
+                  name={friend.name}
+                  username={friend.username}
+                  avatar={friend.avatar_url}
+                >
+                  <IconButton
+                    icon={MessageCircle} size={18}
+                    onClick={() => openChatWith(friend.id)}
+                    className="bg-surface-2 text-text-muted hover:text-text"
+                    aria-label={`Написать: ${friend.name}`}
+                  />
+                  <IconButton
+                    icon={UserMinus} size={18}
+                    onClick={() => removeFriend(friend)}
+                    className="bg-surface-2 text-text-muted hover:text-danger"
+                    aria-label={`Удалить из друзей: ${friend.name}`}
+                  />
+                </PersonRow>
+              ))
+            )}
+          </section>
+        </div>
+      )}
 
       <Sheet isOpen={addOpen} onClose={() => setAddOpen(false)} title="Добавить друга">
         <AddFriendForm onDone={() => setAddOpen(false)} />

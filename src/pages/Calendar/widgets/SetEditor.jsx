@@ -51,6 +51,12 @@ const SetRow = ({ set, index, onSave, onDelete, isSaving }) => {
         </span>
       )}
 
+      {set.rpe != null && (
+        <span className="hidden shrink-0 rounded-md bg-gold/15 px-1.5 py-0.5 text-[11px] font-medium tabular-nums text-gold-ink xs:inline">
+          RPE {Number(set.rpe)}
+        </span>
+      )}
+
       <IconButton
         icon={Check}
         onClick={() => { const next = !completed; setCompleted(next); save(next); }}

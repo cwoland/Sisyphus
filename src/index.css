@@ -107,6 +107,7 @@
     }
 
     .animate-spin { animation: spin 1.2s linear infinite !important; }
+    .animate-record-flash { animation: none !important; }
   }
 }
 
@@ -196,6 +197,15 @@
       opacity: 0.32;
       right: -12%;
     }
+  }
+
+  .pane-h {
+    height: calc(100dvh - 12rem - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+    min-height: 20rem;
+  }
+
+  @media (min-width: 1024px) {
+    .pane-h { height: calc(100dvh - 8rem); }
   }
 
   .auth-figure-dark { display: none; }
