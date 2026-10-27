@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { clsx } from 'clsx';
-import { weekDays, weekdayShort, toApiDate, todayApi, isSameDay } from '../../../shared/lib/date.js';
+import { weekDays, weekdayShort, toApiDate, isSameDay } from '../../../shared/lib/date.js';
 
 const MARK = {
   completed: 'bg-accent text-on-accent',

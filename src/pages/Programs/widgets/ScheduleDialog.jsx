@@ -21,7 +21,7 @@ export const ScheduleDialog = ({ isOpen, onClose, program, onSchedule, isSchedul
   const [weeksCount, setWeeksCount] = useState(4);
   const [weekdays, setWeekdays] = useState([1, 3, 5]);
 
-  const programDays = program?.days?.length ?? Number(program?.days_count) ?? 0;
+  const programDays = program?.days?.length ?? (Number(program?.days_count) || 0);
 
   const toggleDay = (value) => {
     setWeekdays((prev) =>

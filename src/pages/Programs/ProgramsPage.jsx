@@ -16,6 +16,7 @@ import { EmptyState } from '../../shared/ui/EmptyState.jsx';
 import { SkeletonList } from '../../shared/ui/Skeleton.jsx';
 import { emptyStates } from '../../shared/lib/sisyphusPhrases.js';
 import { plural } from '../../shared/lib/plural.js';
+import { ShareDialog } from '../../features/share/ShareDialog.jsx';
 
 const TABS = [
   { id: 'mine', label: 'Мои', icon: User },
@@ -26,17 +27,27 @@ const programToBuilderShape = (program) => ({
   title: program.title,
   description: program.description || '',
   isPublic: program.is_public,
+  kind: program.kind || 'strength',
   days: program.days.map((day) => ({
     tempId: crypto.randomUUID(),
     title: day.title,
-    exercises: day.exercises.map((ex) => ({
-      tempId: crypto.randomUUID(),
-      exerciseId: ex.exercise_id,
-      name: ex.exercise_name,
-      muscleGroup: ex.muscle_group,
-      targetSets: ex.target_sets,
-      targetReps: ex.target_reps,
-    })),
+    rounds: Math.max(...day.exercises.map((ex) => ex.target_sets), 1),
+    exercises: (() => {
+      const byGroup = new Map();
+      return day.exercises.map((ex) => {
+        if (!byGroup.has(ex.group_index)) byGroup.set(ex.group_index, crypto.randomUUID());
+        return {
+          tempId: crypto.randomUUID(),
+          groupId: byGroup.get(ex.group_index),
+          exerciseId: ex.exercise_id,
+          name: ex.exercise_name,
+          muscleGroup: ex.muscle_group,
+          tracking: ex.tracking,
+          targetSets: ex.target_sets,
+          targetReps: ex.target_reps,
+        };
+      });
+    })(),
   })),
 });
 
@@ -56,6 +67,7 @@ export const ProgramsPage = () => {
   const [builderOpen, setBuilderOpen] = useState(false);
   const [detailId, setDetailId] = useState(null);
   const [scheduleProgram, setScheduleProgram] = useState(null);
+  const [shareProgram, setShareProgram] = useState(null);
 
   const [search, setSearch] = useState('');
   const [term, setTerm] = useState('');
@@ -236,6 +248,7 @@ export const ProgramsPage = () => {
           isOwner={isOwner}
           onSchedule={(p) => { setDetailId(null); setScheduleProgram(p); }}
           onEdit={(p) => { setDetailId(null); setEditProgram(p); }}
+          onShare={(p) => { setDetailId(null); setShareProgram(p); }}
           onDelete={handleDelete}
           onFork={handleFork}
           isForking={fork.isPending}
@@ -252,6 +265,13 @@ export const ProgramsPage = () => {
           isScheduling={schedule.isPending}
         />
       )}
+
+      <ShareDialog
+        isOpen={!!shareProgram}
+        onClose={() => setShareProgram(null)}
+        title={shareProgram?.title}
+        programId={shareProgram?.id}
+      />
     </div>
   );
 };

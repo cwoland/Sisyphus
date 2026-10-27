@@ -25,11 +25,14 @@ export const Conversation = ({ chat, onBack }) => {
   }, [messages.length]);
 
   const hasUnread = messages.some((m) => m.sender_id !== currentUserId && !m.read_at);
-  const markReadRef = useRef(markRead);
-  markReadRef.current = markRead;
+  const markReadRef = useRef(markRead.mutate);
 
   useEffect(() => {
-    if (hasUnread) markReadRef.current.mutate(chat.chat_id);
+    markReadRef.current = markRead.mutate;
+  });
+
+  useEffect(() => {
+    if (hasUnread) markReadRef.current(chat.chat_id);
   }, [hasUnread, chat.chat_id]);
 
   const handleSend = () => {

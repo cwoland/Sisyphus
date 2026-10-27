@@ -2,7 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import { Play, Check, Plus, Trophy, Flame } from 'lucide-react';
 
 import { useAuthStore } from '../../entities/user/auth.store.js';
-import { useWeekWorkouts, useTodayNutrition, useTopRecords } from './dashboard.hooks.js';
+import { useWeekWorkouts, useTodayNutrition, useTopRecords, useContinuity } from './dashboard.hooks.js';
 import { useActiveWorkout, useStartWorkout } from '../Calendar/calendar.hooks.js';
 import { WeekStrip } from './widgets/WeekStrip.jsx';
 import { CalorieRing } from '../../shared/ui/CalorieRing.jsx';
@@ -11,6 +11,7 @@ import { CardArt } from '../../shared/ui/CardArt.jsx';
 import { SectionLink } from '../../shared/ui/SectionLink.jsx';
 import { Button } from '../../shared/ui/Button.jsx';
 import { todayApi } from '../../shared/lib/date.js';
+import { ContinuityStrip } from './widgets/ContinuityStrip.jsx';
 
 const num = (v) => Math.round(Number(v) || 0);
 
@@ -27,6 +28,8 @@ export const DashboardPage = () => {
   const active = activeQuery.data;
   const week = workoutsQuery.data || [];
   const today = todayApi();
+
+  const continuityQuery = useContinuity();
 
   const todayWorkout =
     active ?? week.find((w) => w.date === today && w.status !== 'skipped') ?? null;
@@ -61,6 +64,8 @@ export const DashboardPage = () => {
       ) : (
         <WeekStrip workouts={week} />
       )}
+
+      <ContinuityStrip query={continuityQuery} />
 
       <section aria-label="Питание">
         <div className="mb-3 flex items-center justify-between">

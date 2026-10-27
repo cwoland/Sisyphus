@@ -1,13 +1,15 @@
 import { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { UserPlus, Check, X, MessageCircle, UserMinus, Users, Newspaper } from 'lucide-react';
+import { UserPlus, Check, X, MessageCircle, UserMinus, Users, Newspaper, Inbox } from 'lucide-react';
 import { clsx } from 'clsx';
 
 import { useFriends, usePendingRequests, useFriendMutations, useFriendsFeed } from './friends.hooks.js';
+import { useShares } from './shares.hooks.js';
 import { useStartChat } from '../Chat/chat.hooks.js';
 import { AddFriendForm } from '../../features/add-friend/AddFriendForm.jsx';
 import { PersonRow } from './widgets/PersonRow.jsx';
 import { FeedList } from './widgets/FeedList.jsx';
+import { SharesInbox } from './widgets/SharesInbox.jsx';
 import { IconButton } from '../../shared/ui/IconButton.jsx';
 import { Sheet } from '../../shared/ui/Sheet.jsx';
 import { Button } from '../../shared/ui/Button.jsx';
@@ -19,14 +21,15 @@ import { plural } from '../../shared/lib/plural.js';
 const TABS = [
   { id: 'feed', label: 'Лента', icon: Newspaper },
   { id: 'friends', label: 'Друзья', icon: Users },
+  { id: 'inbox', label: 'Присланное', icon: Inbox },
 ];
 
 export const FriendsPage = () => {
   const navigate = useNavigate();
   const [params, setParams] = useSearchParams();
-  const tab = params.get('tab') === 'friends' ? 'friends' : 'feed';
-  const setTab = (next) =>
-    setParams(next === 'friends' ? { tab: 'friends' } : {}, { replace: true });
+  const tabParam = params.get('tab');
+  const tab = TABS.some((t) => t.id === tabParam) ? tabParam : 'feed';
+  const setTab = (next) => setParams(next === 'feed' ? {} : { tab: next }, { replace: true });
 
   const friendsQuery = useFriends();
   const requestsQuery = usePendingRequests();
@@ -38,6 +41,9 @@ export const FriendsPage = () => {
 
   const friends = friendsQuery.data || [];
   const requests = requestsQuery.data || [];
+
+  const sharesQuery = useShares();
+  const shares = sharesQuery.data || [];
 
   const openChatWith = (friendId) => {
     startChat.mutate(friendId, {
@@ -81,14 +87,8 @@ export const FriendsPage = () => {
             )}
           >
             <Icon size={16} /> {label}
-            {id === 'friends' && requests.length > 0 && (
-              <span
-                className="ml-0.5 flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-cta px-1 text-[11px] font-bold tabular-nums text-on-cta"
-                aria-label={`${requests.length} ${plural(requests.length, ['новая заявка', 'новые заявки', 'новых заявок'])}`}
-              >
-                {requests.length}
-              </span>
-            )}
+            {id === 'friends' && requests.length > 0 && <TabBadge count={requests.length} label="заявок" />}
+            {id === 'inbox' && shares.length > 0 && <TabBadge count={shares.length} label="присланного" />}
           </button>
         ))}
       </div>
@@ -125,6 +125,8 @@ export const FriendsPage = () => {
               ))}
             </section>
           )}
+
+          {tab === 'inbox' && <SharesInbox />}
 
           <section aria-label="Мои друзья" className="space-y-2">
             {requests.length > 0 && (
@@ -180,3 +182,11 @@ export const FriendsPage = () => {
     </div>
   );
 };
+
+const TabBadge = ({ count, label }) => (
+  <span 
+    className="ml-0.5 flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-cta px-1 text-[11px] font-bold tabular-nums text-on-cta" aria-label={`${count} ${label}`}
+  >
+    {count}
+  </span>
+);

@@ -28,6 +28,7 @@ const ProfilePage       = lazy(routeLoaders.profile);
 const RecordsPage       = lazy(routeLoaders.records);
 const ActiveWorkoutPage = lazy(routeLoaders.activeWorkout);
 const NotFoundPage      = lazy(routeLoaders.notFound);
+const StatsPage         = lazy(routeLoaders.stats);
 
 
 registerSW({ immediate: true });
@@ -75,6 +76,7 @@ function App() {
               <Route path="/ai" element={<AiPage />} />
               <Route path="/profile" element={<ProfilePage />} />
               <Route path="/records" element={<RecordsPage />} />
+              <Route path="/stats" element={<StatsPage />} />
             </Route>
 
             <Route path="*" element={<NotFoundPage />} />

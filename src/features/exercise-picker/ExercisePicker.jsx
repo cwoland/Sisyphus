@@ -5,6 +5,7 @@ import { Sheet } from '../../shared/ui/Sheet.jsx';
 import { Button } from '../../shared/ui/Button.jsx';
 import { useExercises, useCreateExercise } from '../../pages/Programs/programs.hooks.js';
 import { muscleGroups, equipmentTypes, muscleGroupLabel } from '../../entities/exercise/muscleGroups.js';
+import { TRACKING_MODES } from '../../entities/exercise/tracking.js';
 import { Skeleton } from '../../shared/ui/Skeleton.jsx';
 
 export const ExercisePicker = ({ isOpen, onClose, onPick }) => {
@@ -94,12 +95,13 @@ const NewExerciseForm = ({ onDone, onCreated }) => {
   const [name, setName] = useState('');
   const [muscleGroup, setMuscleGroup] = useState('chest');
   const [equipment, setEquipment] = useState('barbell');
+  const [tracking, setTracking] = useState('weight_reps');
   const createMutation = useCreateExercise();
 
   const submit = () => {
     if (name.trim().length < 2) return;
     createMutation.mutate(
-      { name: name.trim(), muscleGroup, equipment },
+      { name: name.trim(), muscleGroup, equipment, tracking },
       { onSuccess: (ex) => onCreated(ex) }
     );
   };
@@ -122,6 +124,26 @@ const NewExerciseForm = ({ onDone, onCreated }) => {
           {equipmentTypes.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
         </select>
       </div>
+
+      <div className="space-y-1.5">
+        <p className="text-sm font-medium text-text">Как измерять</p>
+        {TRACKING_MODES.map((m) => (
+          <button
+            key={m.value}
+            type="button"
+            onClick={() => setTracking(m.value)}
+            aria-pressed={tracking === m.value}
+            className={clsx(
+              'flex w-full flex-col items-start rounded-xl border p-3 text-left transition-colors',
+              tracking === m.value ? 'border-cta bg-cta/10' : 'border-border hover:bg-surface-2'
+            )}
+          >
+            <span className="text-sm font-medium text-text">{m.label}</span>
+            <span className="text-xs text-text-muted">{m.hint}</span>
+          </button>
+        ))}
+      </div>
+
       <div className="flex gap-2">
         <Button variant="ghost" className="flex-1" onClick={onDone}>Назад</Button>
         <Button className="flex-1" onClick={submit} isLoading={createMutation.isPending}>Создать</Button>

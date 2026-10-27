@@ -3,19 +3,28 @@ import { Check, Trash2, Plus } from 'lucide-react';
 import { clsx } from 'clsx';
 import { epley1RM } from '../../../shared/lib/oneRepMax.js';
 import { IconButton } from '../../../shared/ui/IconButton.jsx';
+import { trackingOf, formatDuration } from '../../../entities/exercise/tracking.js';
 
 
-const SetRow = ({ set, index, onSave, onDelete, isSaving }) => {
+const SetRow = ({ set, index, onSave, onDelete }) => {
+  const mode = trackingOf(set);
+  const [duration, setDuration] = useState(set.duration_sec ?? 60);
   const [weight, setWeight] = useState(set.weight ?? '');
   const [reps, setReps] = useState(set.reps ?? '');
   const [completed, setCompleted] = useState(set.is_completed);
 
   const save = (nextCompleted = completed) => {
+    const base = { setId: set.id, isCompleted: nextCompleted };
+
+    if (mode === 'duration') {
+      return onSave({ ...base, weight: null, reps: null, durationSec: Number(duration) || 0 });
+    }
+
     onSave({
-      setId: set.id,
+      ...base,
       weight: weight === '' ? null : Number(weight),
       reps: reps === '' ? null : Number(reps),
-      isCompleted: nextCompleted,
+      durationSec: null,
     });
   };
 
@@ -25,27 +34,55 @@ const SetRow = ({ set, index, onSave, onDelete, isSaving }) => {
     <div className="flex items-center gap-2 rounded-xl border border-border bg-surface-2 p-2">
       <span className="w-6 text-center text-sm font-medium text-text-muted">{index + 1}</span>
 
-      <input
-        type="number"
-        inputMode="decimal"
-        value={weight}
-        onChange={(e) => setWeight(e.target.value)}
-        onBlur={() => save()}
-        placeholder="кг"
-        className="w-16 rounded-lg border border-border-strong bg-surface px-2 py-1.5 text-center text-sm text-text focus:outline-none focus:ring-1 focus:ring-accent"
-      />
-      <span className="text-text-muted">×</span>
-      <input
-        type="number"
-        inputMode="numeric"
-        value={reps}
-        onChange={(e) => setReps(e.target.value)}
-        onBlur={() => save()}
-        placeholder="повт"
-        className="w-16 rounded-lg border border-border-strong bg-surface px-2 py-1.5 text-center text-sm text-text focus:outline-none focus:ring-1 focus:ring-accent"
-      />
+      {mode === 'duration' ? (
+        <input
+          type="number"
+          inputMode="numeric"
+          min="0"
+          step="15"
+          value={duration}
+          onChange={(e) => setDuration(e.target.value)}
+          onBlur={() => save()}
+          aria-label={`Подход ${index + 1}: время в секундах`}
+          className="w-24 rounded-lg border border-border-strong bg-surface px-2 py-1.5 text-center text-sm text-text focus:outline-none focus:ring-1 focus:ring-accent"
+        />
+      ) : (
+        <>
+          {mode === 'weight_reps' && (
+            <>
+              <input
+                type="number"
+                inputMode="decimal"
+                value={weight}
+                onChange={(e) => setWeight(e.target.value)}
+                onBlur={() => save()}
+                placeholder="кг"
+                aria-label={`Подход ${index + 1}: вес`}
+                className="w-16 rounded-lg border border-border-strong bg-surface px-2 py-1.5 text-center text-sm text-text focus:outline-none focus:ring-1 focus:ring-accent"
+              />
+              <span className="text-text-muted">×</span>
+            </>
+          )}
+          <input
+            type="number"
+            inputMode="numeric"
+            value={reps}
+            onChange={(e) => setReps(e.target.value)}
+            onBlur={() => save()}
+            placeholder="повт"
+            aria-label={`Подход ${index + 1}: повторы`}
+            className="w-16 rounded-lg border border-border-strong bg-surface px-2 py-1.5 text-center text-sm text-text focus:outline-none focus:ring-1 focus:ring-accent"
+          />
+        </>
+      )}
 
-      {oneRM > 0 && (
+      {mode === 'duration' && (
+        <span className="hidden text-xs tabular-nums text-text-muted xs:inline">
+          {formatDuration(duration)}
+        </span>
+      )}
+
+      {mode === 'weight_reps' && oneRM > 0 && (
         <span className="hidden text-xs text-text-muted xs:inline">
           ≈{Math.round(oneRM)}
         </span>
@@ -80,7 +117,12 @@ const SetRow = ({ set, index, onSave, onDelete, isSaving }) => {
 export const ExerciseSets = ({ exerciseId, exerciseName, sets, workoutId, onSaveSet, onDeleteSet, onAddSet }) => (
   <div className="space-y-2">
     <div className="flex items-center justify-between">
-      <h3 className="font-medium text-text">{exerciseName}</h3>
+      <h3 className="font-medium text-text">
+        {exerciseName}
+        {sets[0] && trackingOf(sets[0]) === 'duration' && (
+          <span className="ml-2 text-xs font-normal text-text-muted">время</span>
+        )}
+      </h3>
       <button
         onClick={() => onAddSet(exerciseId)}
         className="flex items-center gap-1 text-sm text-accent hover:text-accent-hover"

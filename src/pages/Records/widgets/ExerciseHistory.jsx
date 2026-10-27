@@ -7,14 +7,28 @@ import { useExerciseHistory } from '../records.hooks.js';
 import { Sparkline } from '../../../shared/ui/Sparkline.jsx';
 import { Skeleton } from '../../../shared/ui/Skeleton.jsx';
 import { epley1RM } from '../../../shared/lib/oneRepMax.js';
+import { describeSet, trackingOf, formatDuration } from '../../../entities/exercise/tracking.js';
 import { safeFormat } from '../../../shared/lib/date.js';
 import { muscleGroupLabel } from '../../../entities/exercise/muscleGroups.js';
 import { plural } from '../../../shared/lib/plural.js';
 
 const num = (v) => (v == null ? null : Number(v));
 
+const scoreOf = (set, mode) => {
+  if (mode === 'duration') return Number(set.duration_sec) || 0;
+  if (mode === 'reps') return Number(set.reps) || 0;
+  return epley1RM(set.weight, set.reps);
+};
+
+const CHART = {
+  weight_reps: { title: 'Расчётный максимум', render: (v) => `${Math.round(v)} кг` },
+  reps: { title: 'Лучший подход', render: (v) => `${Math.round(v)} повт` },
+  duration: { title: 'Лучший подход', render: (v) => formatDuration(v) },
+};
+
 export const ExerciseHistory = ({ exerciseId }) => {
   const { data, isLoading } = useExerciseHistory(exerciseId);
+  const mode = trackingOf(data?.exercise);
 
   const sessions = useMemo(() => {
     const map = new Map();
@@ -25,24 +39,26 @@ export const ExerciseHistory = ({ exerciseId }) => {
           date: s.date,
           title: s.workout_title,
           sets: [],
-          bestOneRm: 0,
+          best: 0,
           volume: 0,
+          seconds: 0,
         });
       }
       const session = map.get(s.workout_id);
       session.sets.push(s);
-      session.bestOneRm = Math.max(session.bestOneRm, epley1RM(s.weight, s.reps));
-      session.volume += Number(s.weight) * Number(s.reps);
+      session.best = Math.max(session.best, scoreOf(s, mode));
+      session.volume += (Number(s.weight) || 0) * (Number(s.reps) || 0);
+      session.seconds += Number(s.duration_sec) || 0;
     }
     return [...map.values()];
-  }, [data]);
+  }, [data, mode]);
 
   const chartPoints = useMemo(
     () =>
       [...sessions]
         .reverse()
         .slice(-16)
-        .map((s) => ({ date: s.date, value: Math.round(s.bestOneRm * 10) / 10 })),
+        .map((s) => ({ date: s.date, value: Math.round(s.best * 10) / 10 })),
     [sessions]
   );
 
@@ -59,6 +75,7 @@ export const ExerciseHistory = ({ exerciseId }) => {
   if (!data) return null;
 
   const { exercise, record } = data;
+  const chart = CHART[mode] || CHART.weight_reps;
 
   if (sessions.length === 0) {
     return (
@@ -116,11 +133,10 @@ export const ExerciseHistory = ({ exerciseId }) => {
         <div className="rounded-2xl border border-border bg-surface p-4">
           <div className="mb-2 flex items-baseline justify-between">
             <span className="font-display text-xs uppercase tracking-[0.14em] text-text-muted">
-              Расчётный максимум
+              {chart.title}
             </span>
             <span className="font-display text-lg font-bold tabular-nums text-text">
-              {Math.round(chartPoints[chartPoints.length - 1].value)}
-              <span className="text-xs font-normal text-text-muted"> кг</span>
+              {chart.render(chartPoints[chartPoints.length - 1].value)}
             </span>
           </div>
 
@@ -141,13 +157,15 @@ export const ExerciseHistory = ({ exerciseId }) => {
                 {safeFormat(session.date, 'd MMMM yyyy', { locale: ru })}
               </p>
               <span className="shrink-0 text-xs tabular-nums text-text-muted">
-                {Math.round(session.volume)} кг объём
+                {mode === 'duration'
+                  ? `${Math.round(session.seconds / 60)} мин всего`
+                  : `${Math.round(session.volume)} кг объём`}
               </span>
             </div>
 
             <div className="flex flex-wrap gap-1.5">
               {session.sets.map((s) => {
-                const isBest = epley1RM(s.weight, s.reps) >= session.bestOneRm - 0.01;
+                const isBest = session.best > 0 && scoreOf(s, mode) >= session.best - 0.01;
                 return (
                   <span
                     key={s.id}
@@ -156,7 +174,7 @@ export const ExerciseHistory = ({ exerciseId }) => {
                       isBest ? 'bg-accent/10 text-text' : 'bg-surface-2 text-text-muted'
                     )}
                   >
-                    {num(s.weight)}×{s.reps}
+                    {describeSet({ ...s, tracking: mode })}
                     {s.rpe != null && (
                       <span className="text-[10px] font-medium text-gold-ink">
                         RPE {num(s.rpe)}

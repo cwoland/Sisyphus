@@ -215,3 +215,11 @@
   .no-scrollbar::-webkit-scrollbar { display: none; }
   .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 }
+
+@media (pointer: coarse) {
+  .text-xs:is(input, select, textarea),
+  .text-sm:is(input, select, textarea) {
+    font-size: 1rem;
+    line-height: 1.5rem;
+ }
+}

@@ -199,7 +199,11 @@ export const useWorkoutMutations = () => {
       if (ctx?.previous) qc.setQueryData(ctx.key, ctx.previous);
       restore(ctx?.lists);
     }, 'Не удалось сохранить изменения'),
-    onSettled: skipWhenQueued((_d, _e, vars) => invalidateAll(vars.id)),
+    onSettled: skipWhenQueued((_d, _e, vars) => { 
+      invalidateAll(vars.id);
+      qc.invalidateQueries({ queryKey: ['records'] });
+      qc.invalidateQueries({ queryKey: ['stats'] });
+  }),
   });
 
   const deleteWorkoutMutation = useMutation({

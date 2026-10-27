@@ -12,6 +12,7 @@ export const routeLoaders = {
   records:       () => import('../../pages/Records/RecordsPage.jsx').then(named('RecordsPage')),
   activeWorkout: () => import('../../pages/ActiveWorkout/ActiveWorkoutPage.jsx').then(named('ActiveWorkoutPage')),
   notFound:      () => import('../../pages/NotFound/NotFoundPage.jsx').then(named('NotFoundPage')),
+  stats:         () => import('../../pages/Stats/StatsPage.jsx').then(named('StatsPage')),
 };
 
 export const routeKeyByPath = {

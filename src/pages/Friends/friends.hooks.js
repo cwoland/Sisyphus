@@ -2,9 +2,10 @@ import { useQuery, useInfiniteQuery, useMutation, useQueryClient } from '@tansta
 import {
   getFriends, getPendingRequests, sendFriendRequest, respondToRequest, removeFriend, searchUsers,
 } from '../../entities/friend/friend.api.js';
-import { getFeed } from '../../entities/feed/feed.api.js';
+import { getFeed, reactToEvent, unreactToEvent } from '../../entities/feed/feed.api.js';
 import { toast } from '../../shared/ui/toast/toast.store.js';
 import { pollWhenVisible } from '../../shared/lib/pollWhenVisible.js';
+import { isQueuedError } from '../../shared/offline/isQueued.js';
 
 const requestsKey = ['friends', 'requests'];
 
@@ -88,4 +89,43 @@ export const useFriendMutations = () => {
   });
 
   return { sendRequest, respond, remove };
+};
+
+export const useFeedReaction = () => {
+  const qc = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ type, id, next }) => (next ? reactToEvent({ type, id }) : unreactToEvent({ type, id })),
+
+    onMutate: async ({ type, id, next }) => {
+      await qc.cancelQueries({ queryKey: ['feed'] });
+      const previous = qc.getQueryData(['feed']);
+
+      qc.setQueryData(['feed'], (old) => {
+        if (!old) return old;
+        return {
+          ...old,
+          pages: old.pages.map((page) => 
+            page.map((item) =>
+              item.type === type && item.id === id
+                ? {
+                  ...item,
+                  reacted: next,
+                  reactions: Math.max(0, (item.reactions || 0) + (next ? 1 : -1)),
+                  }
+                : item
+                )
+              ),
+            };
+        });
+
+        return { previous }; 
+      },
+
+      onError: (error, _vars, ctx) => {
+        if (isQueuedError(error)) return;
+        qc.setQueryData(['feed'], ctx?.previous);
+        toast.error('Не удалось отметить');
+      },
+  });
 };

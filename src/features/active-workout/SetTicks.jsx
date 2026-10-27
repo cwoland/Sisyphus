@@ -1,10 +1,16 @@
 import { clsx } from 'clsx';
 
 const describe = (set, index, isCurrent) => {
+  const label = set.label || `Подход ${index + 1}`;
+
   if (set.is_completed) {
-    return `Подход ${index + 1}: ${set.weight ?? '—'} кг × ${set.reps ?? '—'}`;
+    if (set.duration_sec != null) return `${label}: ${set.duration_sec} секунд`;
+    if (set.weight != null) return `${label}: ${Number(set.weight)} кг × ${set.reps ?? '—'}`;
+    if (set.reps != null) return `${label}: ${set.reps} повторов`;
+    return `${label}: выполнен`;
   }
-  return `Подход ${index + 1}: ${isCurrent ? 'текущий' : 'не выполнен'}`;
+
+  return `${label}: ${isCurrent ? 'текущий' : 'не выполнен'}`;
 };
 
 export const SetTicks = ({ sets, currentId, onOpen, maxHeight = 240 }) => (

@@ -1,7 +1,8 @@
-import { Dumbbell, Trophy, BookOpen, Newspaper } from 'lucide-react';
+import { Dumbbell, Trophy, BookOpen, Newspaper, Mountain } from 'lucide-react';
 import { ru } from 'date-fns/locale';
 import { clsx } from 'clsx';
 import { safeDistanceToNow } from '../../../shared/lib/date.js';
+import { useFeedReaction } from '../friends.hooks.js';
 
 import { Avatar } from '../../../shared/ui/Avatar.jsx';
 import { Button } from '../../../shared/ui/Button.jsx';
@@ -33,6 +34,8 @@ const CONFIG = {
 };
 
 export const FeedList = ({ query }) => {
+  const reaction = useFeedReaction();
+
   if (query.isLoading) return <SkeletonList count={4} />;
 
   const items = (query.data?.pages || []).flat();
@@ -82,6 +85,27 @@ export const FeedList = ({ query }) => {
                   {safeDistanceToNow(item.occurred_at, { locale: ru, addSuffix: true })}
                 </p>
               </div>
+
+              <button
+                onClick={() => 
+                  reaction.mutate({ type: item.type, id: item.id, next: !item.reacted }) 
+                }
+                aria-pressed={Boolean(item.reacted)}
+                className={clsx(
+                  'mt-2 inline-flex min-h-[32px] items-center gap-1.5 rounded-lg px-2 text-xs font-medium transition-colors',
+                  item.reacted
+                    ? 'bg-terracotta/15 text-terracotta-ink'
+                    : 'text-text-muted hover:bg-surface-2 hover:text-text'
+                )}
+              >
+                <Mountain size={14} />
+                {items.reacted ? 'Засчитано' : 'Засчитать'}
+                {item.reactions > 0 && (
+                  <span className="tabular-nums">
+                    {item.reactions}
+                  </span>
+                )}
+              </button>
             </li>
           );
         })}
