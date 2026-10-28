@@ -10,6 +10,8 @@ import { Skeleton, SkeletonCard } from '../../shared/ui/Skeleton.jsx';
 import { CardArt } from '../../shared/ui/CardArt.jsx';
 import { SectionLink } from '../../shared/ui/SectionLink.jsx';
 import { Button } from '../../shared/ui/Button.jsx';
+import { StreakCard } from './widgets/StreakCard.jsx';
+import { useVisitStreak } from '../../entities/visit.hooks.js';
 import { todayApi } from '../../shared/lib/date.js';
 import { ContinuityStrip } from './widgets/ContinuityStrip.jsx';
 
@@ -30,6 +32,7 @@ export const DashboardPage = () => {
   const today = todayApi();
 
   const continuityQuery = useContinuity();
+  const visitQuery = useVisitStreak();
 
   const todayWorkout =
     active ?? week.find((w) => w.date === today && w.status !== 'skipped') ?? null;
@@ -58,6 +61,8 @@ export const DashboardPage = () => {
         onOpen={open}
         onPlan={() => navigate('/calendar')}
       />
+
+      <StreakCard query={visitQuery} />
 
       {workoutsQuery.isLoading ? (
         <Skeleton className="h-20 w-full" />

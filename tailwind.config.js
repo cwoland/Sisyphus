@@ -117,6 +117,16 @@ export default {
           '0%, 60%, 100%': { opacity: '0.25' },
           '30%': { opacity: '1' },
         },
+        'flame-flicker': {
+          '0%, 100%': { transform: 'scaleY(1) scaleX(1)', opacity: '1' },
+          '28%':      { transform: 'scaleY(1.055) scaleX(.97)', opacity: '.93' },
+          '55%':      { transform: 'scaleY(.975) scaleX(1.03)', opacity: '1' },
+          '78%':      { transform: 'scaleY(1.03) scaleX(.99)', opacity: '.96' },
+        },
+        'ember-glow': {
+          '0%, 100%': { opacity: '.28' },
+          '50%':      { opacity: '.6' },
+        },
       },
       animation: {
         shimmer:       'shimmer 1.5s infinite',
@@ -131,6 +141,8 @@ export default {
         'rise-in':      'rise-in 500ms var(--ease-out)',
         'record-flash': 'record-flash 4.5s var(--ease-out) forwards',
         typing:         'typing 1.4s ease-in-out infinite',
+        'flame-flicker':'flame-flicker 2.6s ease-in-out infinite',
+        'ember-glow':   'ember-glow 4.5s ease-in-out infinite',
       },
       transitionTimingFunction: {
         brand: 'var(--ease-out)',

@@ -5,9 +5,11 @@ import { Sidebar } from './Sidebar.jsx';
 import { BottomNav } from './BottomNav.jsx';
 import { Drawer } from './Drawer.jsx';
 import { GreekPatternBg } from '../../shared/ui/GreekPatternBg.tsx';
+import { useVisitStreak } from '../../entities/stats/visit.hooks.js';
 
 export const AppLayout = () => {
   const [drawerOpen, setDrawerOpen] = useState(false);
+  useVisitStreak();
 
   return (
     <div className="relative isolate min-h-[100dvh] bg-bg lg:flex">

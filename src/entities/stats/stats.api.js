@@ -5,3 +5,6 @@ export const getStreak = () =>
 
 export const getVolume = (weeks) =>
     api.get('/stats/volume', { params: weeks ? { weeks } : {} }).then((r) => r.data);
+
+export const pingVisit = (date) =>
+    api.post('/stats/visits', { date }).then((r) => r.data);

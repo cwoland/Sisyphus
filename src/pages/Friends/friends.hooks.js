@@ -95,37 +95,47 @@ export const useFeedReaction = () => {
   const qc = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ type, id, next }) => (next ? reactToEvent({ type, id }) : unreactToEvent({ type, id })),
+    mutationFn: ({ type, id, kind }) =>
+      kind ? reactToEvent({ type, id, kind }) : unreactToEvent({ type, id }),
 
-    onMutate: async ({ type, id, next }) => {
+    onMutate: async ({ type, id, kind }) => {
       await qc.cancelQueries({ queryKey: ['feed'] });
       const previous = qc.getQueryData(['feed']);
 
       qc.setQueryData(['feed'], (old) => {
         if (!old) return old;
+
         return {
           ...old,
-          pages: old.pages.map((page) => 
-            page.map((item) =>
-              item.type === type && item.id === id
-                ? {
-                  ...item,
-                  reacted: next,
-                  reactions: Math.max(0, (item.reactions || 0) + (next ? 1 : -1)),
-                  }
-                : item
-                )
-              ),
-            };
-        });
+          pages: old.pages.map((page) =>
+            page.map((item) => {
+              if (item.type !== type || item.id !== id) return item;
 
-        return { previous }; 
-      },
+              const counts = { ...(item.reaction_counts || {}) };
+              const was = item.my_reaction;
 
-      onError: (error, _vars, ctx) => {
-        if (isQueuedError(error)) return;
-        qc.setQueryData(['feed'], ctx?.previous);
-        toast.error('Не удалось отметить');
-      },
+              if (was) counts[was] = Math.max(0, (counts[was] || 1) - 1);
+              if (kind) counts[kind] = (counts[kind] || 0) + 1;
+
+              return {
+                ...item,
+                my_reaction: kind,
+                reaction_counts: counts,
+                reacted: Boolean(kind),
+                reactions: Math.max(0, (item.reactions || 0) + (was ? 0 : 1) - (kind ? 0 : 1)),
+              };
+            })
+          ),
+        };
+      });
+
+      return { previous };
+    },
+
+    onError: (error, _vars, ctx) => {
+      if (isQueuedError(error)) return;
+      qc.setQueryData(['feed'], ctx?.previous);
+      toast.error('Не удалось отметить');
+    },
   });
 };

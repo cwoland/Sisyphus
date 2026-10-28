@@ -8,6 +8,7 @@ import { Avatar } from '../../../shared/ui/Avatar.jsx';
 import { Button } from '../../../shared/ui/Button.jsx';
 import { EmptyState } from '../../../shared/ui/EmptyState.jsx';
 import { SkeletonList } from '../../../shared/ui/Skeleton.jsx';
+import { REACTIONS } from '../../../entities/feed/reactions.js';
 
 const CONFIG = {
   workout: {
@@ -86,26 +87,31 @@ export const FeedList = ({ query }) => {
                 </p>
               </div>
 
-              <button
-                onClick={() => 
-                  reaction.mutate({ type: item.type, id: item.id, next: !item.reacted }) 
-                }
-                aria-pressed={Boolean(item.reacted)}
-                className={clsx(
-                  'mt-2 inline-flex min-h-[32px] items-center gap-1.5 rounded-lg px-2 text-xs font-medium transition-colors',
-                  item.reacted
-                    ? 'bg-terracotta/15 text-terracotta-ink'
-                    : 'text-text-muted hover:bg-surface-2 hover:text-text'
-                )}
-              >
-                <Mountain size={14} />
-                {items.reacted ? 'Засчитано' : 'Засчитать'}
-                {item.reactions > 0 && (
-                  <span className="tabular-nums">
-                    {item.reactions}
-                  </span>
-                )}
-              </button>
+              <div className="flex shrink-0 flex-col items-end gap-1">
+                {REACTIONS.map(({ kind, icon: Icon, label, tone }) => {
+                  const mine = item.my_reaction === kind;
+                  const count = item.reaction_counts?.[kind] || 0;
+
+                  return (
+                    <button 
+                      key={kind}
+                      onClick={() => reaction.mutate({ type: item.type, id: item.id, kind: mine ? null : kind })}
+                      aria-pressed={mine}
+                      aria-label={label}
+                      title={label}
+                      className={clsx(
+                        'inline-flex h-8 min-w-[2rem] items-center jusify-center gap-1 rounded-lg px-1.5 transition-colors duration-tap',
+                        mine ? none : 'text-text-muted hover:bg-surface-2 hover:text-text'
+                      )}
+                    >
+                      <Icon size={17} fill={mine && kind === 'heart' ? 'currentColor' : 'none'} />
+                      {count > 0 && (
+                        <span className="text-xs font-medium tabular-nums">{count}</span>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
             </li>
           );
         })}
