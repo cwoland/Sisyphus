@@ -11,7 +11,7 @@ import { CardArt } from '../../shared/ui/CardArt.jsx';
 import { SectionLink } from '../../shared/ui/SectionLink.jsx';
 import { Button } from '../../shared/ui/Button.jsx';
 import { StreakCard } from './widgets/StreakCard.jsx';
-import { useVisitStreak } from '../../entities/visit.hooks.js';
+import { useVisitStreak } from '../../entities/stats/visit.hooks.js';
 import { todayApi } from '../../shared/lib/date.js';
 import { ContinuityStrip } from './widgets/ContinuityStrip.jsx';
 
