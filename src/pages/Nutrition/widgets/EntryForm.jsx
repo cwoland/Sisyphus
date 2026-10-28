@@ -5,6 +5,8 @@ import { Button } from '../../../shared/ui/Button.jsx';
 import { Input } from '../../../shared/ui/Input.jsx';
 import { useRecentFoods } from '../nutrition.hooks.js';
 import { mealTypes } from '../../../entities/nutrition/mealTypes.js';
+import { FoodSearch } from './FoodSearch.jsx';
+import { portionOf } from '../../../entities/nutrition/portion.js';
 
 export const EntryForm = ({ date, entry, defaultMealType, onSubmit, onCancel, isSubmitting }) => {
   const [mealType, setMealType] = useState(entry?.meal_type || defaultMealType || 'breakfast');
@@ -17,6 +19,39 @@ export const EntryForm = ({ date, entry, defaultMealType, onSubmit, onCancel, is
 
   const [term, setTerm] = useState('');
   const [picked, setPicked] = useState(false);
+
+  const [step, setStep] = useState(entry ? 'form' : 'search');
+  const [product, setProduct] = useState(null);
+  const [grams, setGrams] = useState(entry?.grams ?? 100);
+
+  const pick = (item) => {
+    if (item.entry) {
+      setName(item.entry.name);
+
+      setCalories(String(Math.round(Number(item.entry.calories))));
+
+      setProtein(String(Number(item.entry.protein)));
+      setFat(String(Number(item.entry.fat)));
+      setCarbs(String(Number(item.entry.carbs)));
+      setProduct(null);
+    } else {
+      setProduct(item);
+      setName(item.brand ? `${item.name}, ${item.brand}` : item.name);
+    }
+    setStep('form');
+  };
+
+  const [portionFor, setPortionFor] = useState(null);
+  const portionKey = product ? `${product.barcode}:${grams}` : null;
+
+  if (portionKey && portionFor !== portionKey) {
+    const p = portionOf(product, grams);
+    setCalories(String(p.calories));
+    setProtein(String(p.protein));
+    setFat(String(p.fat));
+    setCarbs(String(p.carbs));
+    setPortionFor(portionKey);
+  }
 
   useEffect(() => {
     const t = setTimeout(() => setTerm(name.trim()), 250);
@@ -48,8 +83,14 @@ export const EntryForm = ({ date, entry, defaultMealType, onSubmit, onCancel, is
       protein: protein === '' ? 0 : Number(protein),
       fat: fat === '' ? 0 : Number(fat),
       carbs: carbs === '' ? 0 : Number(carbs),
+      barcode: product?.barcode ?? entry?.barcode ?? null,
+      grams: product ? Number(grams) : entry?.grams ?? null,
     });
   };
+
+  if (step === 'search') {
+    return <FoodSearch onPick={pick} onManual={() => setStep('form')} />;
+  }
 
   return (
     <div className="space-y-4">
@@ -100,6 +141,42 @@ export const EntryForm = ({ date, entry, defaultMealType, onSubmit, onCancel, is
           </div>
         )}
       </div>
+
+      {product && (
+        <div className="space-y-1.5">
+          <label htmlFor="entry-grams" className="block text-sm font-medium text-text">
+            Сколько грамм
+          </label>
+          <div className="flex items-center gap-2">
+            <input
+              id="entry-grams"
+              type="number"
+              inputMode="numeric"
+              min="1"
+              max="5000"
+              step="10"
+              value={grams}
+              onChange={(e) => setGrams(e.target.value)}
+              className="w-28 rounded-xl border border-border-strong bg-surface px-4 py-3 text-base text-text focus:border-cta focus:outline-none"
+            />
+            <div className="flex flex-wrap gap-1.5">
+              {[50, 100, 150, 200].map((g) => (
+                <button
+                  key={g}
+                  type="button"
+                  onClick={() => setGrams(g)}
+                  className="min-h-[36px] rounded-lg bg-surface-2 px-2.5 text-sm tabular-nums text-text-muted transition-colors hover:text-text"
+                >
+                  {g}
+                </button>
+              ))}
+            </div>
+          </div>
+          <p className="text-xs text-text-muted">
+            {Math.round(product.kcal_100g)} ккал на 100 г. - КБЖУ пересчитываются сами
+          </p>
+        </div>
+      )}
 
       <div className="space-y-1.5">
         <label className="block text-sm font-medium text-text">Калории</label>
