@@ -1,4 +1,4 @@
-import { Dumbbell, Trophy, BookOpen, Newspaper, Mountain } from 'lucide-react';
+import { Dumbbell, Trophy, BookOpen, Newspaper } from 'lucide-react';
 import { ru } from 'date-fns/locale';
 import { clsx } from 'clsx';
 import { safeDistanceToNow } from '../../../shared/lib/date.js';
@@ -85,32 +85,32 @@ export const FeedList = ({ query }) => {
                 <p className="mt-1 text-xs text-text-muted">
                   {safeDistanceToNow(item.occurred_at, { locale: ru, addSuffix: true })}
                 </p>
-              </div>
 
-              <div className="flex shrink-0 flex-col items-end gap-1">
-                {REACTIONS.map(({ kind, icon: Icon, label, tone }) => {
-                  const mine = item.my_reaction === kind;
-                  const count = item.reaction_counts?.[kind] || 0;
+                <div className="-ml-1.5 mt-1.5 flex items-center gap-0.5">
+                  {REACTIONS.map(({ kind, icon: ReactionIcon, label, tone }) => {
+                    const mine = item.my_reaction === kind;
+                    const count = item.reaction_counts?.[kind] || 0;
 
-                  return (
-                    <button 
-                      key={kind}
-                      onClick={() => reaction.mutate({ type: item.type, id: item.id, kind: mine ? null : kind })}
-                      aria-pressed={mine}
-                      aria-label={label}
-                      title={label}
-                      className={clsx(
-                        'inline-flex h-8 min-w-[2rem] items-center jusify-center gap-1 rounded-lg px-1.5 transition-colors duration-tap',
-                        mine ? none : 'text-text-muted hover:bg-surface-2 hover:text-text'
-                      )}
-                    >
-                      <Icon size={17} fill={mine && kind === 'heart' ? 'currentColor' : 'none'} />
-                      {count > 0 && (
-                        <span className="text-xs font-medium tabular-nums">{count}</span>
-                      )}
-                    </button>
-                  );
-                })}
+                    return (
+                      <button
+                        key={kind}
+                        onClick={() => reaction.mutate({ type: item.type, id: item.id, kind: mine ? null : kind })}
+                        aria-pressed={mine}
+                        aria-label={label}
+                        title={label}
+                        className={clsx(
+                          'inline-flex h-8 min-w-[2rem] items-center justify-center gap-1 rounded-lg px-1.5 transition-colors duration-tap',
+                          mine ? tone : 'text-text-muted hover:bg-surface-2 hover:text-text'
+                        )}
+                      >
+                        <ReactionIcon size={17} fill={mine && kind === 'heart' ? 'currentColor' : 'none'} />
+                        {count > 0 && (
+                          <span className="text-xs font-medium tabular-nums">{count}</span>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
             </li>
           );
