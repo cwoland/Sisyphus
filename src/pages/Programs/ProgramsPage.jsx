@@ -1,9 +1,21 @@
+import { programToBuilder } from '../../entities/program/setPlan.js';
 import { useState, useEffect } from 'react';
 import { useLocation, useSearchParams } from 'react-router-dom';
-import { Plus, Dumbbell, Compass, User, Search } from 'lucide-react';
+import {
+  Plus,
+  Dumbbell,
+  Compass,
+  User,
+  Search,
+} from 'lucide-react';
 import { clsx } from 'clsx';
 
-import { usePrograms, useProgram, useProgramMutations, usePublicPrograms } from './programs.hooks.js';
+import {
+  usePrograms,
+  useProgram,
+  useProgramMutations,
+  usePublicPrograms,
+} from './programs.hooks.js';
 import { useAuthStore } from '../../entities/user/auth.store.js';
 import { ProgramBuilder } from './widgets/ProgramBuilder.jsx';
 import { ProgramDetail } from './widgets/ProgramDetail.jsx';
@@ -23,51 +35,35 @@ const TABS = [
   { id: 'catalog', label: 'Каталог', icon: Compass },
 ];
 
-const programToBuilderShape = (program) => ({
-  title: program.title,
-  description: program.description || '',
-  isPublic: program.is_public,
-  kind: program.kind || 'strength',
-  days: program.days.map((day) => ({
-    tempId: crypto.randomUUID(),
-    id: day.id,
-    title: day.title,
-    rounds: Math.max(...day.exercises.map((ex) => ex.target_sets), 1),
-    exercises: (() => {
-      const byGroup = new Map();
-      return day.exercises.map((ex) => {
-        if (!byGroup.has(ex.group_index)) byGroup.set(ex.group_index, crypto.randomUUID());
-        return {
-          tempId: crypto.randomUUID(),
-          groupId: byGroup.get(ex.group_index),
-          exerciseId: ex.exercise_id,
-          name: ex.exercise_name,
-          muscleGroup: ex.muscle_group,
-          tracking: ex.tracking,
-          targetSets: ex.target_sets,
-          targetReps: ex.target_reps,
-          notes: ex.notes,
-        };
-      });
-    })(),
-  })),
-});
-
 export const ProgramsPage = () => {
   const location = useLocation();
   const me = useAuthStore((s) => s.user);
 
   const [params, setParams] = useSearchParams();
-  const tab = params.get('tab') === 'catalog' ? 'catalog' : 'mine';
+  const tab = params.get('tab') === 'catalog'
+    ? 'catalog'
+    : 'mine';
+
   const setTab = (next) =>
-    setParams(next === 'catalog' ? { tab: 'catalog' } : {}, { replace: true });
+    setParams(
+      next === 'catalog' ? { tab: 'catalog' } : {},
+      { replace: true }
+    );
 
   const programsQuery = usePrograms();
-  const { create, update, remove, schedule, fork } = useProgramMutations();
+  const {
+    create,
+    update,
+    remove,
+    schedule,
+    fork,
+  } = useProgramMutations();
 
   const [editProgram, setEditProgram] = useState(null);
   const [builderOpen, setBuilderOpen] = useState(false);
-  const [detailId, setDetailId] = useState(location.state?.programId ?? null);
+  const [detailId, setDetailId] = useState(
+    location.state?.programId ?? null
+  );
   const [scheduleProgram, setScheduleProgram] = useState(null);
   const [shareProgram, setShareProgram] = useState(null);
 
@@ -75,12 +71,18 @@ export const ProgramsPage = () => {
   const [term, setTerm] = useState('');
 
   useEffect(() => {
-    const t = setTimeout(() => setTerm(search.trim()), 300);
+    const t = setTimeout(
+      () => setTerm(search.trim()),
+      300
+    );
+
     return () => clearTimeout(t);
   }, [search]);
 
   const detailQuery = useProgram(detailId);
-  const publicQuery = usePublicPrograms(term, { enabled: tab === 'catalog' });
+  const publicQuery = usePublicPrograms(term, {
+    enabled: tab === 'catalog',
+  });
 
   useEffect(() => {
     if (!location.state?.programId) return;
@@ -88,25 +90,43 @@ export const ProgramsPage = () => {
   }, [location.state]);
 
   const handleCreate = (payload) => {
-    create.mutate(payload, { onSuccess: () => setBuilderOpen(false) });
-  };
-
-  const handleUpdate = (payload) => {
-    update.mutate({ id: editProgram.id, ...payload }, {
-      onSuccess: () => setEditProgram(null),
+    create.mutate(payload, {
+      onSuccess: () => setBuilderOpen(false),
     });
   };
 
+  const handleUpdate = (payload) => {
+    update.mutate(
+      { id: editProgram.id, ...payload },
+      { onSuccess: () => setEditProgram(null) }
+    );
+  };
+
   const handleDelete = (id) => {
-    if (!window.confirm('Удалить программу? Уже запланированные тренировки останутся в календаре.')) return;
-    remove.mutate(id, { onSuccess: () => setDetailId(null) });
+    if (
+      !window.confirm(
+        'Удалить программу? Уже запланированные тренировки останутся в календаре.'
+      )
+    ) {
+      return;
+    }
+
+    remove.mutate(id, {
+      onSuccess: () => setDetailId(null),
+    });
   };
 
   const handleFork = (id) => {
-    fork.mutate(id, { onSuccess: () => { setDetailId(null); setTab('mine'); } });
+    fork.mutate(id, {
+      onSuccess: () => {
+        setDetailId(null);
+        setTab('mine');
+      },
+    });
   };
 
-  const isOwner = detailQuery.data?.owner_id === me?.id;
+  const isOwner =
+    detailQuery.data?.owner_id === me?.id;
   const mine = programsQuery.data || [];
   const mineCount = mine.length;
 
@@ -122,24 +142,37 @@ export const ProgramsPage = () => {
           <p className="font-display text-sm font-semibold uppercase tracking-[0.14em] text-text-muted">
             Программы
           </p>
+
           <h1 className="mt-2 font-display text-3xl font-extrabold leading-tight tracking-tight text-text sm:text-4xl">
             {mineCount
-              ? `${mineCount} ${plural(mineCount, ['маршрут', 'маршрута', 'маршрутов'])}`
+              ? `${mineCount} ${plural(
+                  mineCount,
+                  ['маршрут', 'маршрута', 'маршрутов']
+                )}`
               : 'Маршрут не проложен'}
           </h1>
+
           <p className="mt-2 max-w-[38ch] text-sm text-text-muted">
-            План на недели вперёд: дни, упражнения, подходы. Календарь разложит их сам.
+            План на недели вперёд: дни, упражнения,
+            подходы. Календарь разложит их сам.
           </p>
 
           <div className="mt-6">
-            <Button size="lg" onClick={() => setBuilderOpen(true)}>
+            <Button
+              size="lg"
+              onClick={() => setBuilderOpen(true)}
+            >
               <Plus size={18} /> Создать программу
             </Button>
           </div>
         </div>
       </section>
 
-      <div role="tablist" aria-label="Источник программ" className="flex gap-1 border-b border-border">
+      <div
+        role="tablist"
+        aria-label="Источник программ"
+        className="flex gap-1 border-b border-border"
+      >
         {TABS.map(({ id, label, icon: Icon }) => (
           <button
             key={id}
@@ -176,7 +209,11 @@ export const ProgramsPage = () => {
         ) : (
           <div className="grid gap-3 sm:grid-cols-2">
             {mine.map((p) => (
-              <ProgramCard key={p.id} program={p} onOpen={(x) => setDetailId(x.id)} />
+              <ProgramCard
+                key={p.id}
+                program={p}
+                onOpen={(x) => setDetailId(x.id)}
+              />
             ))}
           </div>
         )
@@ -189,6 +226,7 @@ export const ProgramsPage = () => {
               size={16}
               className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-text-muted"
             />
+
             <input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
@@ -204,7 +242,9 @@ export const ProgramsPage = () => {
             <div className="rounded-2xl border border-border bg-surface">
               <EmptyState
                 icon={Compass}
-                title={term ? 'Ничего не нашлось' : 'Каталог пуст'}
+                title={
+                  term ? 'Ничего не нашлось' : 'Каталог пуст'
+                }
                 description={
                   term
                     ? `По запросу «${term}» программ нет. Попробуйте другое слово.`
@@ -215,14 +255,23 @@ export const ProgramsPage = () => {
           ) : (
             <div className="grid gap-3 sm:grid-cols-2">
               {publicQuery.data.map((p) => (
-                <ProgramCard key={p.id} program={p} showAuthor onOpen={(x) => setDetailId(x.id)} />
+                <ProgramCard
+                  key={p.id}
+                  program={p}
+                  showAuthor
+                  onOpen={(x) => setDetailId(x.id)}
+                />
               ))}
             </div>
           )}
         </div>
       )}
 
-      <Sheet isOpen={builderOpen} onClose={() => setBuilderOpen(false)} title="Новая программа">
+      <Sheet
+        isOpen={builderOpen}
+        onClose={() => setBuilderOpen(false)}
+        title="Новая программа"
+      >
         <ProgramBuilder
           onSubmit={handleCreate}
           isSubmitting={create.isPending}
@@ -230,10 +279,14 @@ export const ProgramsPage = () => {
         />
       </Sheet>
 
-      <Sheet isOpen={!!editProgram} onClose={() => setEditProgram(null)} title="Редактировать программу">
+      <Sheet
+        isOpen={!!editProgram}
+        onClose={() => setEditProgram(null)}
+        title="Редактировать программу"
+      >
         {editProgram && (
           <ProgramBuilder
-            initial={programToBuilderShape(editProgram)}
+            initial={programToBuilder(editProgram)}
             submitLabel="Сохранить изменения"
             onSubmit={handleUpdate}
             isSubmitting={update.isPending}
@@ -242,14 +295,27 @@ export const ProgramsPage = () => {
         )}
       </Sheet>
 
-      <Sheet isOpen={!!detailId} onClose={() => setDetailId(null)} title="Программа">
+      <Sheet
+        isOpen={!!detailId}
+        onClose={() => setDetailId(null)}
+        title="Программа"
+      >
         <ProgramDetail
           program={detailQuery.data}
           isLoading={detailQuery.isLoading}
           isOwner={isOwner}
-          onSchedule={(p) => { setDetailId(null); setScheduleProgram(p); }}
-          onEdit={(p) => { setDetailId(null); setEditProgram(p); }}
-          onShare={(p) => { setDetailId(null); setShareProgram(p); }}
+          onSchedule={(p) => {
+            setDetailId(null);
+            setScheduleProgram(p);
+          }}
+          onEdit={(p) => {
+            setDetailId(null);
+            setEditProgram(p);
+          }}
+          onShare={(p) => {
+            setDetailId(null);
+            setShareProgram(p);
+          }}
           onDelete={handleDelete}
           onFork={handleFork}
           isForking={fork.isPending}
@@ -262,7 +328,11 @@ export const ProgramsPage = () => {
           isOpen
           onClose={() => setScheduleProgram(null)}
           program={scheduleProgram}
-          onSchedule={(payload) => schedule.mutate(payload, { onSuccess: () => setScheduleProgram(null) })}
+          onSchedule={(payload) =>
+            schedule.mutate(payload, {
+              onSuccess: () => setScheduleProgram(null),
+            })
+          }
           isScheduling={schedule.isPending}
         />
       )}
