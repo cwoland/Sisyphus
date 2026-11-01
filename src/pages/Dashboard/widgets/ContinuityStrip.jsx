@@ -56,7 +56,7 @@ export const ContinuityStrip = ({ query }) => {
                 </ol>
 
                 <p className="mt-2.5 text-xs capitalize text-text-muted">
-                    {longest > 0 && <span className="tabular-nums">Рекорд {longest}</span>}
+                    {longest > 0 && <span className="tabular-nums">Рекорд {longest} · </span>}
                     <span className="tabular-nums">
                         {thisMonthName}: {thisMonth}
                     </span>

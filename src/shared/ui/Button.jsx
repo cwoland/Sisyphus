@@ -1,44 +1,21 @@
+import './epic.css';
 import { clsx } from 'clsx';
 import { Spinner } from './Spinner.jsx';
 
-export const Button = ({
-  children,
-  variant = 'primary',
-  size = 'md',
-  shape = 'rounded',
-  isLoading = false,
-  disabled,
-  className,
-  ...props
-}) => {
-  const base = 'inline-flex items-center justify-center gap-2 font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed';
-
-  const shapes = {
-    rounded: 'rounded-xl',
-    square: 'rounded-none',
-  };
-
+export const Button = ({ children, variant = 'primary', size = 'md', shape = 'rounded',
+  isLoading = false, disabled, className, type = 'button', ...props }) => {
   const variants = {
-    primary: 'bg-accent text-on-accent hover:bg-accent-hover',
-    secondary: 'bg-surface-2 text-text hover:bg-border',
-    ghost: 'text-text hover:bg-surface-2',
-    danger: 'bg-crimson text-on-crimson hover:bg-burgundy',
+    primary: 'bg-cta text-on-cta hover:bg-cta-hover',
+    secondary: 'border border-text-muted bg-surface-2 text-text hover:bg-border',
+    ghost: 'bg-transparent text-text hover:bg-surface-2',
+    danger: 'bg-danger text-on-danger hover:brightness-95',
   };
-
-  const sizes = {
-    sm: 'h-9 px-3 text-sm',
-    md: 'h-11 px-5 text-sm',
-    lg: 'h-12 px-6 text-base',
-  };
-
-  return (
-    <button
-      disabled={disabled || isLoading}
-      className={clsx(base, shapes[shape], variants[variant], sizes[size], className)}
-      {...props}
-    >
-      {isLoading && <Spinner size="sm" className="border-current border-t-transparent" />}
-      {children}
-    </button>
-  );
+  const sizes = { sm: 'min-h-11 px-3 py-2 text-sm', md: 'min-h-11 px-5 py-2.5 text-sm', lg: 'min-h-12 px-6 py-3 text-base' };
+  return <button {...props} type={type} disabled={disabled || isLoading} aria-busy={isLoading || undefined}
+    className={clsx('epic-button inline-flex min-w-0 items-center justify-center gap-2 text-center font-semibold leading-snug disabled:cursor-not-allowed disabled:opacity-50',
+      shape === 'square' ? 'rounded-none' : 'rounded-xl', variants[variant] || variants.primary,
+      sizes[size] || sizes.md, className)}>
+    {isLoading && <Spinner size="sm" className="shrink-0 border-current border-t-transparent" />}
+    {children}
+  </button>;
 };
