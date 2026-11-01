@@ -1,26 +1,28 @@
 import { precacheAndRoute, cleanupOutdatedCaches } from 'workbox-precaching';
 import { registerRoute } from 'workbox-routing';
 import { NetworkFirst, CacheFirst, StaleWhileRevalidate } from 'workbox-strategies';
+import { apiCacheName } from './shared/offline/cacheScope.js';
 import { ExpirationPlugin } from 'workbox-expiration';
 
 precacheAndRoute(self.__WB_MANIFEST);
 cleanupOutdatedCaches();
 
-const NEVER_CACHE = ['/api/chats', '/api/ai', '/api/auth'];
+// Remove the old shared cache, which was not partitioned by account.
+self.addEventListener('activate', (event) => {
+  event.waitUntil(caches.delete('api-cache'));
+});
 
+const NEVER_CACHE = ['/api/chats', '/api/ai', '/api/auth'];
 registerRoute(
-  ({ url, request }) =>
-    request.method === 'GET' &&
-    url.origin === self.location.origin &&
-    url.pathname.startsWith('/api/') &&
-    !NEVER_CACHE.some((prefix) => url.pathname.startsWith(prefix)),
-  new NetworkFirst({
-    cacheName: 'api-cache',
-    networkTimeoutSeconds: 5,
-    plugins: [
-      new ExpirationPlugin({ maxEntries: 100, maxAgeSeconds: 24 * 60 * 60 }),
-    ],
-  })
+  ({ url, request }) => request.method === 'GET' && url.origin === self.location.origin &&
+    url.pathname.startsWith('/api/') && !NEVER_CACHE.some((prefix) => url.pathname.startsWith(prefix)),
+  async ({ request, event }) => {
+    const cacheName = apiCacheName(request.headers.get('Authorization'));
+    if (!cacheName) return fetch(request);
+    return new NetworkFirst({ cacheName, networkTimeoutSeconds: 5,
+      plugins: [new ExpirationPlugin({ maxEntries: 100, maxAgeSeconds: 24 * 60 * 60 })],
+    }).handle({ request, event });
+  }
 );
 
 registerRoute(
@@ -79,5 +81,8 @@ self.addEventListener('notificationclick', (event) => {
 });
 
 self.addEventListener('message', (event) => {
+  if (event.data?.type === 'CLEAR_USER_CACHE' && /^[0-9a-f-]{36}$/i.test(event.data.userId)) {
+    event.waitUntil(caches.delete(`api-cache:${event.data.userId}`));
+  }
   if (event.data?.type === 'SKIP_WAITING') self.skipWaiting();
 });

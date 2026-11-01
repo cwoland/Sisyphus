@@ -30,6 +30,7 @@ const programToBuilderShape = (program) => ({
   kind: program.kind || 'strength',
   days: program.days.map((day) => ({
     tempId: crypto.randomUUID(),
+    id: day.id,
     title: day.title,
     rounds: Math.max(...day.exercises.map((ex) => ex.target_sets), 1),
     exercises: (() => {
@@ -45,6 +46,7 @@ const programToBuilderShape = (program) => ({
           tracking: ex.tracking,
           targetSets: ex.target_sets,
           targetReps: ex.target_reps,
+          notes: ex.notes,
         };
       });
     })(),
@@ -65,7 +67,7 @@ export const ProgramsPage = () => {
 
   const [editProgram, setEditProgram] = useState(null);
   const [builderOpen, setBuilderOpen] = useState(false);
-  const [detailId, setDetailId] = useState(null);
+  const [detailId, setDetailId] = useState(location.state?.programId ?? null);
   const [scheduleProgram, setScheduleProgram] = useState(null);
   const [shareProgram, setShareProgram] = useState(null);
 
@@ -82,7 +84,6 @@ export const ProgramsPage = () => {
 
   useEffect(() => {
     if (!location.state?.programId) return;
-    setDetailId(location.state.programId);
     window.history.replaceState({}, '');
   }, [location.state]);
 

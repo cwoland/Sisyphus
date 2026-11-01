@@ -23,10 +23,10 @@ const renumber = (list) =>
   list.map((day, i) => (AUTO_DAY.test(day.title.trim()) ? { ...day, title: `День ${i + 1}` } : day));
 
 const groupIndexes = (exercises) => {
-  const seen = new Map();
-  return exercises.map((ex) => {
-    if (!seen.has(ex.groupId)) seen.set(ex.groupId, seen.size);
-    return seen.get(ex.groupId);
+  let group = -1;
+  return exercises.map((ex, i) => {
+    if (!i || ex.groupId !== exercises[i - 1].groupId) group++;
+    return group;
   });
 };
 
@@ -46,7 +46,10 @@ export const ProgramBuilder = ({ initial, submitLabel = 'Создать прог
   const changeKind = (next) => {
     setKind(next);
 
-    if (next !== 'crossfit') return;
+    if (next !== 'crossfit') {
+      setDays((list) => list.map((day) => ({ ...day, exercises: day.exercises.map((ex) => ({ ...ex, groupId: crypto.randomUUID() })) })));
+      return;
+    }
 
     setDays((d) =>
       d.map((day) => {
@@ -101,7 +104,7 @@ export const ProgramBuilder = ({ initial, submitLabel = 'Создать прог
     setDays((d) =>
       d.map((day) =>
         day.tempId === dayTempId
-          ? { ...day, exercises: day.exercises.map((ex) => (ex.tempId === exTempId ? { ...ex, ...patch } : ex)) }
+          ? { ...day, exercises: day.exercises.map((ex) => (ex.tempId === exTempId || (patch.targetSets !== undefined && ex.groupId === day.exercises.find((item) => item.tempId === exTempId)?.groupId) ? { ...ex, ...patch } : ex)) }
           : day
       )
     );
@@ -126,12 +129,15 @@ export const ProgramBuilder = ({ initial, submitLabel = 'Создать прог
         const self = day.exercises[i];
         const before = day.exercises[i - 1];
         const linked = self.groupId === before.groupId;
+        if (!linked && (day.exercises.filter((ex) => ex.groupId === before.groupId).length > 1 ||
+            day.exercises.filter((ex) => ex.groupId === self.groupId).length > 1 ||
+            self.exerciseId === before.exerciseId)) return day;
 
         return {
           ...day,
           exercises: day.exercises.map((ex) =>
             ex.tempId === exTempId
-              ? { ...ex, groupId: linked ? crypto.randomUUID() : before.groupId }
+              ? { ...ex, groupId: linked ? crypto.randomUUID() : before.groupId, targetSets: before.targetSets }
               : ex
           ),
         };
@@ -172,12 +178,14 @@ export const ProgramBuilder = ({ initial, submitLabel = 'Создать прог
       days: days.map((day) => {
         const indexes = groupIndexes(day.exercises);
         return {
+          id: day.id,
           title: day.title.trim(),
           exercises: day.exercises.map((ex, i) => ({
             exerciseId: ex.exerciseId,
             targetSets: clampSets(ex.targetSets),
             targetReps: String(ex.targetReps).trim() || '8-12',
             groupIndex: indexes[i],
+            notes: ex.notes,
           })),
         };
       }),

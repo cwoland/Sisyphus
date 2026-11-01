@@ -59,10 +59,11 @@ export const useNutritionMutations = (date) => {
   const create = useMutation({
     mutationFn: createEntry,
     onMutate: async (vars) => {
+      vars.clientId ??= crypto.randomUUID();
       const previous = await snapshot();
       qc.setQueryData(entriesKey, (old) => [
         ...(old || []),
-        { id: `temp-${Date.now()}`, meal_type: vars.mealType, ...vars },
+        { id: vars.clientId, meal_type: vars.mealType, ...vars },
       ]);
       return { previous };
     },

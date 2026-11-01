@@ -11,7 +11,7 @@ const SetRow = ({ set, index, onSave, onDelete }) => {
   const [duration, setDuration] = useState(set.duration_sec ?? 60);
   const [weight, setWeight] = useState(set.weight ?? '');
   const [reps, setReps] = useState(set.reps ?? '');
-  const [completed, setCompleted] = useState(set.is_completed);
+  const completed = set.is_completed;
 
   const save = (nextCompleted = completed) => {
     const base = { setId: set.id, isCompleted: nextCompleted };
@@ -31,7 +31,7 @@ const SetRow = ({ set, index, onSave, onDelete }) => {
   const oneRM = epley1RM(weight, reps);
 
   return (
-    <div className="flex items-center gap-2 rounded-xl border border-border bg-surface-2 p-2">
+    <div className="flex flex-wrap items-center gap-2 rounded-xl border border-border bg-surface-2 p-2">
       <span className="w-6 text-center text-sm font-medium text-text-muted">{index + 1}</span>
 
       {mode === 'duration' ? (
@@ -96,7 +96,7 @@ const SetRow = ({ set, index, onSave, onDelete }) => {
 
       <IconButton
         icon={Check}
-        onClick={() => { const next = !completed; setCompleted(next); save(next); }}
+        onClick={() => { save(!completed); }}
         className={clsx(
           'ml-auto',
           completed ? 'bg-accent text-on-accent' : 'bg-surface text-text-muted hover:text-text'
@@ -116,8 +116,8 @@ const SetRow = ({ set, index, onSave, onDelete }) => {
 
 export const ExerciseSets = ({ exerciseId, exerciseName, sets, workoutId, onSaveSet, onDeleteSet, onAddSet }) => (
   <div className="space-y-2">
-    <div className="flex items-center justify-between">
-      <h3 className="font-medium text-text">
+    <div className="flex flex-wrap items-center justify-between gap-2">
+      <h3 className="min-w-0 break-words font-medium text-text">
         {exerciseName}
         {sets[0] && trackingOf(sets[0]) === 'duration' && (
           <span className="ml-2 text-xs font-normal text-text-muted">время</span>

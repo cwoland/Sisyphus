@@ -37,9 +37,10 @@ export const Conversation = ({ chat, onBack }) => {
 
   const handleSend = () => {
     const trimmed = text.trim();
-    if (!trimmed) return;
-    setText('');
-    sendMutation.mutate(trimmed);
+    if (!trimmed || sendMutation.isPending) return;
+    sendMutation.mutate(trimmed, {
+      onSuccess: () => setText((current) => current.trim() === trimmed ? '' : current),
+    });
   };
 
   return (
@@ -54,7 +55,7 @@ export const Conversation = ({ chat, onBack }) => {
         <p className="min-w-0 flex-1 truncate font-medium text-text">{chat.friend_name}</p>
       </div>
 
-      <div className="flex-1 space-y-2 overflow-y-auto overscroll-contain p-4 no-scrollbar">
+      <div className="min-h-0 flex-1 space-y-2 overflow-y-auto overscroll-contain p-4 no-scrollbar">
         {isLoading ? (
           <div className="flex justify-center py-8"><Spinner /></div>
         ) : messages.length === 0 ? (

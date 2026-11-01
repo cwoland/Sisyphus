@@ -1,10 +1,11 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 import { clsx } from 'clsx';
 import { lockScroll, unlockScroll } from '../lib/scrollLock.js';
 
 export const Sheet = ({ isOpen, onClose, title, headerActions, children }) => {
+  const panelRef = useRef(null);
   const [vv, setVv] = useState(null);
 
   useEffect(() => {
@@ -14,7 +15,10 @@ export const Sheet = ({ isOpen, onClose, title, headerActions, children }) => {
   }, [isOpen]);
 
   useEffect(() => {
-    const onEsc = (e) => e.key === 'Escape' && onClose();
+    const onEsc = (e) => {
+      const dialogs = document.querySelectorAll('[role="dialog"][aria-modal="true"]:not([aria-hidden="true"])');
+      if (e.key === 'Escape' && dialogs[dialogs.length - 1] === panelRef.current) onClose();
+    };
     if (isOpen) window.addEventListener('keydown', onEsc);
     return () => window.removeEventListener('keydown', onEsc);
   }, [isOpen, onClose]);
@@ -45,6 +49,7 @@ export const Sheet = ({ isOpen, onClose, title, headerActions, children }) => {
       <div className="absolute inset-0 bg-black/40 animate-fade-in" onClick={onClose} aria-hidden="true" />
 
       <div
+        ref={panelRef}
         role="dialog"
         aria-modal="true"
         className={clsx(
@@ -68,7 +73,7 @@ export const Sheet = ({ isOpen, onClose, title, headerActions, children }) => {
           </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto overscroll-contain px-5 py-4 no-scrollbar">
+        <div className="min-h-0 min-w-0 flex-1 overflow-y-auto overscroll-contain px-5 py-4 no-scrollbar">
           {children}
         </div>
       </div>

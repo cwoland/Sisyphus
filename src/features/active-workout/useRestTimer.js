@@ -2,7 +2,6 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 
 const PRESETS = [60, 90, 120, 180];
 const STORAGE_KEY = 'sisyphus-rest-seconds';
-const ENDS_KEY = 'sisyphus-rest-ends-at';
 
 const readPreferred = () => {
   try {
@@ -13,32 +12,33 @@ const readPreferred = () => {
   }
 };
 
-const readEndsAt = () => {
+const readEndsAt = (key) => {
   try {
-    const v = Number(localStorage.getItem(ENDS_KEY));
+    const v = Number(localStorage.getItem(key));
     return v > Date.now() ? v : null;
   } catch {
     return null;
   }
 };
 
-const persistEndsAt = (v) => {
+const persistEndsAt = (key, v) => {
   try {
-    if (v) localStorage.setItem(ENDS_KEY, String(v));
-    else localStorage.removeItem(ENDS_KEY);
+    if (v) localStorage.setItem(key, String(v));
+    else localStorage.removeItem(key);
   } catch { /* приватный режим */ }
 };
 
 const leftFrom = (endsAt) => (endsAt ? Math.max(0, Math.ceil((endsAt - Date.now()) / 1000)) : 0);
 
-export const useRestTimer = () => {
+export const useRestTimer = (workoutId) => {
+  const endsKey = `sisyphus-rest-ends-at:${workoutId}`;
   const [duration, setDuration] = useState(readPreferred);
-  const [endsAt, setEndsAt] = useState(readEndsAt);
-  const [left, setLeft] = useState(() => leftFrom(readEndsAt()));
+  const [endsAt, setEndsAt] = useState(() => readEndsAt(endsKey));
+  const [left, setLeft] = useState(() => leftFrom(readEndsAt(endsKey)));
   const wakeLock = useRef(null);
 
   useEffect(() => {
-    persistEndsAt(endsAt);
+    persistEndsAt(endsKey, endsAt);
     if (!endsAt) return;
 
     let fired = false;
@@ -59,7 +59,7 @@ export const useRestTimer = () => {
       clearInterval(id);
       document.removeEventListener('visibilitychange', tick);
     };
-  }, [endsAt]);
+  }, [endsAt, endsKey]);
 
   useEffect(() => {
     if (!endsAt || !('wakeLock' in navigator)) return;
@@ -68,7 +68,9 @@ export const useRestTimer = () => {
     const acquire = async () => {
       if (!alive || document.visibilityState !== 'visible') return;
       try {
-        wakeLock.current = await navigator.wakeLock.request('screen');
+        const lock = await navigator.wakeLock.request('screen');
+        if (!alive) await lock.release();
+        else wakeLock.current = lock;
       } catch { /* низкий заряд или вкладка в фоне */ }
     };
 
@@ -80,7 +82,7 @@ export const useRestTimer = () => {
       wakeLock.current?.release?.().catch(() => {});
       wakeLock.current = null;
     };
-  }, [endsAt]);
+  }, [endsAt, endsKey]);
 
   const start = useCallback((seconds) => {
     const d = seconds ?? duration;

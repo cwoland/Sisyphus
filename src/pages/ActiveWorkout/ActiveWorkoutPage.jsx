@@ -4,6 +4,7 @@ import { Flag, Pause, Play, ChevronLeft, ChevronRight, Check, ArrowRight, Trendi
 import { clsx } from 'clsx';
 
 import { useWorkoutDetails, useWorkoutMutations } from '../Calendar/calendar.hooks.js';
+import { buildWorkoutGroups } from '../../features/active-workout/workoutFlow.js';
 import { ProgressRings } from '../../features/active-workout/ProgressRings.jsx';
 import { SetTicks } from '../../features/active-workout/SetTicks.jsx';
 import { NumberStepper } from '../../features/active-workout/NumberStepper.jsx';
@@ -21,72 +22,31 @@ import { Sheet } from '../../shared/ui/Sheet.jsx';
 import { BottomNav } from '../../widgets/layout/BottomNav.jsx';
 import { epley1RM } from '../../shared/lib/oneRepMax.js';
 import { completionPhrases, pickRandom } from '../../shared/lib/sisyphusPhrases.js';
-import { trackingOf, formatDuration, describeSet } from '../../entities/exercise/tracking.js';
+import { formatDuration, describeSet } from '../../entities/exercise/tracking.js';
 
 const mmss = (s) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
 
 const numStr = (v) => (v == null || v === '' ? '' : String(Number(v)));
 
 const RING_SIZE = 240;
-const SEAL_MS = 700;
 const MIN_FINALE_MS = 1200;
 const RECORD_MS = 4800;
 
 export const ActiveWorkoutPage = () => {
   const { id } = useParams();
+  return <WorkoutSession key={id} id={id} />;
+};
+
+const WorkoutSession = ({ id }) => {
   const navigate = useNavigate();
   const detailsQuery = useWorkoutDetails(id);
   const { setMutation, statusMutation } = useWorkoutMutations();
-  const rest = useRestTimer();
+  const rest = useRestTimer(id);
 
   const workout = detailsQuery.data;
   const elapsed = useElapsed(workout?.started_at);
 
-  const groups = useMemo(() => {
-    const all = workout?.sets || [];
-
-    const dropsByParent = new Map();
-    for (const s of all) {
-      if (s.set_kind !== 'drop' || !s.parent_set_id) continue;
-      const list = dropsByParent.get(s.parent_set_id) || [];
-      list.push(s);
-      dropsByParent.set(s.parent_set_id, list);
-    }
-
-    const byGroup = new Map();
-    for (const s of all) {
-      if (s.set_kind === 'drop') continue;
-      const key = s.group_index ?? 0;
-
-      if (!byGroup.has(key)) {
-        byGroup.set(key, { key: `g${key}`, groupIndex: key, sets: [], exercises: [], rounds: new Set() });
-      }
-
-      const g = byGroup.get(key);
-      g.sets.push({ ...s, drops: dropsByParent.get(s.id) || [] });
-      g.rounds.add(s.round_index ?? 0);
-
-      if (!g.exercises.some((e) => e.id === s.exercise_id)) {
-        g.exercises.push({ id: s.exercise_id, name: s.exercise_name, tracking: trackingOf(s) });
-      }
-    }
-
-    return [...byGroup.values()].map((g) => {
-      const roundList = [...g.rounds].sort((a, b) => a - b);
-      const doneRounds = roundList.filter((r) =>
-        g.sets.filter((s) => (s.round_index ?? 0) === r).every((s) => s.is_completed)
-      ).length;
-
-      return {
-        ...g,
-        roundList,
-        rounds: roundList.length,
-        doneRounds,
-        isSuperset: g.exercises.length > 1,
-        name: g.exercises.length > 1 ? 'Суперсет' : g.exercises[0]?.name || '',
-      };
-    });
-  }, [workout]);
+  const groups = useMemo(() => buildWorkoutGroups(workout?.sets), [workout]);
 
   const [index, setIndex] = useState(0);
   const [setsOpen, setSetsOpen] = useState(false);
@@ -113,21 +73,24 @@ export const ActiveWorkoutPage = () => {
 
   const done = current ? current.doneRounds : 0;
   const total = current ? current.rounds : 0;
-  const pending = current?.sets.find((s) => !s.is_completed) ?? null;
+  const pending = current?.steps.find((s) => !s.is_completed) ?? null;
 
-  const currentExercise = pending
-    ? current.exercises.find((e) => e.id === pending.exercise_id)
+  const activeSet = dropFor ? current?.steps.find((s) => s.id === dropFor) : pending;
+  const currentExercise = activeSet
+    ? current.exercises.find((e) => e.id === activeSet.exercise_id)
     : current?.exercises[current.exercises.length - 1];
 
   const mode = currentExercise?.tracking || 'weight_reps';
 
   const lastCompleted = current
-    ? [...current.sets].reverse().find((s) => s.is_completed && s.exercise_id === pending?.exercise_id)
-      ?? [...current.sets].reverse().find((s) => s.is_completed)
+    ? [...current.steps].reverse().find((s) => s.is_completed && s.exercise_id === pending?.exercise_id)
+      ?? [...current.steps].reverse().find((s) => s.is_completed)
     : null;
 
+  const previousSet = current ? [...current.steps].reverse().find((s) => s.is_completed) : null;
+
   const roundSets = pending
-    ? current.sets.filter((s) => (s.round_index ?? 0) === (pending.round_index ?? 0))
+    ? current.steps.filter((s) => (s.round_index ?? 0) === (pending.round_index ?? 0))
     : [];
   const isRoundEnd = pending ? roundSets[roundSets.length - 1]?.id === pending.id : false;
 
@@ -136,7 +99,7 @@ export const ActiveWorkoutPage = () => {
   const draftKey = dropFor ? `drop:${dropFor}` : pending?.id ?? null;
 
   if (draftKey && draft.forId !== draftKey) {
-    const source = dropFor ? lastCompleted : pending;
+    const source = dropFor ? [...(current?.steps || [])].reverse().find((s) => s.id === dropFor || s.parent_set_id === dropFor) : pending;
     setDraft({
       weight: numStr(source?.weight ?? lastCompleted?.weight),
       reps: numStr(source?.reps ?? lastCompleted?.reps),
@@ -174,35 +137,53 @@ export const ActiveWorkoutPage = () => {
     recordTimer.current = setTimeout(() => setRecord(null), RECORD_MS);
   };
 
+  const completeRound = () => {
+    if (!isRoundEnd) return;
+    if (navigator.vibrate) navigator.vibrate([60, 50, 60]);
+    rest.start();
+  };
+
+  const openDrop = (set) => {
+    if (!set || setMutation.isPending) return;
+    clearTimeout(sealTimer.current);
+    setSealing(false);
+    rest.stop();
+    setDropFor(set.parent_set_id || set.id);
+    setDraft((d) => ({ ...d, forId: null }));
+  };
+
   const commitDrop = () => {
-    if (!dropFor) return;
-    const exerciseName = current.name;
-
+    if (!dropFor || setMutation.isPending) return;
+    const parent = current.sets.find((s) => s.id === dropFor);
     setMutation.mutate(
-      payloadFor({ workoutId: id, parentSetId: dropFor, isCompleted: true }),
-      { onSuccess: onRecord(exerciseName) }
+      payloadFor({ workoutId: id, parentSetId: dropFor, exerciseId: parent.exercise_id,
+        exerciseName: parent.exercise_name, isCompleted: true }),
+      { onSuccess: (data) => {
+        onRecord(parent.exercise_name)(data);
+        setDraft((d) => ({ ...d, forId: null }));
+      }, onError: (error) => {
+        if (isQueuedError(error)) setDraft((d) => ({ ...d, forId: null }));
+      } }
     );
+  };
 
+  const finishDrops = () => {
+    if (setMutation.isPending) return;
+    const parent = current?.sets.find((s) => s.id === dropFor);
     setDropFor(null);
+    const round = current?.steps.filter((s) => (s.round_index ?? 0) === (parent?.round_index ?? 0)) || [];
+    // A drop after A in a superset is followed by B, not by a rest.
+    if (round.length && round.every((s) => s.is_completed)) rest.start();
   };
 
   const commitSet = () => {
-    if (!pending) return;
-    const isClosing = isRoundEnd && done + 1 >= total;
+    if (!pending || setMutation.isPending) return;
     const exerciseName = currentExercise?.name || current.name;
-
     setMutation.mutate(
       payloadFor({ workoutId: id, setId: pending.id, rpe: draft.rpe, isCompleted: true }),
-      { onSuccess: onRecord(exerciseName) }
+      { onSuccess: (data) => { onRecord(exerciseName)(data); completeRound(); },
+        onError: (error) => { if (isQueuedError(error)) completeRound(); } }
     );
-
-    if (!isRoundEnd) return;
-    if (!isClosing) return rest.start();
-
-    if (navigator.vibrate) navigator.vibrate([60, 50, 60]);
-    setSealing(true);
-    clearTimeout(sealTimer.current);
-    sealTimer.current = setTimeout(() => { setSealing(false); rest.start(); }, SEAL_MS);
   };
 
   const stopSeal = () => {
@@ -228,7 +209,7 @@ export const ActiveWorkoutPage = () => {
   };
 
   const finish = () => {
-    if (finalePhrase) return;
+    if (finalePhrase || setMutation.isPending || dropFor) return;
 
     const phrase = pickRandom(completionPhrases);
     const startedAt = Date.now();
@@ -236,11 +217,13 @@ export const ActiveWorkoutPage = () => {
 
     statusMutation.mutate({ id, status: 'completed' }, {
       onSuccess: () => {
+        rest.stop();
         const wait = Math.max(0, MIN_FINALE_MS - (Date.now() - startedAt));
         finaleTimer.current = setTimeout(() => navigate('/'), wait);
       },
       onError: (error) => {
         if (isQueuedError(error)) {
+          rest.stop();
           const wait = Math.max(0, MIN_FINALE_MS - (Date.now() - startedAt));
           finaleTimer.current = setTimeout(() => navigate('/'), wait);
           return;
@@ -276,7 +259,7 @@ export const ActiveWorkoutPage = () => {
             <h1 className="truncate font-display text-lg font-bold text-text">{workout?.title}</h1>
             <p className="font-display text-sm tabular-nums text-text-muted">{elapsed}</p>
           </div>
-          <Button size="sm" onClick={finish} isLoading={statusMutation.isPending}>
+          <Button size="sm" onClick={finish} disabled={setMutation.isPending || !!dropFor} isLoading={statusMutation.isPending}>
             <Flag size={16} /> Завершить
           </Button>
         </div>
@@ -326,7 +309,7 @@ export const ActiveWorkoutPage = () => {
                       <span className="font-display text-xs uppercase tracking-[0.16em] text-terracotta-ink">Отдых</span>
                       <span className="font-display text-5xl font-extrabold tabular-nums text-text">{mmss(rest.left)}</span>
                     </>
-                  ) : exerciseDone ? (
+                  ) : exerciseDone && !dropFor ? (
                     <div key="sealed" className="flex animate-fade-in flex-col items-center gap-2">
                       <Check size={30} className="text-gold-ink" />
                       <span className="max-w-[9rem] font-display text-sm font-semibold leading-tight text-text">
@@ -350,7 +333,7 @@ export const ActiveWorkoutPage = () => {
 
                 <SetTicks
                   sets={current.roundList.map((r) => {
-                    const inRound = current.sets.filter((s) => (s.round_index ?? 0) === r);
+                    const inRound = current.steps.filter((s) => (s.round_index ?? 0) === r);
                     return {
                       id: `r${r}`,
                       label: current.isSuperset ? `Раунд ${r + 1}` : `Подход ${r + 1}`,
@@ -364,11 +347,16 @@ export const ActiveWorkoutPage = () => {
               </div>
 
               {current.isSuperset && (
+                <p className="text-center text-sm text-text-muted">
+                  Упражнения подряд без отдыха. Отдых {mmss(rest.duration)} после всей группы.
+                </p>
+              )}
+              {current.isSuperset && (
                 <ol className="flex flex-wrap items-center justify-center gap-1.5">
                   {current.exercises.map((e, i) => {
-                    const isNow = e.id === pending?.exercise_id;
-                    const passed = pending
-                      ? current.exercises.findIndex((x) => x.id === pending.exercise_id) > i
+                    const isNow = e.id === activeSet?.exercise_id;
+                    const passed = activeSet
+                      ? current.exercises.findIndex((x) => x.id === activeSet.exercise_id) > i
                       : true;
 
                     return (
@@ -395,7 +383,7 @@ export const ActiveWorkoutPage = () => {
                   <p className="text-sm text-text-muted">Упражнение закрыто</p>
                   <div className="flex flex-wrap items-center justify-center gap-2">
                     {lastCompleted && (
-                      <Button variant="secondary" size="lg" onClick={() => setDropFor(lastCompleted.id)}>
+                      <Button variant="secondary" size="lg" onClick={() => openDrop(previousSet)}>
                         <TrendingDown size={18} /> Дроп
                       </Button>
                     )}
@@ -404,7 +392,7 @@ export const ActiveWorkoutPage = () => {
                         Следующее: {next.name} <ArrowRight size={18} />
                       </Button>
                     ) : (
-                      <Button size="lg" onClick={finish} isLoading={statusMutation.isPending}>
+                      <Button size="lg" onClick={finish} disabled={setMutation.isPending || !!dropFor} isLoading={statusMutation.isPending}>
                         <Flag size={18} /> Завершить тренировку
                       </Button>
                     )}
@@ -415,9 +403,9 @@ export const ActiveWorkoutPage = () => {
                   {dropFor && (
                     <div className="flex items-center gap-2 rounded-xl bg-terracotta/15 px-3 py-1.5 text-sm text-terracotta-ink">
                       <TrendingDown size={16} />
-                      Дроп к подходу
+                      Дропсет · без отдыха между ступенями
                       <IconButton
-                        icon={X} size={14} onClick={() => setDropFor(null)}
+                        icon={X} size={14} onClick={finishDrops}
                         className="text-terracotta-ink"
                         aria-label="Отменить дроп"
                       />
@@ -471,11 +459,16 @@ export const ActiveWorkoutPage = () => {
                   )}
 
                   {dropFor ? (
-                    <Button size="lg" onClick={commitDrop}>
-                      <Check size={18} /> Дроп выполнен
+                    <div className="flex flex-wrap justify-center gap-2">
+                    <Button size="lg" onClick={commitDrop} isLoading={setMutation.isPending}>
+                      <Check size={18} /> Ступень выполнена
                     </Button>
+                    <Button size="lg" variant="secondary" onClick={finishDrops} disabled={setMutation.isPending}>
+                      Закончить дропсет
+                    </Button>
+                    </div>
                   ) : (
-                    <Button size="lg" onClick={commitSet} disabled={!pending}>
+                    <Button size="lg" onClick={commitSet} disabled={!pending || setMutation.isPending}>
                       <Check size={18} />
                       {current.isSuperset
                         ? `${currentExercise?.name}: готово`
@@ -485,7 +478,7 @@ export const ActiveWorkoutPage = () => {
 
                   {!dropFor && lastCompleted && (
                     <button
-                      onClick={() => setDropFor(lastCompleted.id)}
+                      onClick={() => openDrop(previousSet)}
                       className="-mt-3 inline-flex items-center gap-1.5 text-xs font-medium text-text-muted transition-colors hover:text-text"
                     >
                       <TrendingDown size={14} /> Дроп к прошлому подходу

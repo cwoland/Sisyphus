@@ -7,6 +7,7 @@ import {
 const statusDot = {
   completed: 'bg-accent',
   planned: 'bg-text-muted',
+  in_progress: 'bg-terracotta',
   skipped: 'bg-crimson',
 };
 
@@ -39,7 +40,7 @@ export const CalendarGrid = ({ anchorDate, view, workouts, selectedDate, onSelec
               key={key}
               onClick={() => onSelectDate(day)}
               className={clsx(
-                'relative flex min-h-[44px] aspect-square flex-col items-center justify-start rounded-xl p-1.5 transition-colors sm:aspect-auto sm:min-h-[64px]',
+                'relative flex min-w-0 min-h-[44px] aspect-square flex-col items-center justify-start rounded-xl p-1.5 transition-colors sm:aspect-auto sm:min-h-[64px]',
                 isSelected ? 'bg-accent/10 ring-1 ring-accent' : 'hover:bg-surface-2',
                 !isCurrentMonth && 'opacity-40'
               )}

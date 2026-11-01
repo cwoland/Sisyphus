@@ -2,6 +2,8 @@ import { useEffect, lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
+import { updateProfileRequest } from './entities/user/auth.api.js';
+import { useAuthStore } from './entities/user/auth.store.js';
 import { AuthProvider } from './app/providers/AuthProvider.jsx';
 import { ProtectedRoute } from './app/router/ProtectedRoute.jsx';
 import { PublicOnlyRoute } from './app/router/PublicOnlyRoute.jsx';
@@ -43,8 +45,26 @@ const queryClient = new QueryClient({
   },
 });
 
+useAuthStore.subscribe((state, previous) => {
+  if (state.user?.id !== previous.user?.id) {
+    queryClient.clear();
+    if (previous.user?.id) navigator.serviceWorker?.controller?.postMessage({
+      type: 'CLEAR_USER_CACHE', userId: previous.user.id,
+    });
+  }
+});
+
 function App() {
   const initTheme = useThemeStore((s) => s.initTheme);
+  const user = useAuthStore((s) => s.user);
+  useEffect(() => {
+    if (!user) return;
+    const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    if (!timeZone || user.settings?.timeZone === timeZone) return;
+    updateProfileRequest({ timeZone }).then((updated) => {
+      if (useAuthStore.getState().user?.id === user.id) useAuthStore.getState().setUser(updated);
+    }).catch(() => {});
+  }, [user]);
 
   useEffect(() => {
     initTheme();

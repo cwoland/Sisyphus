@@ -29,7 +29,7 @@ const SortableExercise = ({ ex, dayTempId, isCircuit, linkedToPrev, canLink, onU
     >
       {linkedToPrev && (
         <p className="mb-1.5 flex items-center gap-1 text-[11px] font-medium uppercase tracking-[0.1em] text-terracotta-ink">
-          <Link2 size={11} /> без отдыха после предыдущего
+          <Link2 size={11} /> суперсет · без отдыха после предыдущего
         </p>
       )}
 
@@ -186,7 +186,7 @@ export const DayCard = ({
                   ex={ex}
                   dayTempId={day.tempId}
                   isCircuit={isCircuit}
-                  canLink={i > 0}
+                  canLink={i > 0 && (day.exercises[i - 1].groupId === ex.groupId || (day.exercises.filter((item) => item.groupId === day.exercises[i - 1].groupId).length === 1 && day.exercises.filter((item) => item.groupId === ex.groupId).length === 1 && day.exercises[i - 1].exerciseId !== ex.exerciseId))}
                   linkedToPrev={i > 0 && day.exercises[i - 1].groupId === ex.groupId}
                   onUpdate={onUpdateExercise}
                   onRemove={onRemoveExercise}

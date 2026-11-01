@@ -9,21 +9,23 @@ export const todayApi = () => toApiDate(new Date());
 
 export const safeDate = (value) => {
   if (!value) return null;
-  const d = new Date(value);
+  const d = typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value)
+    ? new Date(Number(value.slice(0, 4)), Number(value.slice(5, 7)) - 1, Number(value.slice(8, 10)))
+    : new Date(value);
   return isNaN(d.getTime()) ? null : d;
 };
 
 export const safeFormat = (value, fmt, options) => {
   if (!value) return '';
-  const d = new Date(value);
-  if (isNaN(d.getTime())) return '';
+  const d = safeDate(value);
+  if (!d || isNaN(d.getTime())) return '';
   return format(d, fmt, options);
 };
 
 export const safeDistanceToNow = (value, options) => {
   if (!value) return '';
-  const d = new Date(value);
-  if (isNaN(d.getTime())) return '';
+  const d = safeDate(value);
+  if (!d || isNaN(d.getTime())) return '';
   return formatDistanceToNow(d, options);
 };
 

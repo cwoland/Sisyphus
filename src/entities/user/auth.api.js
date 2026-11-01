@@ -4,7 +4,13 @@ export const registerRequest = (payload) => api.post('/auth/register', payload).
 
 export const loginRequest = (payload) => api.post('/auth/login', payload).then((res) => res.data);
 
-export const logoutRequest = () => api.post('/auth/logout').then((res) => res.data);
+export const logoutRequest = async () => {
+  const registration = await navigator.serviceWorker?.getRegistration().catch(() => null);
+  const subscription = await registration?.pushManager?.getSubscription().catch(() => null);
+  const response = await api.post('/auth/logout', { pushEndpoint: subscription?.endpoint });
+  await subscription?.unsubscribe().catch(() => {});
+  return response.data;
+};
 
 export const meRequest = () => api.get('/auth/me').then((res) => res.data);
 

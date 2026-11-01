@@ -1,21 +1,24 @@
+import { useAuthStore } from '../../entities/user/auth.store.js';
 import { api } from '../lib/axios.js';
 import { queueAdd, queueGetAll, queueDelete, queueUpdate } from './db.js';
 import { toast } from '../ui/toast/toast.store.js';
 
-const MAX_ATTEMPTS = 5;
+
 
 
 const isPermanent = (status) =>
   status === 400 || status === 403 || status === 404 || status === 409 || status === 422;
 
-export const enqueueMutation = async ({ method, url, data }) => {
-  await queueAdd({ method, url, data });
+export const enqueueMutation = async ({ userId, method, url, data }) => {
+  if (!userId) throw new Error('Offline action requires an owner');
+  await queueAdd({ userId, method, url, data });
 };
 
 let isReplaying = false;
 
 export const replayQueue = async (onSuccess) => {
-  if (isReplaying) return;
+  const userId = useAuthStore.getState().user?.id;
+  if (isReplaying || !userId) return;
   isReplaying = true;
 
   let replayed = 0;
@@ -26,15 +29,19 @@ export const replayQueue = async (onSuccess) => {
     if (items.length === 0) return;
 
     for (const item of items) {
+      // Legacy entries without an owner must never be attributed to a new account.
+      if (item.userId !== userId) continue;
+      if (useAuthStore.getState().user?.id !== userId) break;
       try {
-        await api.request({ method: item.method, url: item.url, data: item.data });
+        await api.request({ method: item.method, url: item.url, data: item.data,
+          _offlineReplay: true, _ownerId: userId });
         await queueDelete(item.id);
         replayed++;
         continue;
       } catch (e) {
         const status = e.response?.status;
 
-        if (!status) break;
+        if (!status || status === 401) break;
 
         if (isPermanent(status)) {
           await queueDelete(item.id);
@@ -43,11 +50,6 @@ export const replayQueue = async (onSuccess) => {
         }
 
         const attempts = (item.attempts ?? 0) + 1;
-        if (attempts >= MAX_ATTEMPTS) {
-          await queueDelete(item.id);
-          dropped++;
-          continue;
-        }
         await queueUpdate(item.id, { attempts });
         break;
       }

@@ -3,7 +3,9 @@ import { useAuthStore } from '../../entities/user/auth.store.js';
 import { enqueueMutation } from '../offline/queue.js';
 import { toast } from '../ui/toast/toast.store.js';
 
-const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+// Vercel proxies /api to Render. Same-origin cookies also work in iPhone PWA.
+const BASE_URL = import.meta.env.PROD ? '/api'
+  : import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
 const COLD_START_DELAY = 3000;
 const WARN_COOLDOWN = 60_000;
@@ -12,7 +14,9 @@ let pending = 0;
 let timer = null;
 let lastWarnedAt = 0;
 
-const stopTimer = () => {
+const stopTimer = (config) => {
+  if (!config?._coldStartTracked) return;
+  config._coldStartTracked = false;
   pending = Math.max(0, pending - 1);
   if (pending === 0) {
     clearTimeout(timer);
@@ -23,10 +27,22 @@ const stopTimer = () => {
 export const api = axios.create({
   baseURL: BASE_URL,
   withCredentials: true,
+  timeout: 90_000,
 });
 
 api.interceptors.request.use((config) => {
-  const token = useAuthStore.getState().accessToken;
+  const { accessToken: token, user } = useAuthStore.getState();
+  if (config._ownerId && config._ownerId !== user?.id) {
+    throw new axios.CanceledError('Account changed', config);
+  }
+  config._ownerId ??= user?.id;
+  const method = config.method?.toLowerCase();
+  if ((method === 'post' && ['/workouts', '/nutrition/entries'].includes(config.url)) ||
+      (method === 'put' && /^\/workouts\/[^/]+\/sets$/.test(config.url))) {
+    const body = typeof config.data === 'string' ? JSON.parse(config.data) : { ...config.data };
+    if (!body.setId) body.clientId ??= crypto.randomUUID();
+    config.data = body;
+  }
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
@@ -37,9 +53,11 @@ let refreshPromise = null;
 
 export const refreshSession = () => {
   if (!refreshPromise) {
+    const ownerId = useAuthStore.getState().user?.id;
     refreshPromise = api
       .post('/auth/refresh')
       .then(({ data }) => {
+        if (useAuthStore.getState().user?.id !== ownerId) throw new axios.CanceledError('Account changed');
         useAuthStore.getState().setAccessToken(data.accessToken);
         return data.accessToken;
       })
@@ -63,6 +81,7 @@ api.interceptors.response.use(
       return Promise.reject(error);
     }
 
+    stopTimer(originalRequest);
     originalRequest._retry = true;
 
     try {
@@ -70,7 +89,10 @@ api.interceptors.response.use(
       originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
       return api(originalRequest);
     } catch (refreshError) {
-      useAuthStore.getState().logout();
+      if (refreshError.response?.status === 401 && originalRequest._ownerId === useAuthStore.getState().user?.id) {
+        useAuthStore.getState().logout();
+      }
+      if (!refreshError.response && !axios.isCancel(refreshError)) refreshError.config = originalRequest;
       return Promise.reject(refreshError);
     }
   }
@@ -94,8 +116,10 @@ const isQueueable = (config) => {
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
-    if (!error.response && error.config && isQueueable(error.config)) {
+    if (!error.response && error.config && !error.isQueued && !axios.isCancel(error) &&
+        !error.config._offlineReplay && error.config._ownerId && isQueueable(error.config)) {
       await enqueueMutation({
+        userId: error.config._ownerId,
         method: error.config.method,
         url: error.config.url,
         data: error.config.data ? JSON.parse(error.config.data) : undefined,
@@ -111,6 +135,7 @@ api.interceptors.response.use(
 
 api.interceptors.request.use((config) => {
   if (config.url?.includes('/ai')) return config;
+  config._coldStartTracked = true;
   pending += 1;
   if (pending === 1 && !timer) {
     timer = setTimeout(() => {
@@ -124,6 +149,6 @@ api.interceptors.request.use((config) => {
 });
 
 api.interceptors.response.use(
-  (res) => { stopTimer(); return res; },
-  (err) => { stopTimer(); return Promise.reject(err); }
+  (res) => { stopTimer(res.config); return res; },
+  (err) => { stopTimer(err.config); return Promise.reject(err); }
 );

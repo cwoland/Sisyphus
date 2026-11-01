@@ -26,8 +26,9 @@ export const AiConversation = ({ conversationId, onBack, onDelete }) => {
   const handleSend = () => {
     const trimmed = text.trim();
     if (!trimmed || sendMutation.isPending) return;
-    setText('');
-    sendMutation.mutate(trimmed);
+    sendMutation.mutate(trimmed, {
+      onSuccess: () => setText((current) => current.trim() === trimmed ? '' : current),
+    });
   };
 
   const handleDelete = () => {
@@ -64,7 +65,7 @@ export const AiConversation = ({ conversationId, onBack, onDelete }) => {
         />
       </div>
 
-      <div className="flex-1 space-y-3 overflow-y-auto overscroll-contain p-4 no-scrollbar">
+      <div className="min-h-0 flex-1 space-y-3 overflow-y-auto overscroll-contain p-4 no-scrollbar">
         {isLoading ? (
           <div className="flex justify-center py-8"><Spinner /></div>
         ) : messages.length === 0 ? (

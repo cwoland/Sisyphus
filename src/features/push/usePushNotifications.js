@@ -10,21 +10,18 @@ const urlBase64ToUint8Array = (base64String) => {
 };
 
 export const usePushNotifications = () => {
-  const [isSupported, setIsSupported] = useState(false);
+  const isSupported = 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window;
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    const supported = 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window;
-    setIsSupported(supported);
-
-    if (supported) {
+    if (isSupported) {
       navigator.serviceWorker.ready.then(async (reg) => {
         const sub = await reg.pushManager.getSubscription();
         setIsSubscribed(!!sub);
       });
     }
-  }, []);
+  }, [isSupported]);
 
   const subscribe = async () => {
     setIsLoading(true);

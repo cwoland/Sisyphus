@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { getWorkouts } from '../../../entities/workout/workout.api.js';
 import { clsx } from 'clsx';
 import { Sheet } from '../../../shared/ui/Sheet.jsx';
 import { Button } from '../../../shared/ui/Button.jsx';
@@ -11,16 +13,19 @@ export const NewConversationDialog = ({ isOpen, onClose, onCreate, isCreating })
   const programsQuery = usePrograms();
 
   const needsProgram = contextType === 'program';
+  const needsWorkout = contextType === 'workout';
+  const workoutsQuery = useQuery({ queryKey: ['workouts', 'ai-picker'],
+    queryFn: () => getWorkouts({}), enabled: isOpen && needsWorkout });
 
   const handleCreate = () => {
     onCreate({
       contextType,
-      contextId: needsProgram ? contextId : undefined,
+      contextId: needsProgram || needsWorkout ? contextId : undefined,
       title: contextTypes.find((c) => c.value === contextType)?.label,
     });
   };
 
-  const canCreate = !needsProgram || !!contextId;
+  const canCreate = !(needsProgram || needsWorkout) || !!contextId;
 
   return (
     <Sheet isOpen={isOpen} onClose={onClose} title="Новый диалог с AI-тренером">
@@ -57,7 +62,7 @@ export const NewConversationDialog = ({ isOpen, onClose, onCreate, isCreating })
               <p className="text-sm text-text-muted">У вас пока нет программ.</p>
             ) : (
               <div className="space-y-1.5">
-                {programsQuery.data.map((p) => (
+                {(programsQuery.data || []).map((p) => (
                   <button
                     key={p.id}
                     onClick={() => setContextId(p.id)}
@@ -72,6 +77,18 @@ export const NewConversationDialog = ({ isOpen, onClose, onCreate, isCreating })
               </div>
             )}
           </div>
+        )}
+
+        {needsWorkout && (
+          <label className="block space-y-2 text-sm text-text">
+            <span>Выберите тренировку</span>
+            <select value={contextId || ''} onChange={(e) => setContextId(e.target.value || null)}
+              className="w-full min-w-0 rounded-xl border border-border bg-surface p-3 text-base">
+              <option value="">{workoutsQuery.isLoading ? 'Загрузка…' : 'Выберите тренировку'}</option>
+              {(workoutsQuery.data || []).map((w) => <option key={w.id} value={w.id}>{w.date} · {w.title}</option>)}
+            </select>
+            {workoutsQuery.isError && <span className="text-danger">Не удалось загрузить тренировки</span>}
+          </label>
         )}
 
         <Button className="w-full" onClick={handleCreate} isLoading={isCreating} disabled={!canCreate}>

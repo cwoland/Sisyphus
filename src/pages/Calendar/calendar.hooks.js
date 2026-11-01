@@ -36,7 +36,8 @@ export const useStartWorkout = () => {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: startWorkout,
-    onSuccess: () => {
+    onSuccess: (workout) => {
+      qc.setQueryData(['workout', workout.id], workout);
       qc.invalidateQueries({ queryKey: ['workouts'] });
     },
     onError: onMutationError(null, 'Не удалось начать тренировку'),
@@ -113,6 +114,7 @@ export const useWorkoutMutations = () => {
   const setMutation = useMutation({
     mutationFn: upsertWorkoutSet,
     onMutate: async (vars) => {
+      if (!vars.setId) vars.clientId ??= crypto.randomUUID();
       const key = ['workout', vars.workoutId];
       await qc.cancelQueries({ queryKey: key });
       const previous = qc.getQueryData(key);
@@ -130,6 +132,7 @@ export const useWorkoutMutations = () => {
                 ...s,
                 weight: vars.weight !== undefined ? vars.weight : s.weight,
                 reps: vars.reps !== undefined ? vars.reps : s.reps,
+                duration_sec: vars.durationSec !== undefined ? vars.durationSec : s.duration_sec,
                 rpe: vars.rpe !== undefined ? vars.rpe : s.rpe,
                 is_completed: vars.isCompleted ?? s.is_completed,
               }
@@ -138,19 +141,27 @@ export const useWorkoutMutations = () => {
           };
         }
 
-        const sameExercise = [...sets].reverse().find((s) => s.exercise_id === vars.exerciseId);
+        const parent = sets.find((s) => s.id === vars.parentSetId);
+        const exerciseId = parent?.exercise_id || vars.exerciseId;
+        const sameExercise = [...sets].reverse().find((s) => s.exercise_id === exerciseId && s.set_kind !== 'drop');
+        const groupIndex = parent?.group_index ?? sameExercise?.group_index ?? Math.max(-1, ...sets.map((s) => s.group_index ?? 0)) + 1;
+        const roundIndex = parent?.round_index ?? Math.max(-1, ...sets.filter((s) => s.exercise_id === exerciseId).map((s) => s.round_index ?? 0)) + 1;
         return {
           ...old,
           sets: [...sets, {
-            id: `temp-${Date.now()}`,
+            id: vars.clientId,
             workout_id: vars.workoutId,
-            exercise_id: vars.exerciseId,
-            exercise_name: vars.exerciseName || sameExercise?.exercise_name || 'Упражнение',
-            muscle_group: sameExercise?.muscle_group,
-            weight: vars.weight ?? sameExercise?.weight ?? null,
-            reps: vars.reps ?? sameExercise?.reps ?? null,
-            is_completed: false,
-            order_index: sets.length,
+            exercise_id: exerciseId,
+            exercise_name: vars.exerciseName || parent?.exercise_name || sameExercise?.exercise_name || 'Упражнение',
+            muscle_group: parent?.muscle_group || sameExercise?.muscle_group,
+            tracking: parent?.tracking || sameExercise?.tracking,
+            weight: vars.weight ?? null, reps: vars.reps ?? null,
+            duration_sec: vars.durationSec ?? null, rpe: vars.rpe ?? null,
+            is_completed: vars.isCompleted ?? false,
+            set_kind: vars.parentSetId ? 'drop' : vars.setKind ?? 'normal',
+            parent_set_id: vars.parentSetId ?? null,
+            group_index: groupIndex, round_index: roundIndex,
+            order_index: parent?.order_index ?? Math.max(-1, ...sets.map((s) => s.order_index)) + 1,
           }],
         };
       });
@@ -162,7 +173,8 @@ export const useWorkoutMutations = () => {
     }, 'Не удалось сохранить подход'),
     onSettled: skipWhenQueued((data, _e, vars) => {
       invalidateAll(vars.workoutId);
-      if (data?.record) qc.invalidateQueries({ queryKey: ['records'] });
+      qc.invalidateQueries({ queryKey: ['records'] });
+      qc.invalidateQueries({ queryKey: ['stats'] });
     }),
   });
 
@@ -182,7 +194,11 @@ export const useWorkoutMutations = () => {
     onError: onMutationError((ctx) => {
       if (ctx?.previous) qc.setQueryData(ctx.key, ctx.previous);
     }, 'Не удалось удалить подход'),
-    onSettled: skipWhenQueued((_d, _e, vars) => invalidateAll(vars.workoutId)),
+    onSettled: skipWhenQueued((_d, _e, vars) => {
+      invalidateAll(vars.workoutId);
+      qc.invalidateQueries({ queryKey: ['records'] });
+      qc.invalidateQueries({ queryKey: ['stats'] });
+    }),
   });
 
   const updateMutation = useMutation({
@@ -214,7 +230,11 @@ export const useWorkoutMutations = () => {
     },
     onError: onMutationError((ctx) => restore(ctx?.lists), 'Не удалось удалить тренировку'),
     onSuccess: () => toast.success('Тренировка удалена'),
-    onSettled: skipWhenQueued(() => invalidateAll()),
+    onSettled: skipWhenQueued(() => {
+      invalidateAll();
+      qc.invalidateQueries({ queryKey: ['records'] });
+      qc.invalidateQueries({ queryKey: ['stats'] });
+    }),
   });
 
   return { statusMutation, createMutation, syncMutation, setMutation, deleteSetMutation, updateMutation, deleteWorkoutMutation };

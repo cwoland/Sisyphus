@@ -1,13 +1,17 @@
 import { useState, useEffect } from 'react';
 import { replayQueue } from './queue.js';
 import { useQueryClient } from '@tanstack/react-query';
+import { useAuthStore } from '../../entities/user/auth.store.js';
 
 export const useOnlineStatus = () => {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const qc = useQueryClient();
+  const userId = useAuthStore((s) => s.user?.id);
 
   useEffect(() => {
-    const flush = () => replayQueue(() => qc.invalidateQueries());
+    const flush = () => {
+      if (userId) replayQueue(() => qc.invalidateQueries()).catch(() => {});
+    };
 
     const goOnline = () => { setIsOnline(true); flush(); };
     const goOffline = () => setIsOnline(false);
@@ -25,7 +29,7 @@ export const useOnlineStatus = () => {
       window.removeEventListener('offline', goOffline);
       document.removeEventListener('visibilitychange', onVisible);
     };
-  }, [qc]);
+  }, [qc, userId]);
 
   return isOnline;
 };

@@ -15,8 +15,8 @@ const statusConfig = {
 
 export const DayPanel = ({ date, workouts, onOpenWorkout, onSync, onSetStatus, onAddWorkout, onStart }) => (
   <div className="rounded-2xl border border-border bg-surface p-4">
-    <div className="mb-3 flex items-center justify-between">
-    <h2 className="font-display text-lg font-semibold text-text">
+    <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+    <h2 className="min-w-0 break-words font-display text-lg font-semibold text-text">
       {safeFormat(date, 'd MMMM, EEEE', { locale: ru })}
     </h2>
     <button
@@ -35,11 +35,11 @@ export const DayPanel = ({ date, workouts, onOpenWorkout, onSync, onSetStatus, o
           const StatusIcon = cfg.icon;
           return (
             <div key={w.id} className="rounded-xl border border-border p-3">
-              <div className="flex items-center justify-between">
-                <button onClick={() => onOpenWorkout(w)} className="flex items-center gap-2 text-left">
-                  <StatusIcon size={20} className={cfg.color} />
-                  <div>
-                    <p className="font-medium text-text">{w.title}</p>
+              <div className="flex min-w-0 items-center justify-between gap-2">
+                <button onClick={() => onOpenWorkout(w)} className="flex min-w-0 flex-1 items-center gap-2 text-left">
+                  <StatusIcon size={20} className={clsx('shrink-0', cfg.color)} />
+                  <div className="min-w-0">
+                    <p className="break-words font-medium text-text">{w.title}</p>
                     <p className="text-xs text-text-muted">{cfg.label}</p>
                   </div>
                 </button>
@@ -47,7 +47,7 @@ export const DayPanel = ({ date, workouts, onOpenWorkout, onSync, onSetStatus, o
                 {w.status === 'planned' && w.program_day_id && (
                   <button
                     onClick={() => onSync(w.id)}
-                    className="rounded-lg p-2 text-text-muted hover:bg-surface-2 hover:text-accent"
+                    className="shrink-0 rounded-lg p-2 text-text-muted hover:bg-surface-2 hover:text-accent"
                     aria-label="Синхронизировать с программой"
                   >
                     <RefreshCw size={16} />
@@ -55,7 +55,7 @@ export const DayPanel = ({ date, workouts, onOpenWorkout, onSync, onSetStatus, o
                 )}
               </div>
 
-              <div className="mt-3 flex gap-2">
+              <div className="mt-3 flex flex-wrap gap-2">
                 {(w.status === 'planned' || w.status === 'in_progress') && (
                   <Button size="sm" onClick={() => onStart(w)}>
                     {w.status === 'in_progress' ? 'Продолжить' : 'Начать тренировку'}

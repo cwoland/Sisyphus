@@ -46,7 +46,9 @@ export const Drawer = ({ isOpen, onClose }) => {
           isOpen ? 'translate-x-0' : '-translate-x-full'
         )}
         role="dialog"
-        aria-modal="true"
+        aria-modal={isOpen || undefined}
+        aria-hidden={!isOpen}
+        inert={!isOpen}
         aria-label="Меню"
       >
         <button

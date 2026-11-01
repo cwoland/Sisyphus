@@ -1,7 +1,6 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ChevronLeft, ChevronRight, Plus, Trash2 } from 'lucide-react';
-import { clsx } from 'clsx';
 
 import { useCalendarWorkouts, useWorkoutDetails, useWorkoutMutations, useRecords, useStartWorkout } from './calendar.hooks.js';
 import { CalendarGrid } from './widgets/CalendarGrid.jsx';
@@ -15,7 +14,7 @@ import { completionPhrases, pickRandom } from '../../shared/lib/sisyphusPhrases.
 import { toast } from '../../shared/ui/toast/toast.store.js';
 import { SavedHint } from '../../shared/ui/SavedHint.jsx';
 import {
-  monthTitle, isSameDay, isSameMonth, addMonths, addWeeks, weekRangeLabel, toApiDate, format,
+  monthTitle, addMonths, addWeeks, weekRangeLabel, toApiDate,
 } from '../../shared/lib/date.js';
 
 
@@ -53,7 +52,7 @@ export const CalendarPage = () => {
   };
 
   const dayWorkouts = useMemo(
-    () => (workoutsQuery.data || []).filter((w) => isSameDay(new Date(w.date), selectedDate)),
+    () => (workoutsQuery.data || []).filter((w) => w.date === toApiDate(selectedDate)),
     [workoutsQuery.data, selectedDate]
   );
 
@@ -112,12 +111,12 @@ export const CalendarPage = () => {
   };
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h1 className="font-display text-2xl font-bold capitalize text-text">
+    <div className="min-w-0 space-y-4">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <h1 className="min-w-0 break-words font-display text-xl font-bold capitalize text-text sm:text-2xl">
           {view === 'month' ? monthTitle(anchorDate) : weekRangeLabel(anchorDate)}
         </h1>
-        <div className="flex gap-1">
+        <div className="ml-auto flex shrink-0 gap-1">
           <button onClick={() => shiftAnchor(-1)} className="rounded-lg p-2 text-text-muted hover:bg-surface-2 hover:text-text" aria-label="Назад">
             <ChevronLeft size={20} />
           </button>
@@ -130,8 +129,8 @@ export const CalendarPage = () => {
         </div>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-[1.4fr,1fr]">
-        <div className="rounded-2xl border border-border bg-surface p-3 sm:p-4">
+      <div className="grid min-w-0 grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
+        <div className="min-w-0 rounded-2xl border border-border bg-surface p-3 sm:p-4">
           {workoutsQuery.isLoading ? (
             <Skeleton className="h-72 w-full" />
           ) : (
@@ -145,7 +144,7 @@ export const CalendarPage = () => {
           )}
         </div>
 
-        <div className="space-y-6">
+        <div className="min-w-0 space-y-6">
           <DayPanel
             onStart={handleStart}
             date={selectedDate}
@@ -172,6 +171,7 @@ export const CalendarPage = () => {
         ) : (
           <div className="space-y-6">
             <WorkoutMetaEditor
+              key={`meta-${detailsQuery.data?.id}`}
               workout={detailsQuery.data}
               onSave={(data, options) => updateMutation.mutate({ id: openWorkoutId, ...data }, options)} />
             {groupedSets.length === 0 ? (
@@ -197,6 +197,7 @@ export const CalendarPage = () => {
               </button>
 
               <WorkoutNotes
+                key={`notes-${detailsQuery.data?.id}`}
                 workout={detailsQuery.data}
                 onSave={(data, options) => updateMutation.mutate({ id: openWorkoutId, ...data }, options)} />
 
@@ -222,11 +223,6 @@ const WorkoutMetaEditor = ({ workout, onSave }) => {
   const [date, setDate] = useState(workout?.date ?? '');
   const [saved, setSaved] = useState(false);
   const savedTimer = useRef(null);
-
-  useEffect(() => {
-    setTitle(workout?.title ?? '');
-    setDate(workout?.date ?? '');
-  }, [workout?.id]);
 
   useEffect(() => () => clearTimeout(savedTimer.current), []);
 
@@ -258,13 +254,13 @@ const WorkoutMetaEditor = ({ workout, onSave }) => {
         onChange={(e) => setTitle(e.target.value)}
         onBlur={commit}
         placeholder="Название тренировки"
-        className="flex-1 rounded-xl border border-border-strong bg-surface-2 px-3 py-2 text-sm text-text focus:outline-none focus:ring-1 focus:ring-accent" />
+        className="min-w-0 w-full flex-1 rounded-xl border border-border-strong bg-surface-2 px-3 py-2 text-base text-text focus:outline-none focus:ring-1 focus:ring-accent" />
         <input
           type="date"
           value={date}
           onChange={(e) => setDate(e.target.value)}
           onBlur={commit}
-          className="rounded-xl border border-border-strong bg-surface-2 px-3 py-2 text-sm text-text focus:outline-none focus:ring-accent" />
+          className="min-w-0 w-full rounded-xl border border-border-strong bg-surface-2 px-3 py-2 text-base text-text focus:outline-none focus:ring-accent sm:w-auto" />
     </div>
     </div>
   );
@@ -274,8 +270,6 @@ const WorkoutNotes = ({ workout, onSave }) => {
   const [value, setValue] = useState(workout?.notes ?? '');
   const [saved, setSaved] = useState(false);
   const savedTimer = useRef(null);
-
-  useEffect(() => { setValue(workout?.notes ?? ''); }, [workout?.id]);
 
   useEffect(() => () => clearTimeout(savedTimer.current), []);
 

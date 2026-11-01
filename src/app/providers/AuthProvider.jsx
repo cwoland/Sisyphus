@@ -19,7 +19,7 @@ export const AuthProvider = ({ children }) => {
     };
 
     restoreSession();
-  }, []);
+  }, [login, setAuthChecked]);
 
   if (!isAuthChecked) {
     return <SplashScreen />;
