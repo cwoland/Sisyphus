@@ -151,7 +151,7 @@ const SortableBlock = ({
               ? 'Суперсет'
               : drop
                 ? 'Дропсет'
-                : 'Обычное упражнение'}
+                : first.name}
         </p>
 
         {paired && (

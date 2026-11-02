@@ -35,6 +35,7 @@ export const useActiveWorkout = () =>
 export const useStartWorkout = () => {
   const qc = useQueryClient();
   return useMutation({
+    networkMode: 'always',
     mutationFn: startWorkout,
     onSuccess: (workout) => {
       qc.setQueryData(['workout', workout.id], workout);
@@ -47,6 +48,7 @@ export const useStartWorkout = () => {
 export const useWorkoutDetails = (workoutId) =>
   useQuery({
     queryKey: ['workout', workoutId],
+    networkMode: 'offlineFirst',
     queryFn: () => getWorkout(workoutId),
     enabled: !!workoutId,
   });
@@ -78,6 +80,7 @@ export const useWorkoutMutations = () => {
   };
 
   const statusMutation = useMutation({
+    networkMode: 'always',
     mutationFn: updateWorkoutStatus,
     onMutate: async ({ id, status }) => {
       await qc.cancelQueries({ queryKey: ['workouts'] });
@@ -87,11 +90,14 @@ export const useWorkoutMutations = () => {
       const detail = qc.getQueryData(detailKey);
       if (detail) qc.setQueryData(detailKey, { ...detail, status });
 
-      return { lists, detailKey, detail };
+      const active = qc.getQueryData(['workouts', 'active']);
+      if (active?.id === id) qc.setQueryData(['workouts', 'active'], status === 'in_progress' ? { ...active, status } : null);
+      return { lists, detailKey, detail, active };
     },
     onError: onMutationError((ctx) => {
       restore(ctx?.lists);
       if (ctx?.detail) qc.setQueryData(ctx.detailKey, ctx.detail);
+      if (ctx?.active !== undefined) qc.setQueryData(['workouts', 'active'], ctx.active);
     }, 'Не удалось изменить статус'),
     onSettled: skipWhenQueued((_d, _e, vars) => {
       invalidateAll(vars.id);
@@ -100,18 +106,21 @@ export const useWorkoutMutations = () => {
   });
 
   const createMutation = useMutation({
+    networkMode: 'always',
     mutationFn: createWorkout,
     onSuccess: (w) => { invalidateAll(w.id); toast.success('Тренировка добавлена'); },
     onError: onMutationError(null, 'Не удалось добавить тренировку'),
   });
 
   const syncMutation = useMutation({
+    networkMode: 'always',
     mutationFn: syncWorkout,
     onSuccess: (w) => { invalidateAll(w.id); toast.success('Тренировка синхронизирована с программой'); },
     onError: onMutationError(null, 'Ошибка синхронизации'),
   });
 
   const setMutation = useMutation({
+    networkMode: 'always',
     mutationFn: upsertWorkoutSet,
     onMutate: async (vars) => {
       if (!vars.setId) vars.clientId ??= crypto.randomUUID();
@@ -179,6 +188,7 @@ export const useWorkoutMutations = () => {
   });
 
   const deleteSetMutation = useMutation({
+    networkMode: 'always',
     mutationFn: deleteWorkoutSet,
     onMutate: async (vars) => {
       const key = ['workout', vars.workoutId];
@@ -202,6 +212,7 @@ export const useWorkoutMutations = () => {
   });
 
   const updateMutation = useMutation({
+    networkMode: 'always',
     mutationFn: updateWorkout,
     onMutate: async (vars) => {
       const key = ['workout', vars.id];
@@ -223,6 +234,7 @@ export const useWorkoutMutations = () => {
   });
 
   const deleteWorkoutMutation = useMutation({
+    networkMode: 'always',
     mutationFn: deleteWorkout,
     onMutate: async (id) => {
       await qc.cancelQueries({ queryKey: ['workouts'] });

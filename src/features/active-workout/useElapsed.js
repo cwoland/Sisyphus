@@ -15,7 +15,7 @@ export const useElapsed = (startedAt) => {
     };
   }, [startedAt]);
 
-  if (!startedAt) return '0:00';
+  if (!startedAt || !Number.isFinite(new Date(startedAt).getTime())) return '0:00';
 
   const total = Math.max(0, Math.floor((now - new Date(startedAt).getTime()) / 1000));
   const h = Math.floor(total / 3600);

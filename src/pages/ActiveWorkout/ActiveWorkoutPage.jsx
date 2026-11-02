@@ -81,6 +81,7 @@ const WorkoutSession = ({ id }) => {
   );
 
   const [index, setIndex] = useState(0);
+  const [commitBusy, setCommitBusy] = useState(false);
   const [setsOpen, setSetsOpen] = useState(false);
   const [sealing, setSealing] = useState(false);
   const [finalePhrase, setFinalePhrase] = useState(null);
@@ -89,11 +90,20 @@ const WorkoutSession = ({ id }) => {
   const [showWeight, setShowWeight] = useState(false);
   const [restOverrides, setRestOverrides] = useState({});
 
+  const commitLock = useRef(false);
+  const commitUnlock = useRef(null);
+  const releaseCommit = () => {
+    commitUnlock.current = setTimeout(() => {
+      commitLock.current = false;
+      setCommitBusy(false);
+    }, 350);
+  };
   const sealTimer = useRef(null);
   const finaleTimer = useRef(null);
   const recordTimer = useRef(null);
 
   useEffect(() => () => {
+    clearTimeout(commitUnlock.current);
     clearTimeout(sealTimer.current);
     clearTimeout(finaleTimer.current);
     clearTimeout(recordTimer.current);
@@ -277,7 +287,7 @@ const WorkoutSession = ({ id }) => {
   };
 
   const openDrop = (set) => {
-    if (!set || setMutation.isPending) return;
+    if (!set || (setMutation.isPending || commitBusy)) return;
 
     clearTimeout(sealTimer.current);
     setSealing(false);
@@ -288,7 +298,9 @@ const WorkoutSession = ({ id }) => {
   };
 
   const commitDrop = () => {
-    if (!dropFor || setMutation.isPending) return;
+    if (!dropFor || (setMutation.isPending || commitBusy) || commitLock.current) return;
+    commitLock.current = true;
+    setCommitBusy(true);
 
     const parent = current.sets.find(
       (s) => s.id === dropFor
@@ -303,6 +315,7 @@ const WorkoutSession = ({ id }) => {
         isCompleted: true,
       }),
       {
+        onSettled: releaseCommit,
         onSuccess: (data) => {
           onRecord(parent.exercise_name)(data);
           setDraft((d) => ({ ...d, forId: null }));
@@ -317,7 +330,7 @@ const WorkoutSession = ({ id }) => {
   };
 
   const finishDrops = () => {
-    if (setMutation.isPending) return;
+    if ((setMutation.isPending || commitBusy)) return;
 
     const parent = current?.sets.find(
       (s) => s.id === dropFor
@@ -342,7 +355,9 @@ const WorkoutSession = ({ id }) => {
   };
 
   const commitSet = () => {
-    if (!pending || setMutation.isPending) return;
+    if (!pending || (setMutation.isPending || commitBusy) || commitLock.current) return;
+    commitLock.current = true;
+    setCommitBusy(true);
 
     const exerciseName =
       currentExercise?.name || current.name;
@@ -355,6 +370,7 @@ const WorkoutSession = ({ id }) => {
         isCompleted: true,
       }),
       {
+        onSettled: releaseCommit,
         onSuccess: (data) => {
           onRecord(exerciseName)(data);
           completeRound();
@@ -399,7 +415,7 @@ const WorkoutSession = ({ id }) => {
   const finish = () => {
     if (
       finalePhrase ||
-      setMutation.isPending ||
+      (setMutation.isPending || commitBusy) ||
       dropFor
     ) {
       return;
@@ -449,13 +465,22 @@ const WorkoutSession = ({ id }) => {
     );
   };
 
-  if (detailsQuery.isLoading) {
+  if (detailsQuery.isLoading && !workout) {
     return (
       <div className="mx-auto max-w-2xl space-y-4 p-4">
         <Skeleton className="h-14 w-full" />
         <Skeleton className="h-72 w-full" />
       </div>
     );
+  }
+
+  if (!workout) {
+    return <main className="mx-auto max-w-2xl space-y-4 p-5 pad-safe-top">
+      <h1 className="text-xl font-semibold text-text">Тренировка недоступна</h1>
+      <p className="text-sm text-text-muted">Для офлайн-работы сначала открой эту тренировку с интернетом.</p>
+      <Button onClick={() => detailsQuery.refetch()}>Повторить загрузку</Button>
+      <Button variant="secondary" onClick={() => navigate('/calendar')}>В календарь</Button>
+    </main>;
   }
 
   const exerciseDone = total > 0 && done >= total;
@@ -479,7 +504,7 @@ const WorkoutSession = ({ id }) => {
             <h1 className="truncate font-display text-lg font-bold text-text">
               {workout?.title}
             </h1>
-            <p className="font-display text-sm tabular-nums text-text-muted">
+            <p aria-label="Время тренировки" className="font-display text-sm tabular-nums text-text-muted">
               {elapsed}
             </p>
           </div>
@@ -487,7 +512,7 @@ const WorkoutSession = ({ id }) => {
           <Button
             size="sm"
             onClick={finish}
-            disabled={setMutation.isPending || !!dropFor}
+            disabled={(setMutation.isPending || commitBusy) || !!dropFor}
             isLoading={statusMutation.isPending}
           >
             <Flag size={16} /> Завершить
@@ -705,7 +730,7 @@ const WorkoutSession = ({ id }) => {
                       <Button
                         size="lg"
                         onClick={finish}
-                        disabled={setMutation.isPending || !!dropFor}
+                        disabled={(setMutation.isPending || commitBusy) || !!dropFor}
                         isLoading={statusMutation.isPending}
                       >
                         <Flag size={18} />
@@ -822,7 +847,7 @@ const WorkoutSession = ({ id }) => {
                       <Button
                         size="lg"
                         onClick={commitDrop}
-                        isLoading={setMutation.isPending}
+                        isLoading={(setMutation.isPending || commitBusy)}
                       >
                         <Check size={18} />
                         Ступень выполнена
@@ -832,7 +857,7 @@ const WorkoutSession = ({ id }) => {
                         size="lg"
                         variant="secondary"
                         onClick={finishDrops}
-                        disabled={setMutation.isPending}
+                        disabled={(setMutation.isPending || commitBusy)}
                       >
                         Закончить дропсет
                       </Button>
@@ -841,7 +866,7 @@ const WorkoutSession = ({ id }) => {
                     <Button
                       size="lg"
                       onClick={commitSet}
-                      disabled={!pending || setMutation.isPending}
+                      disabled={!pending || (setMutation.isPending || commitBusy)}
                     >
                       <Check size={18} />
                       {current.isDropSet

@@ -46,6 +46,9 @@ api.interceptors.request.use((config) => {
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
+  if (navigator.onLine === false) {
+    throw new axios.AxiosError('Нет соединения', 'ERR_NETWORK', config);
+  }
   return config;
 });
 
@@ -122,7 +125,7 @@ api.interceptors.response.use(
         userId: error.config._ownerId,
         method: error.config.method,
         url: error.config.url,
-        data: error.config.data ? JSON.parse(error.config.data) : undefined,
+        data: typeof error.config.data === 'string' ? JSON.parse(error.config.data) : error.config.data,
       });
       toast.info('Нет сети — действие сохранено и выполнится позже');
 
@@ -134,7 +137,7 @@ api.interceptors.response.use(
 );
 
 api.interceptors.request.use((config) => {
-  if (config.url?.includes('/ai')) return config;
+  if (navigator.onLine === false || config.url?.includes('/ai')) return config;
   config._coldStartTracked = true;
   pending += 1;
   if (pending === 1 && !timer) {

@@ -111,3 +111,29 @@ html.dark {
   .epic-button, .epic-nav-link::before, .epic-record-link { transition: none; }
   .epic-button:not(:disabled):hover, .epic-button:not(:disabled):active { transform: none; }
 }
+
+.epic-streak-celebration {
+  bottom: calc(5.5rem + env(safe-area-inset-bottom));
+  background-image: radial-gradient(ellipse at 0 100%, rgb(var(--epic-hero-glow) / .18), transparent 75%);
+}
+@media (min-width: 1024px) {
+  .epic-streak-celebration { bottom: 1.5rem; }
+}
+
+.epic-feature-hero {
+  background-image: radial-gradient(ellipse at 100% 100%, rgb(var(--epic-hero-glow) / .24), transparent 75%);
+}
+.epic-card-art {
+  position: absolute;
+  right: -.5rem;
+  bottom: -.5rem;
+  width: 33%;
+  height: calc(100% + 1rem);
+  object-fit: contain;
+  object-position: right bottom;
+  pointer-events: none;
+  user-select: none;
+}
+@media (min-width: 640px) {
+  .epic-card-art { width: 9.5rem; right: 1rem; }
+}

@@ -11,6 +11,8 @@ import { AppLayout } from './widgets/layout/AppLayout.jsx';
 import { ToastContainer } from './shared/ui/toast/ToastContainer.jsx';
 import { useThemeStore } from './entities/theme/theme.store.js';
 import { OfflineIndicator } from './shared/offline/OfflineIndicator.jsx';
+import { installWorkoutPersistence } from './shared/offline/workoutCache.js';
+import { VisitStreakCelebration } from './features/visit-streak/VisitStreakCelebration.jsx';
 import { UpdatePrompt } from './shared/pwa/UpdatePrompt.jsx';
 
 import { registerSW } from 'virtual:pwa-register';
@@ -45,14 +47,7 @@ const queryClient = new QueryClient({
   },
 });
 
-useAuthStore.subscribe((state, previous) => {
-  if (state.user?.id !== previous.user?.id) {
-    queryClient.clear();
-    if (previous.user?.id) navigator.serviceWorker?.controller?.postMessage({
-      type: 'CLEAR_USER_CACHE', userId: previous.user.id,
-    });
-  }
-});
+installWorkoutPersistence(queryClient, useAuthStore);
 
 function App() {
   const initTheme = useThemeStore((s) => s.initTheme);
@@ -103,6 +98,7 @@ function App() {
           </Routes>
           </Suspense>
         </AuthProvider>
+        <VisitStreakCelebration />
         <OfflineIndicator />
         <UpdatePrompt />
         <ToastContainer />

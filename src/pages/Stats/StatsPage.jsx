@@ -34,9 +34,9 @@ export const StatsPage = () => {
         <div className="space-y-5">
             <section
                 aria-label="Нагрузка"
-                className="relative isolate clip-card-art overflow-hidden rounded-2xl border border-border bg-surface p-5 sm:p-7"
+                className="epic-feature-hero relative isolate clip-card-art overflow-hidden rounded-2xl border border-border bg-surface p-5 sm:p-7"
             >
-                <CardArt name="black" className="card-art-hero" />
+                <CardArt name="temple-foundation" className="card-art-hero" />
 
                 <div className="relative pr-[34%] sm:pr-40">
                     <p className="font-display text-sm font-semibold uppercase tracking-[0.14em] text-text-muted">

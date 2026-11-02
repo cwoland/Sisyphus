@@ -27,6 +27,7 @@ export const programToBuilder = (program) => ({
             tempId: crypto.randomUUID(),
             groupId: `${day.id}:${ex.group_index ?? ex.order_index}`,
             exerciseId: ex.exercise_id,
+            name: ex.exercise_name || ex.name || 'Упражнение без названия',
             muscleGroup: ex.muscle_group,
             tracking: ex.tracking || 'weight_reps',
             targetSets: ex.target_sets,

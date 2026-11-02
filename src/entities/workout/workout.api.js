@@ -1,10 +1,22 @@
 import { api } from '../../shared/lib/axios.js';
+import { useAuthStore } from '../user/auth.store.js';
+import { cachedWorkout } from '../../shared/offline/workoutCache.js';
+import { queueGetAll } from '../../shared/offline/db.js';
 
 export const getWorkouts = ({ from, to }) =>
     api.get('/workouts', { params: { from, to } }).then((r) => r.data.workouts);
 
-export const getWorkout = (id) =>
-    api.get(`/workouts/${id}`).then((r) => r.data.workout);
+export const getWorkout = async (id) => {
+    const userId = useAuthStore.getState().user?.id;
+    const local = cachedWorkout(userId, id);
+    if (local) {
+      if (navigator.onLine === false) return local;
+      const queued = await queueGetAll().catch(() => []);
+      if (queued.some((item) => item.userId === userId &&
+          (item.url === `/workouts/${id}` || item.url.startsWith(`/workouts/${id}/`)))) return local;
+    }
+    return api.get(`/workouts/${id}`).then((r) => r.data.workout);
+};
 
 export const createWorkout = (payload) =>
     api.post('/workouts', payload).then((r) => r.data.workout);

@@ -1,4 +1,5 @@
 import { clsx } from 'clsx';
+import './epic.css';
 
 const ART_SIZE = {
   warrior: { width: 289, height: 440 },
@@ -9,6 +10,10 @@ const ART_SIZE = {
 const FALLBACK_SIZE = { width: 289, height: 440 };
 
 export const CardArt = ({ name, className }) => {
+  if (['spartan-discipline', 'athena-wisdom', 'temple-foundation'].includes(name)) {
+    return <img src={`/art/ui/${name}.webp`} alt="" aria-hidden="true" draggable="false"
+      width="768" height="1152" loading="lazy" decoding="async" className={clsx('epic-card-art', className)} />;
+  }
   const { width, height } = ART_SIZE[name] || FALLBACK_SIZE;
 
   return (
