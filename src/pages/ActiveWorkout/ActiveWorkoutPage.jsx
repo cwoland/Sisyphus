@@ -30,6 +30,7 @@ import { useElapsed } from '../../features/active-workout/useElapsed.js';
 import { useRestTimer } from '../../features/active-workout/useRestTimer.js';
 import { WorkoutFinale } from '../../features/active-workout/WorkoutFinale.jsx';
 import { RecordBanner } from '../../features/active-workout/RecordBanner.jsx';
+import { WorkoutBackdrop } from '../../features/active-workout/WorkoutBackdrop.jsx';
 import { isQueuedError } from '../../shared/offline/isQueued.js';
 import { Skeleton } from '../../shared/ui/Skeleton.jsx';
 import { Button } from '../../shared/ui/Button.jsx';
@@ -490,13 +491,7 @@ const WorkoutSession = ({ id }) => {
 
   return (
     <div className="relative isolate flex h-[100dvh] flex-col overflow-hidden bg-bg">
-      <img
-        src="/art/scenes/active-workout.webp"
-        alt=""
-        aria-hidden="true"
-        draggable="false"
-        className="pointer-events-none absolute inset-x-0 bottom-0 -z-10 h-[70%] w-full select-none object-cover object-top opacity-40"
-      />
+      <WorkoutBackdrop />
 
       <header className="relative z-20 shrink-0 border-b border-border bg-surface/90 backdrop-blur pad-safe-top">
         <div className="mx-auto flex max-w-2xl items-center gap-3 px-4 py-3">
