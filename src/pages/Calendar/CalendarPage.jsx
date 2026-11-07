@@ -333,20 +333,28 @@ const WorkoutMetaEditor = ({ workout, onSave }) => {
       <div className="mb-1.5 flex h-4 items-center justify-end">
         <SavedHint show={saved} />
       </div>
-    <div className="flex flex-col gap-2 sm:flex-row">
-      <input 
-        value={title}
-        onChange={(e) => setTitle(e.target.value)}
-        onBlur={commit}
-        placeholder="Название тренировки"
-        className="min-w-0 w-full flex-1 rounded-xl border border-border-strong bg-surface-2 px-3 py-2 text-base text-text focus:outline-none focus:ring-1 focus:ring-accent" />
+      <div className="grid min-w-0 grid-cols-1 gap-2 sm:grid-cols-[minmax(0,1fr)_minmax(0,12rem)]">
         <input
-          type="date"
-          value={date}
-          onChange={(e) => setDate(e.target.value)}
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
           onBlur={commit}
-          className="min-w-0 w-full rounded-xl border border-border-strong bg-surface-2 px-3 py-2 text-base text-text focus:outline-none focus:ring-accent sm:w-auto" />
-    </div>
+          placeholder="Название тренировки"
+          aria-label="Название тренировки"
+          className="block w-full min-w-0 max-w-full rounded-xl border border-border-strong bg-surface-2 px-3 py-2 text-base text-text focus:outline-none focus:ring-1 focus:ring-accent"
+        />
+
+        <div className="min-w-0 overflow-hidden rounded-xl border border-border-strong bg-surface-2">
+          <input
+            type="date"
+            value={date}
+            onChange={(e) => setDate(e.target.value)}
+            onBlur={commit}
+            aria-label="Дата тренировки"
+            className="block w-full min-w-0 max-w-full appearance-none bg-transparent px-3 py-2 text-base text-text focus:outline-none focus:ring-1 focus:ring-inset focus:ring-accent"
+            style={{ WebkitAppearance: 'none' }}
+          />
+        </div>
+      </div>
     </div>
   );
 }

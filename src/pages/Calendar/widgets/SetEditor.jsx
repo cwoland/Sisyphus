@@ -113,37 +113,49 @@ const SetRow = ({
               : 'border-border bg-surface-2'
       )}
     >
-      <div className="flex min-w-0 items-center gap-1.5">
+      <div className="grid min-w-0 grid-cols-[2.75rem_minmax(0,1fr)_2.75rem_2.75rem] items-center gap-1.5">
         {isDrop ? (
           <span
-            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-terracotta/15 text-xs font-bold text-terracotta-ink"
-            aria-label="Дроп-подход"
-            title="Дроп-подход"
+            className="flex h-11 w-11 items-center justify-center rounded-lg bg-terracotta/15 text-sm font-bold text-terracotta-ink"
+            aria-label="Дропсет"
+            title="Дропсет"
           >
             D
           </span>
         ) : (
-          <select
-            value={role}
-            onChange={changeRole}
-            aria-label={`Тип подхода ${index}`}
-            title={ROLE_LABELS[role] || 'Обычный'}
+          <span
             className={clsx(
-              'h-11 w-11 shrink-0 appearance-none rounded-lg border text-center text-xs font-bold focus:outline-none focus:ring-1 focus:ring-cta',
+              'relative flex h-11 w-11 items-center justify-center rounded-lg border text-sm font-bold focus-within:ring-1 focus-within:ring-cta',
               role === 'warmup'
-                ? 'border-gold/40 bg-gold/15 text-gold-ink'
+                ? 'border-gold/40 bg-gold/15 text-fold-ink'
                 : role === 'failure'
                   ? 'border-danger/40 bg-danger/10 text-danger'
                   : 'border-border bg-surface text-text-muted'
             )}
           >
-            <option value="normal">N</option>
-            <option value="warmup">W</option>
-            <option value="failure">F</option>
-          </select>
+            <span aria-hidden="true">
+              {role === 'warmup'
+                ? 'W'
+                : role === 'failure'
+                  ? 'F'
+                  : N}
+            </span>
+
+            <select 
+              value={role}
+              onChange={changeRole}
+              aria-label={`Тип подхода ${index}`}
+              title={ROLE_LABELS[role] || 'Подход'}
+              className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
+            >
+              <option value="normal">Подход</option>
+              <option value="warmup">Разминочный</option>
+              <option value="failure">До отказа</option>
+            </select>
+          </span>
         )}
 
-        <div className="grid min-w-0 flex-1 grid-cols-2 gap-1.5">
+        <div className="grid min-w-0 flex-1 grid-cols-2 gap-1.5 max-[400px]:col-span-3">
           {mode === 'duration' ? (
             <div className="col-span-2">
               <input
@@ -228,6 +240,7 @@ const SetRow = ({
           aria-pressed={completed}
           className={clsx(
             iconButtonClass,
+            'max-[400px]:col-start-3 max-[400px]:row-start-2',
             completed
               ? 'bg-accent text-on-accent'
               : 'bg-surface text-text-muted hover:text-text'
@@ -246,6 +259,7 @@ const SetRow = ({
           }
           className={clsx(
             iconButtonClass,
+            'max-[400px]:col-start-4 max-[400px]:row-start-2',
             'text-text-muted hover:bg-surface hover:text-danger'
           )}
         >

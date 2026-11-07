@@ -48,6 +48,8 @@ export const useProgramMutations = () => {
         mutationFn: deleteProgram,
         onSuccess: () => {
             qc.invalidateQueries({ queryKey: ['programs'] });
+            qc.invalidateQueries({ queryKey: ['workouts'] });
+            qc.invalidateQueries({ queryKey: ['workout'] });
             toast.success('Программа удалена');
         },
         onError: (e) => toast.error(e.response?.data?.message || 'Не удалось удалить программу'),
