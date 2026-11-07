@@ -7,6 +7,7 @@ import { CalendarGrid } from './widgets/CalendarGrid.jsx';
 import { DayPanel } from './widgets/DayPanel.jsx';
 import { BestResultCard } from './widgets/BestResultCard.jsx';
 import { ExerciseSets } from './widgets/SetEditor.jsx';
+import { SupersetLink } from './widgets/SupersetLink.jsx';
 import { ExercisePicker } from '../../features/exercise-picker/ExercisePicker.jsx';
 import { Sheet } from '../../shared/ui/Sheet.jsx';
 import { Skeleton } from '../../shared/ui/Skeleton.jsx';
@@ -88,7 +89,36 @@ export const CalendarPage = () => {
   };
 
   const handleAddSet = (exerciseId) => {
-    setMutation.mutate({ workoutId: openWorkoutId, exerciseId, weight: null, reps: null, isCompleted: false });
+    const previous = [...(detailsQuery.data?.sets || [])]
+      .reverse()
+      .find(
+        (set) =>
+          set.exercise_id === exerciseId && 
+          set.set_kind !== 'drop'
+      );
+
+      setMutation.mutate({
+        workoutId: openWorkoutId,
+        exerciseId,
+        exerciseName: previous?.exercise_name,
+        weight:
+          previous?.weight === null
+            ? null
+            : Number(previous.weight),
+        reps:
+          previous?.reps === null
+            ? null
+            : Number(previous.reps),
+        durationSec:
+          previous?.duration_sec === null
+            ? null
+            : Number(previous.duration_sec),
+        isCompleted: false,
+      });
+  };
+
+  const handleAddDrop = ({ workoutId, exerciseId, exerciseName, parentSetId, weight, reps, durationSec }) => {
+    setMutation.mutate({ workoutId, exerciseId, exerciseName, parentSetId, setKind: 'drop', weight, reps, durationSec, isCompleted: false });
   };
 
   const handlePickExercise = (exercise) => {
@@ -179,15 +209,70 @@ export const CalendarPage = () => {
                 В этой тренировке пока нет упражнений. Добавь первое.
               </p>
             ) : (
-              groupedSets.map((group) => (
-                <ExerciseSets
-                key={group.exerciseId}
-                {...group}
-                workoutId={openWorkoutId}
-                onSaveSet={(data) => setMutation.mutate(data)}
-                onDeleteSet={(data) => deleteSetMutation.mutate(data)}
-                onAddSet={handleAddSet} />
-              ))
+              groupedSets.map((group, index) => {
+  const next = groupedSets[index + 1];
+
+  const groupIndex = group.sets.find(
+    (set) => set.set_kind !== 'drop'
+  )?.group_index;
+
+  const previousGroupIndex = groupedSets[index - 1]
+    ?.sets.find((set) => set.set_kind !== 'drop')
+    ?.group_index;
+
+  const nextGroupIndex = next?.sets.find(
+    (set) => set.set_kind !== 'drop'
+  )?.group_index;
+
+  const linkedToPrevious =
+    groupIndex != null &&
+    groupIndex === previousGroupIndex;
+
+  const linkedToNext =
+    groupIndex != null &&
+    groupIndex === nextGroupIndex;
+
+  return (
+    <div key={group.exerciseId} className="space-y-2">
+      <div
+        className={
+          linkedToPrevious || linkedToNext
+            ? 'rounded-r-2xl border-l-4 border-terracotta pl-3'
+            : ''
+        }
+      >
+        {!linkedToPrevious && linkedToNext && (
+          <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-terracotta-ink">
+            Суперсет
+          </p>
+        )}
+
+        <ExerciseSets
+          {...group}
+          workoutId={openWorkoutId}
+          onSaveSet={(data) => setMutation.mutate(data)}
+          onDeleteSet={(data) => deleteSetMutation.mutate(data)}
+          onAddSet={handleAddSet}
+          onAddDrop={handleAddDrop}
+        />
+      </div>
+
+      {next && (
+        <SupersetLink
+          workoutId={openWorkoutId}
+          workoutStatus={detailsQuery.data?.status}
+          first={group}
+          second={next}
+          exercises={groupedSets}
+          disabled={
+            setMutation.isPending ||
+            deleteSetMutation.isPending
+          }
+        />
+      )}
+    </div>
+  );
+})
             )}
 
             <button

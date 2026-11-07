@@ -144,6 +144,7 @@ export const useWorkoutMutations = () => {
                 duration_sec: vars.durationSec !== undefined ? vars.durationSec : s.duration_sec,
                 rpe: vars.rpe !== undefined ? vars.rpe : s.rpe,
                 is_completed: vars.isCompleted ?? s.is_completed,
+                set_role: vars.setRole ?? s.set_role,
               }
             : s
           ),
@@ -168,6 +169,7 @@ export const useWorkoutMutations = () => {
             duration_sec: vars.durationSec ?? null, rpe: vars.rpe ?? null,
             is_completed: vars.isCompleted ?? false,
             set_kind: vars.parentSetId ? 'drop' : vars.setKind ?? 'normal',
+            set_role: vars.setRole ?? 'normal',
             parent_set_id: vars.parentSetId ?? null,
             group_index: groupIndex, round_index: roundIndex,
             order_index: parent?.order_index ?? Math.max(-1, ...sets.map((s) => s.order_index)) + 1,

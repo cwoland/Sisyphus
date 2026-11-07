@@ -22,6 +22,7 @@ import {
   restSecondsForGroup,
 } from '../../features/active-workout/workoutFlow.js';
 import { ProgressRings } from '../../features/active-workout/ProgressRings.jsx';
+import { SetRoleBadge } from '../../features/active-workout/SetRoleBadge.jsx';
 import { SetTicks } from '../../features/active-workout/SetTicks.jsx';
 import { NumberStepper } from '../../features/active-workout/NumberStepper.jsx';
 import { DurationStepper } from '../../features/active-workout/DurationStepper.jsx';
@@ -750,6 +751,10 @@ const WorkoutSession = ({ id }) => {
                     </div>
                   )}
 
+                  {!dropFor && activeSet && (
+                    <SetRoleBadge set={activeSet} />
+                  )}
+
                   {!dropFor && pending?.target_reps && (
                     <p className="text-sm text-text-muted">
                       Цель: {pending.target_reps}{' '}
@@ -955,6 +960,7 @@ const WorkoutSession = ({ id }) => {
                               ? `Раунд ${(s.round_index ?? 0) + 1} · ${s.exercise_name}`
                               : `Подход ${i + 1}`}
                           </span>
+                          <SetRoleBadge set={s} compact />
                         </span>
 
                         <span className="flex shrink-0 items-center gap-2 tabular-nums">
