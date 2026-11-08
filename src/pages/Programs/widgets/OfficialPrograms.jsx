@@ -39,6 +39,14 @@ const IMAGES = {
   'spartan-discipline': '/art/ui/spartan-discipline.webp',
 };
 
+const PROGRAM_IMAGES = {
+  'first-ascent': '/art/ui/program-first-ascent.webp',
+  'athlete-path': '/art/ui/program-athlete-path.webp',
+  olympus: '/art/ui/program-olympus.webp',
+};
+
+const getProgramImage = (program) => PROGRAM_IMAGES[program.slug] || IMAGES[program.image];
+
 const LEVEL_FILTERS = [
   { value: 'all', label: 'Все уровни' },
   { value: 'beginner', label: 'Новичок' },
@@ -77,7 +85,8 @@ const OfficialProgramCard = ({
   program,
   onOpen,
 }) => {
-  const image = IMAGES[program.image];
+  const image = getProgramImage(program);
+  const isProgramImage = Boolean(PROGRAM_IMAGES[program.slug]);
 
   return (
     <button
@@ -98,7 +107,9 @@ const OfficialProgramCard = ({
           draggable="false"
           loading="lazy"
           decoding="async"
-          className="pointer-events-none absolute -right-2 bottom-0 -z-10 h-[92%] w-[36%] select-none object-contain object-bottom opacity-75"
+          className={clsx('pointer-events-none absolute -z-10 select-none', isProgramImage
+            ? 'right-0 top-0 h-full w-[55%] object-cover object-right opacity-75 [mask-image:linear-gradient(to_right,transparent,black_40%)]'
+            : '-right-2 bottom-0 h-[92%] w-[36%] object-contain object-bottom opacity-75')}
         />
       )}
 
@@ -169,7 +180,8 @@ const OfficialProgramDetail = ({
     );
   }
 
-  const image = IMAGES[program.image];
+  const image = getProgramImage(program);
+  const isProgramImage = Boolean(PROGRAM_IMAGES[program.slug]);
 
   return (
     <div className="space-y-5">
@@ -180,7 +192,9 @@ const OfficialProgramDetail = ({
             alt=""
             aria-hidden="true"
             draggable="false"
-            className="pointer-events-none absolute -right-3 bottom-0 -z-10 h-full w-[38%] select-none object-contain object-bottom opacity-65"
+            className={clsx('pointer-events-none absolute -z-10 select-none', isProgramImage
+              ? 'right-0 top-0 h-full w-[55%] object-cover object-right opacity-65 [mask-image:linear-gradient(to_right,transparent,black_40%)]'
+              : '-right-3 bottom-0 h-full w-[38%] object-contain object-bottom opacity-65')}
           />
         )}
 
