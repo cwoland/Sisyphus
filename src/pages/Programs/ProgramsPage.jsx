@@ -21,6 +21,7 @@ import { ProgramBuilder } from './widgets/ProgramBuilder.jsx';
 import { ProgramDetail } from './widgets/ProgramDetail.jsx';
 import { ProgramCard } from './widgets/ProgramCard.jsx';
 import { ScheduleDialog } from './widgets/ScheduleDialog.jsx';
+import { OfficialPrograms } from './widgets/OfficialPrograms.jsx';
 import { Sheet } from '../../shared/ui/Sheet.jsx';
 import { Button } from '../../shared/ui/Button.jsx';
 import { CardArt } from '../../shared/ui/CardArt.jsx';
@@ -32,6 +33,7 @@ import { ShareDialog } from '../../features/share/ShareDialog.jsx';
 
 const TABS = [
   { id: 'mine', label: 'Мои', icon: User },
+  { id: 'official', label: 'От Sisyphus', icon: Dumbbell },
   { id: 'catalog', label: 'Каталог', icon: Compass },
 ];
 
@@ -40,13 +42,16 @@ export const ProgramsPage = () => {
   const me = useAuthStore((s) => s.user);
 
   const [params, setParams] = useSearchParams();
-  const tab = params.get('tab') === 'catalog'
-    ? 'catalog'
-    : 'mine';
+  
+  const requestedTab = params.get('tab');
+
+  const tab = 
+    requestedTab === 'official' || requestedTab === 'catalog'
+      ? requestedTab
+      : 'mine';
 
   const setTab = (next) =>
-    setParams(
-      next === 'catalog' ? { tab: 'catalog' } : {},
+    setParams(next === 'mine' ? {} : { tab: next },
       { replace: true }
     );
 
@@ -171,7 +176,7 @@ export const ProgramsPage = () => {
       <div
         role="tablist"
         aria-label="Источник программ"
-        className="flex gap-1 border-b border-border"
+        className="flex gap-1 overflow-x-auto border-b border-border"
       >
         {TABS.map(({ id, label, icon: Icon }) => (
           <button
@@ -217,6 +222,15 @@ export const ProgramsPage = () => {
             ))}
           </div>
         )
+      )}
+
+      {tab === 'official' && (
+        <OfficialPrograms
+          onCopied={(program) => {
+            setTab('mine');
+            setDetailId(program.id);
+          }}
+        />
       )}
 
       {tab === 'catalog' && (
