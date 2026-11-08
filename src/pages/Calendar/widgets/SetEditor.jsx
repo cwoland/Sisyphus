@@ -138,7 +138,7 @@ const SetRow = ({
                 ? 'W'
                 : role === 'failure'
                   ? 'F'
-                  : N}
+                  : 'N'}
             </span>
 
             <select 
