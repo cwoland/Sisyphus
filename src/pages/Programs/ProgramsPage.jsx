@@ -1,23 +1,13 @@
 import { programToBuilder } from '../../entities/program/setPlan.js';
 import { useState, useEffect } from 'react';
 import { useLocation, useSearchParams } from 'react-router-dom';
-import {
-  Plus,
-  Dumbbell,
-  Compass,
-  User,
-  Search,
-} from 'lucide-react';
+import { Plus, Dumbbell, Compass, User, Search, Sparkles } from 'lucide-react';
 import { clsx } from 'clsx';
 
-import {
-  usePrograms,
-  useProgram,
-  useProgramMutations,
-  usePublicPrograms,
-} from './programs.hooks.js';
+import { usePrograms, useProgram, useProgramMutations, usePublicPrograms } from './programs.hooks.js';
 import { useAuthStore } from '../../entities/user/auth.store.js';
 import { ProgramBuilder } from './widgets/ProgramBuilder.jsx';
+import { AiProgramQuiz } from './widgets/AiProgramQuiz.jsx';
 import { ProgramDetail } from './widgets/ProgramDetail.jsx';
 import { ProgramCard } from './widgets/ProgramCard.jsx';
 import { ScheduleDialog } from './widgets/ScheduleDialog.jsx';
@@ -30,12 +20,36 @@ import { SkeletonList } from '../../shared/ui/Skeleton.jsx';
 import { emptyStates } from '../../shared/lib/sisyphusPhrases.js';
 import { plural } from '../../shared/lib/plural.js';
 import { ShareDialog } from '../../features/share/ShareDialog.jsx';
+import { da } from 'date-fns/locale';
 
 const TABS = [
   { id: 'mine', label: 'Мои', icon: User },
   { id: 'official', label: 'От Sisyphus', icon: Dumbbell },
   { id: 'catalog', label: 'Каталог', icon: Compass },
 ];
+
+const generatedProgramToBuilder = (program) => ({
+  title: program.title,
+  description: program.description || '',
+  isPublic: false,
+  kind: 'strength',
+  days: program.days.map((day) => ({
+    tempId: crypto.randomUUID(),
+    title: day.title,
+    exercises: day.exercises.map((exercise) => ({ 
+      tempId: crypto.randomUUID(),
+      groupId: crypto.randomUUID(),
+      exerciseId: exercise.exerciseId,
+      name: exercise.name,
+      tracking: exercise.tracking || 'weight_reps',
+      muscleGroup: exercise.muscleGroup,
+      targetSets: exercise.targetSets,
+      taretReps: exercise.targetReps,
+      notes: exercise.notes || '',
+      setPlan: exercise.setPlan,
+    })),
+  })),
+});
 
 export const ProgramsPage = () => {
   const location = useLocation();
@@ -66,6 +80,8 @@ export const ProgramsPage = () => {
 
   const [editProgram, setEditProgram] = useState(null);
   const [builderOpen, setBuilderOpen] = useState(false);
+  const [aiQuizOpen, setAiQuizOpen] = useState(false);
+  const [generatedProgram, setGeneratedProgram] = useState(null);
   const [detailId, setDetailId] = useState(
     location.state?.programId ?? null
   );
@@ -93,6 +109,21 @@ export const ProgramsPage = () => {
     if (!location.state?.programId) return;
     window.history.replaceState({}, '');
   }, [location.state]);
+
+  const handleAiGenerated = (program) => {
+    setGeneratedProgram(generatedProgramToBuilder(program));
+    setAiQuizOpen(false);
+  };
+
+  const handleCreateGenerated = (payload) => {
+    create.mutate(payload, {
+      onSuccess: (program) => {
+        setGeneratedProgram(null);
+        setTab('mine');
+        setDetailId(program.id);
+      },
+    });
+  };
 
   const handleCreate = (payload) => {
     create.mutate(payload, {
@@ -162,12 +193,21 @@ export const ProgramsPage = () => {
             подходы. Календарь разложит их сам.
           </p>
 
-          <div className="mt-6">
+          <div className="mt-6 flex flex-wrap gap-2">
             <Button
               size="lg"
               onClick={() => setBuilderOpen(true)}
             >
               <Plus size={18} /> Создать программу
+            </Button>
+
+            <Button
+              size="lg"
+              variant="secondary"
+              onClick={() => setAiQuizOpen(true)}
+            >
+              <Sparkles size={18} />
+              Сгенерировать
             </Button>
           </div>
         </div>
@@ -280,6 +320,41 @@ export const ProgramsPage = () => {
           )}
         </div>
       )}
+
+      <Sheet
+        isOpen={aiQuizOpen}
+        onClose={() => setAiQuizOpen(false)}
+        title="Программа с ИИ"
+      >
+        {aiQuizOpen && (
+          <AiProgramQuiz
+            onGenerated={handleAiGenerated}
+            onCancel={() => setAiQuizOpen(false)}
+          />
+        )}
+      </Sheet>
+
+      <Sheet
+        isOpen={!!generatedProgram}
+        onClose={() => setGeneratedProgram(null)}
+        title="Проверь программу"
+      >
+        {generatedProgram && (
+          <div className="space-y-4">
+            <div className="rounded-2xl border border-terracotta/25 bg-terracotta/10 p-4 text-sm leading-relaxed text-text">
+            ИИ подготовил черновик. Проверь упражнения, подходы и отдых.
+            </div>
+
+            <ProgramBuilder
+              initial={generatedProgram}
+              submitLabel="Сохранить программу"
+              onSubmit={handleCreateGenerated}
+              isSubmitting={create.isPending}
+              onCancel={() => setGeneratedProgram(null)}
+            />
+          </div>
+        )}
+      </Sheet>
 
       <Sheet
         isOpen={builderOpen}
