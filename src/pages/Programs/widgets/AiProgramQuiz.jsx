@@ -215,7 +215,7 @@ export const AiProgramQuiz = ({ onGenerated, onCancel }) => {
                                 key={String(option.value)}
                                 type="button"
                                 aria-pressed={selected}
-                                onClick={() => updateAnswer(current.key, current,value)}
+                                onClick={() => updateAnswer(current.key, option.value)}
                                 className={clsx(
                                     'w-full rounded-2xl border p-4 text-left transition-colors',
                                     selected

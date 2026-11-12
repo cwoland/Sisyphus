@@ -4,7 +4,7 @@ import { clsx } from 'clsx';
 import { Sheet } from '../../shared/ui/Sheet.jsx';
 import { Button } from '../../shared/ui/Button.jsx';
 import { useExercises, useCreateExercise } from '../../pages/Programs/programs.hooks.js';
-import { muscleGroups, equipmentTypes, muscleGroupLabel } from '../../entities/exercise/muscleGroups.js';
+import { muscleGroups, equipmentTypes, muscleGroupLabel, getMuscleDetailsForGroup } from '../../entities/exercise/muscleGroups.js';
 import { TRACKING_MODES } from '../../entities/exercise/tracking.js';
 import { Skeleton } from '../../shared/ui/Skeleton.jsx';
 
@@ -34,7 +34,7 @@ export const ExercisePicker = ({ isOpen, onClose, onPick }) => {
             />
           </div>
 
-          <div className="flex gap-2 overflow-x-auto pb-1 no-scrollbar">
+          <div className="flex flex-wrap gap-2">
             <FilterChip active={!group} onClick={() => setGroup(null)}>Все</FilterChip>
             {muscleGroups.map((g) => (
               <FilterChip key={g.value} active={group === g.value} onClick={() => setGroup(g.value)}>
@@ -94,6 +94,7 @@ const FilterChip = ({ active, children, ...props }) => (
 const NewExerciseForm = ({ onDone, onCreated }) => {
   const [name, setName] = useState('');
   const [muscleGroup, setMuscleGroup] = useState('chest');
+  const [muscleDetail, setMuscleDetail] = useState('');
   const [equipment, setEquipment] = useState('barbell');
   const [tracking, setTracking] = useState('weight_reps');
   const createMutation = useCreateExercise();
@@ -101,7 +102,7 @@ const NewExerciseForm = ({ onDone, onCreated }) => {
   const submit = () => {
     if (name.trim().length < 2) return;
     createMutation.mutate(
-      { name: name.trim(), muscleGroup, equipment, tracking },
+      { name: name.trim(), muscleGroup, muscleDetail: muscleDetail || null, equipment, tracking },
       { onSuccess: (ex) => onCreated(ex) }
     );
   };
@@ -115,7 +116,12 @@ const NewExerciseForm = ({ onDone, onCreated }) => {
         className="w-full rounded-xl border border-border-strong bg-surface px-4 py-3 text-sm text-text focus:outline-none focus:ring-1 focus:ring-accent"
       />
       <div className="grid grid-cols-2 gap-3">
-        <select value={muscleGroup} onChange={(e) => setMuscleGroup(e.target.value)}
+        <select 
+        value={muscleGroup} 
+        onChange={(e) => {
+        setMuscleGroup(e.target.value); 
+        setMuscleDetail('');
+        }}
           className="rounded-xl border border-border-strong bg-surface px-3 py-3 text-sm text-text focus:outline-none focus:ring-1 focus:ring-accent">
           {muscleGroups.map((g) => <option key={g.value} value={g.value}>{g.label}</option>)}
         </select>
@@ -124,6 +130,30 @@ const NewExerciseForm = ({ onDone, onCreated }) => {
           {equipmentTypes.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
         </select>
       </div>
+
+      {getMuscleDetailsForGroup(muscleGroup).length > 0 && (
+        <label className="block space-y-1.5">
+          <span className="text-sm font-medium text-text">
+            Основной акцент
+          </span>
+
+          <select
+            value={muscleDetail}
+            onChange={(event) => setMuscleDetail(event.target.value)}
+            className="w-full rounded-xl border border-border-strong bg-surface px-3 py-3 text-base text-text focus:outline-none focus:ring-1 focus:ring-accent"
+          >
+            <option value="">Не указан</option>
+            {getMuscleDetailsForGroup(muscleGroup).map((item) => (
+              <option
+                key={item.value}
+                value={item.value}
+              >
+                {item.label}
+              </option>
+            ))}
+          </select>
+        </label>
+      )}
 
       <div className="space-y-1.5">
         <p className="text-sm font-medium text-text">Как измерять</p>

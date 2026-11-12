@@ -201,9 +201,6 @@ export const ProgramsPage = () => {
         >Упражнения</button>
 
         <div className="relative pr-[34%] sm:pr-40">
-          <p className="font-display text-sm font-semibold uppercase tracking-[0.14em] text-text-muted">
-            Программы
-          </p>
 
           <h1 className="mt-2 font-display text-3xl font-extrabold leading-tight tracking-tight text-text sm:text-4xl">
             {mineCount
@@ -244,7 +241,7 @@ export const ProgramsPage = () => {
       {section === 'programs' && <div
         role="tablist"
         aria-label="Источник программ"
-        className="flex gap-1 overflow-x-auto border-b border-border"
+        className="flex flex-wrap gap-1 border-b border-border"
       >
         {TABS.map(({ id, label, icon: Icon }) => (
           <button

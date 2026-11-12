@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Dumbbell, Search, X } from 'lucide-react';
 import { clsx } from 'clsx';
 
@@ -8,10 +9,13 @@ import {
   muscleGroups,
   muscleGroupLabel,
   equipmentTypes,
+  getMuscleDetail,
 } from '../../../entities/exercise/muscleGroups.js';
+import { saveExerciseTechniqueNote } from '../../../entities/exercise/exercise.api.js';
 
 import { Sheet } from '../../../shared/ui/Sheet.jsx';
 import { SkeletonList } from '../../../shared/ui/Skeleton.jsx';
+import { Button } from '../../../shared/ui/Button.jsx';
 
 const GROUP_IMAGES = {
   chest: '/art/muscles/chest.png',
@@ -21,6 +25,8 @@ const GROUP_IMAGES = {
   arms: '/art/muscles/biceps.png',
   core: '/art/muscles/abs.png',
 };
+
+const getExerciseImage = (exercise) => getMuscleDetail(exercise.muscle_detail)?.image || GROUP_IMAGES[exercise.muscle_group];
 
 const getEquipmentLabel = (value) =>
   equipmentTypes.find((item) => item.value === value)?.label ||
@@ -67,7 +73,7 @@ const ExerciseCard = ({
   exercise,
   onOpen,
 }) => {
-  const image = GROUP_IMAGES[exercise.muscle_group];
+  const image = getExerciseImage(exercise);
   const tracking = getTrackingLabel(exercise.tracking);
 
   return (
@@ -102,7 +108,7 @@ const ExerciseCard = ({
 
       <span className="relative flex min-h-36 max-w-[70%] flex-col items-start justify-center gap-2 p-4">
         <span className="rounded-lg bg-terracotta/10 px-2 py-1 text-[11px] font-semibold text-terracotta-ink">
-          {muscleGroupLabel(exercise.muscle_group) ||
+          {getMuscleDetail(exercise.muscle_detail)?.label || muscleGroupLabel(exercise.muscle_group) ||
             'Без группы'}
         </span>
 
@@ -123,18 +129,60 @@ const ExerciseCard = ({
   );
 };
 
-const ExerciseDetail = ({ exercise }) => {
-  if (!exercise) return null;
+const ExerciseDetail = ({ exercise, onNoteSaved }) => {
+  const queryClient = useQueryClient();
 
-  const image = GROUP_IMAGES[exercise.muscle_group];
+  const [editing, setEditing] = useState(false);
+  const [note, setNote] = useState(exercise.personal_technique || '');
+  const [error, setError] = useState('');
+  const image = getExerciseImage(exercise);
   const tracking = getTrackingLabel(exercise.tracking);
+  const detail = getMuscleDetail(exercise.muscle_detail);
 
-  // Поле technique появится после наполнения библиотеки.
-  // До этого показываем заглушку, не выдумывая технику.
-  const technique =
+  const sharedTechnique =   
     typeof exercise.technique === 'string'
       ? exercise.technique.trim()
       : '';
+
+  const personalTechnique = 
+    typeof exercise.personal_technique === 'string'
+      ? exercise.personal_technique.trim()
+      : '';
+
+  const displayedTechnique = personalTechnique || sharedTechnique;
+
+  const saveNote = useMutation({
+    mutationFn: saveExerciseTechniqueNote,
+    onSuccess: async (saved) => {
+      setError('');
+
+      onNoteSaved({
+        ...exercise,
+        personal_technique: saved.technique,
+      });
+
+      await queryClient.invalidateQueries({
+        queryKey: ['exercises'],
+      });
+
+      setEditing(false);
+    },
+
+    onError: (requestError) => {
+      setError(requestError.response?.data?.message || 'Не удалось сохранить описание. Попробуй ещё раз');
+    },
+  });
+
+  const handleSave = () => {
+    if (saveNote.isPending) return;
+
+    setError('');
+
+    saveNote.mutate({
+      exerciseId: exercise.id,
+      technique: note,
+    });
+  };
 
   return (
     <div className="space-y-5 pb-4">
@@ -145,13 +193,12 @@ const ExerciseDetail = ({ exercise }) => {
               aria-hidden="true"
               className="pointer-events-none absolute inset-y-0 right-0 -z-10 w-[55%] bg-white"
             />
-
             <img
               src={image}
               alt=""
               aria-hidden="true"
               draggable="false"
-              className="pointer-events-none absolute inset-y-0 right-0 -z-10 h-full w-[55%] select-none object-cover object-center"
+              className="pointer-events-none absolute inset-y-0 right-0 -z-10 w-[55%] bg-white"
             />
 
             <div
@@ -163,8 +210,7 @@ const ExerciseDetail = ({ exercise }) => {
 
         <div className="flex min-h-56 max-w-[70%] flex-col items-start justify-end p-5">
           <span className="rounded-lg bg-terracotta/10 px-2 py-1 text-[11px] font-semibold text-terracotta-ink">
-            {muscleGroupLabel(exercise.muscle_group) ||
-              'Без группы'}
+            {detail?.label || muscleGroupLabel(exercise.muscle_group) || 'Без группы'}
           </span>
 
           <h2 className="mt-3 break-words font-display text-2xl font-extrabold leading-tight text-text">
@@ -184,18 +230,92 @@ const ExerciseDetail = ({ exercise }) => {
       </section>
 
       <section className="rounded-2xl border border-border bg-surface p-5">
-        <p className="text-xs font-semibold uppercase tracking-[0.12em] text-terracotta-ink">
-          Техника
-        </p>
-
-        {technique ? (
-          <p className="mt-3 whitespace-pre-line text-sm leading-6 text-text">
-            {technique}
+        <div className="flex items-center justify-between gap-3">
+          <p className="text-xs font-semibold uppercase tracking-[0.12em] text-terracotta-ink">
+            Техника
           </p>
+
+          {!editing && (
+            <button
+              type="button"
+              onClick={() => {
+                setNote(personalTechnique);
+                setError('');
+                setEditing(true);
+              }}
+              className="min-h-11 rounded-lg px-2 text-sm font-semibold text-terracotta-ink"
+            >
+              {personalTechnique
+                ? 'изменить заметку'
+                : 'Добавить заметку'}
+            </button>
+          )}
+        </div>
+
+        {editing ? (
+          <div className="mt-3 space-y-3">
+            <label
+              htmlFor="exercise-technique-note"
+              className="block text-sm text-text-muted"
+            >
+              Личное описание техники
+            </label>
+
+            <textarea
+              id="exercise-technique-note"
+              value={note}
+              onChange={(event) => setNote(event.target.value)}
+              maxLength={5000}
+              rows={6}
+              placeholder="Добавь свои подсказки к упражнению"
+              className="w-full resize-y rounded-xl border border-border-strong bg-surface px-4 py-3 text-base text-text outline-none focus:border-cta"
+            />
+            <div className="flex justify-between gap-3 text-xs text-text-muted">
+              <span>Заметку видишь только ты.</span>
+              <span>{note.length} / 5000</span>
+            </div>
+
+            {error && (
+              <p 
+                role="alert"
+                className="text-sm text-crimson"
+              >
+                {error}
+              </p>
+            )}
+
+            <div className="flex flex-wrap gap-2">
+              <Button
+                type="button"
+                onClick={handleSave}
+                isLoading={saveNote.isLoading}
+              >Сохранить</Button>
+
+              <Button
+                type="button"
+                variant="secondary"
+                disabled={saveNote.isPending}
+                onClick={() => {
+                  setNote(personalTechnique);
+                  setError('');
+                  setEditing(false);
+                }}
+              >Отмена</Button>
+            </div>
+          </div>
+        ) : displayedTechnique ? (
+          <>
+            {personalTechnique && (
+              <p className="mt-3 text-xs font-medium text-text-muted">Твоя заметка</p>
+            )}
+
+            <p className="mt-3 whitespace-pre-line text-sm leading-6 text-text">
+              {displayedTechnique}
+            </p>
+          </>
         ) : (
           <p className="mt-3 text-sm leading-6 text-text-muted">
-            Описание техники для этого упражнения пока
-            готовится.
+            Описание пока не добавлено.
           </p>
         )}
       </section>
@@ -260,7 +380,7 @@ export const ExerciseLibrary = () => {
         </div>
 
         <div
-          className="flex gap-2 overflow-x-auto pb-1 no-scrollbar"
+          className="flex flex-wrap gap-2"
           role="group"
           aria-label="Мышечная группа"
         >
@@ -338,7 +458,13 @@ export const ExerciseLibrary = () => {
         onClose={() => setSelectedExercise(null)}
         title="Упражнение"
       >
-        <ExerciseDetail exercise={selectedExercise} />
+        {selectedExercise && (
+          <ExerciseDetail
+            key={selectedExercise.id}
+            exercise={selectedExercise}
+            onNoteSaved={setSelectedExercise}
+          />
+        )}
       </Sheet>
     </>
   );

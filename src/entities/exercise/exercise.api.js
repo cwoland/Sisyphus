@@ -5,3 +5,6 @@ export const getExercises = (params = {}) =>
 
 export const createExercise = (payload) =>
     api.post('/exercises', payload).then((r) => r.data.exercise);
+
+export const saveExerciseTechniqueNote = ({ exerciseId, technique }) => 
+    api.put(`/exercises/${exerciseId}/technique-note`, { technique }).then((r) => r.data.note);

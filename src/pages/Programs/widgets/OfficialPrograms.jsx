@@ -360,7 +360,7 @@ export const OfficialPrograms = ({ onCopied }) => {
         <div
           role="group"
           aria-label="Уровень подготовки"
-          className="mt-4 flex gap-2 overflow-x-auto pb-1"
+          className="mt-4 flex flex-wrap gap-2"
         >
           {LEVEL_FILTERS.map((filter) => (
             <FilterButton
@@ -376,7 +376,7 @@ export const OfficialPrograms = ({ onCopied }) => {
         <div
           role="group"
           aria-label="Цель программы"
-          className="mt-2 flex gap-2 overflow-x-auto pb-1"
+          className="mt-2 flex flex-wrap gap-2"
         >
           {GOAL_FILTERS.map((filter) => (
             <FilterButton
