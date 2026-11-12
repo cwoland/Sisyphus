@@ -12,6 +12,7 @@ import { ProgramDetail } from './widgets/ProgramDetail.jsx';
 import { ProgramCard } from './widgets/ProgramCard.jsx';
 import { ScheduleDialog } from './widgets/ScheduleDialog.jsx';
 import { OfficialPrograms } from './widgets/OfficialPrograms.jsx';
+import { ExerciseLibrary } from './widgets/ExerciseLibrary.jsx';
 import { Sheet } from '../../shared/ui/Sheet.jsx';
 import { Button } from '../../shared/ui/Button.jsx';
 import { CardArt } from '../../shared/ui/CardArt.jsx';
@@ -44,7 +45,7 @@ const generatedProgramToBuilder = (program) => ({
       tracking: exercise.tracking || 'weight_reps',
       muscleGroup: exercise.muscleGroup,
       targetSets: exercise.targetSets,
-      taretReps: exercise.targetReps,
+      targetReps: exercise.targetReps,
       notes: exercise.notes || '',
       setPlan: exercise.setPlan,
     })),
@@ -91,6 +92,8 @@ export const ProgramsPage = () => {
   const [search, setSearch] = useState('');
   const [term, setTerm] = useState('');
 
+  const [section, setSection] = useState('programs');
+
   useEffect(() => {
     const t = setTimeout(
       () => setTerm(search.trim()),
@@ -102,7 +105,7 @@ export const ProgramsPage = () => {
 
   const detailQuery = useProgram(detailId);
   const publicQuery = usePublicPrograms(term, {
-    enabled: tab === 'catalog',
+    enabled: section === 'programs' && tab === 'catalog',
   });
 
   useEffect(() => {
@@ -173,6 +176,29 @@ export const ProgramsPage = () => {
         className="epic-feature-hero relative isolate clip-card-art overflow-hidden rounded-2xl border border-border bg-surface p-5 sm:p-7"
       >
         <CardArt name="spartan-discipline" className="card-art-hero" />
+        <button
+          type="button"
+          onClick={() => setSection('programs')}
+          aria-pressed={section === 'programs'}
+          className={clsx(
+            'rounded-xl px-4 py-2 text-sm font-semibold transition-colors',
+            section === 'programs'
+              ? 'bg-terracotta/15 text-terracotta-ink'
+              : 'text-text-muted hover:bg-surface-2 hover:text-text'
+          )}
+        >Программы</button>
+        <span aria-hidden="true" className="text-text-muted">/</span>
+        <button
+          type="button"
+          onClick={() => setSection('exercises')}
+          aria-pressed={section === 'exercises'}
+          className={clsx(
+            'rounded-xl px-4 py-2 text-sm font-semibold transition-colors',
+            section === 'exercises'
+              ? 'bg-terracotta/15 text-terracotta-ink'
+              : 'text-text-muted hover:bg-surface-2 hover:text-text'
+          )}
+        >Упражнения</button>
 
         <div className="relative pr-[34%] sm:pr-40">
           <p className="font-display text-sm font-semibold uppercase tracking-[0.14em] text-text-muted">
@@ -213,7 +239,9 @@ export const ProgramsPage = () => {
         </div>
       </section>
 
-      <div
+      {section === 'exercises' && <ExerciseLibrary />}
+
+      {section === 'programs' && <div
         role="tablist"
         aria-label="Источник программ"
         className="flex gap-1 overflow-x-auto border-b border-border"
@@ -234,9 +262,9 @@ export const ProgramsPage = () => {
             <Icon size={16} /> {label}
           </button>
         ))}
-      </div>
+      </div>}
 
-      {tab === 'mine' && (
+      {section === 'programs' && tab === 'mine' && (
         programsQuery.isLoading ? (
           <SkeletonList count={3} />
         ) : mineCount === 0 ? (
@@ -264,7 +292,7 @@ export const ProgramsPage = () => {
         )
       )}
 
-      {tab === 'official' && (
+      {section === 'programs' && tab === 'official' && (
         <OfficialPrograms
           onCopied={(program) => {
             setTab('mine');
@@ -273,7 +301,7 @@ export const ProgramsPage = () => {
         />
       )}
 
-      {tab === 'catalog' && (
+      {section === 'programs' && tab === 'catalog' && (
         <div className="space-y-4">
           <div className="relative">
             <Search

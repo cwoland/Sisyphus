@@ -9,7 +9,7 @@ import { useVisitStreak } from '../../entities/stats/visit.hooks.js';
 
 export const AppLayout = () => {
   const [drawerOpen, setDrawerOpen] = useState(false);
-  useVisitStreak();
+  const visitStreakQuery = useVisitStreak();
 
   return (
     <div className="relative isolate min-h-[100dvh] bg-bg lg:flex">
@@ -19,7 +19,10 @@ export const AppLayout = () => {
 
       <div className="relative isolate flex min-w-0 flex-1 flex-col">
         <GreekPatternBg />
-        <Header onOpenMenu={() => setDrawerOpen(true)} />
+        <Header 
+          onOpenMenu={() => setDrawerOpen(true)}
+          visitStreak={visitStreakQuery.data}
+        />
 
         <main className="relative mx-auto w-full max-w-app flex-1 overflow-x-clip px-4 pt-6 pb-[calc(7rem+env(safe-area-inset-bottom))] md:px-6 lg:px-10 lg:pb-10">
           <Outlet />
