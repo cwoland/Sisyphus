@@ -87,6 +87,8 @@ const WorkoutSession = ({ id }) => {
   const [setsOpen, setSetsOpen] = useState(false);
   const [sealing, setSealing] = useState(false);
   const [finalePhrase, setFinalePhrase] = useState(null);
+  const [finaleSummary, setFinaleSummary] = useState(null);
+  const [finaleSaveState, setFinaleSaveState] = useState('saving');
   const [record, setRecord] = useState(null);
   const [dropFor, setDropFor] = useState(null);
   const [showWeight, setShowWeight] = useState(false);
@@ -415,57 +417,81 @@ const WorkoutSession = ({ id }) => {
   };
 
   const finish = () => {
+  if (
+    finalePhrase ||
+    setMutation.isPending ||
+    commitBusy ||
+    dropFor
+  ) {
+    return;
+  }
+
+  const phrase = pickRandom(completionPhrases);
+
+  const completedSets = (workout?.sets || []).filter(
+    (set) => set.is_completed
+  );
+
+  const exerciseIds = new Set(
+    completedSets
+      .map((set) => set.exercise_id)
+      .filter(Boolean)
+  );
+
+  const tonnage = completedSets.reduce((sum, set) => {
+    const weight = Number(set.weight);
+    const reps = Number(set.reps);
+
     if (
-      finalePhrase ||
-      (setMutation.isPending || commitBusy) ||
-      dropFor
+      set.weight == null ||
+      set.reps == null ||
+      !Number.isFinite(weight) ||
+      !Number.isFinite(reps) ||
+      weight < 0 ||
+      reps < 0
     ) {
-      return;
+      return sum;
     }
 
-    const phrase = pickRandom(completionPhrases);
-    const startedAt = Date.now();
+    return sum + weight * reps;
+  }, 0);
 
-    setFinalePhrase(phrase);
+  setFinaleSummary({
+    title: workout?.title || 'Тренировка',
+    duration: elapsed,
+    exercises: exerciseIds.size,
+    sets: completedSets.length,
+    tonnage,
+  });
 
-    statusMutation.mutate(
-      { id, status: 'completed' },
-      {
-        onSuccess: () => {
+  setFinaleSaveState('saving');
+  setFinalePhrase(phrase);
+
+  statusMutation.mutate(
+    {
+      id,
+      status: 'completed',
+    },
+    {
+      onSuccess: () => {
+        rest.stop();
+        setFinaleSaveState('saved');
+      },
+
+      onError: (error) => {
+        if (isQueuedError(error)) {
           rest.stop();
+          setFinaleSaveState('queued');
+          return;
+        }
 
-          const wait = Math.max(
-            0,
-            MIN_FINALE_MS - (Date.now() - startedAt)
-          );
-
-          finaleTimer.current = setTimeout(
-            () => navigate('/'),
-            wait
-          );
-        },
-        onError: (error) => {
-          if (isQueuedError(error)) {
-            rest.stop();
-
-            const wait = Math.max(
-              0,
-              MIN_FINALE_MS - (Date.now() - startedAt)
-            );
-
-            finaleTimer.current = setTimeout(
-              () => navigate('/'),
-              wait
-            );
-
-            return;
-          }
-
-          setFinalePhrase(null);
-        },
-      }
-    );
-  };
+        setFinalePhrase(null);
+        setFinaleSummary(null);
+        setFinaleSaveState('saving');
+      },
+    }
+  );
+};
 
   if (detailsQuery.isLoading && !workout) {
     return (
@@ -1020,11 +1046,12 @@ const WorkoutSession = ({ id }) => {
         />
       )}
 
-      {finalePhrase && (
+      {finalePhrase && finaleSummary && (
         <WorkoutFinale
           phrase={finalePhrase}
-          isSaving={statusMutation.isPending}
-          onSkip={() => navigate('/')}
+          summary={finaleSummary}
+          saveState={finaleSaveState}
+          onClose={() => navigate('/')}
         />
       )}
     </div>
