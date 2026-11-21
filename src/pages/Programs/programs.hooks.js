@@ -4,6 +4,7 @@ import {
 } from '../../entities/program/program.api.js';
 import { getExercises, createExercise } from '../../entities/exercise/exercise.api.js';
 import { scheduleProgram } from '../../entities/workout/workout.api.js';
+import { useAuthStore } from '../../entities/user/auth.store.js';
 import { toast } from '../../shared/ui/toast/toast.store.js';
 
 export const usePrograms = () =>
@@ -19,8 +20,16 @@ export const usePublicPrograms = (q = '', options = {}) =>
         ...options,
     });
 
-export const useExercises = (params) =>
-    useQuery({ queryKey: ['exercises', params], queryFn: () => getExercises(params) });
+export const useExercises = (params, options = {}) => {
+    const userId = useAuthStore((state) => state.user?.id);
+
+    return useQuery({
+        queryKey: ['exercises', userId, params],
+        queryFn: () => getExercises(params),
+        ...options,
+        enabled: Boolean(userId) && (options.enabled ?? true),
+    });
+};
 
 export const useProgramMutations = () => {
     const qc = useQueryClient();

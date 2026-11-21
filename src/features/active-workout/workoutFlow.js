@@ -116,3 +116,66 @@ export const restSecondsForGroup = (
 
   return planned ? planned.rest_after_sec : fallback;
 };
+
+export function buildSessionGroups(sets = []) {
+  return buildWorkoutGroups(sets).flatMap((group) => {
+    const visible = group.steps.filter((set) => !set.is_skipped);
+    if (!visible.length) return [];
+
+    const slotOf = (set) => set.original_exercise_id ?? set.exercise_id;
+    const roundOf = (set) => set.round_index ?? 0;
+    const rounds = [...new Set(visible.map(roundOf))];
+    const steps = [];
+    let plannedRest = null;
+
+    for (const round of rounds) {
+      const original = group.steps.filter((set) => roundOf(set) === round);
+      const active = visible.filter((set) => roundOf(set) === round);
+
+      const explicitRest = original.findLast((set) => set.rest_after_sec > 0);
+      const allExplicit = original.every((set) => set.rest_after_sec != null);
+      const rest = explicitRest?.rest_after_sec ?? (allExplicit ? 0 : null);
+      if (rest != null) plannedRest = rest;
+
+      active.forEach((set, index) => {
+        steps.push({
+          ...set,
+          rest_after_sec: index === active.length - 1 ? rest : 0,
+        });
+      });
+    }
+
+    const parents = group.sets
+      .filter((set) => !set.is_skipped)
+      .map((set) => ({ ...set, drops: set.drops.filter((drop) => !drop.is_skipped) }));
+
+    const slots = [...new Set(steps.map(slotOf))];
+    const exercises = slots.map((slot) => {
+      const members = steps.filter((set) => slotOf(set) === slot);
+      const displayed = members.find((set) => !set.is_completed) ?? members.at(-1);
+
+      return {
+        id: displayed.exercise_id,
+        name: displayed.exercise_name,
+        tracking: displayed.tracking,
+        slot,
+      };
+    });
+
+    return [{
+      ...group,
+      sets: parents,
+      steps,
+      exercises,
+      roundList: rounds,
+      rounds: rounds.length,
+      doneRounds: rounds.filter((round) =>
+        steps.filter((set) => roundOf(set) === round).every((set) => set.is_completed)
+      ).length,
+      plannedRest,
+      isDropSet: slots.length === 1 && parents.length === 1 && parents[0].drops.length > 0,
+      isSuperset: slots.length > 1,
+      name: slots.length > 2 ? 'Круг' : slots.length === 2 ? 'Суперсет' : exercises[0].name,
+    }];
+  });
+}

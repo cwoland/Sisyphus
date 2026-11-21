@@ -22,22 +22,30 @@ export const EntryForm = ({ date, entry, defaultMealType, onSubmit, onCancel, is
 
   const [step, setStep] = useState(entry ? 'form' : 'search');
   const [product, setProduct] = useState(null);
+  const [sourceEntry, setSourceEntry] = useState(entry ?? null);
   const [grams, setGrams] = useState(entry?.grams ?? 100);
 
   const pick = (item) => {
-    if (item.entry) {
-      setName(item.entry.name);
+    const saved = item.entry ?? null;
+    const hasNutritionPer100g = item.kcal_100g != null;
 
-      setCalories(String(Math.round(Number(item.entry.calories))));
+    setSourceEntry(saved);
+    setProduct(hasNutritionPer100g ? item : null);
+    setPicked(true);
+    setError('');
 
-      setProtein(String(Number(item.entry.protein)));
-      setFat(String(Number(item.entry.fat)));
-      setCarbs(String(Number(item.entry.carbs)));
-      setProduct(null);
+    if (hasNutritionPer100g) {
+      const label = item.brand ? `${item.name}, ${item.brand}` : item.name;
+      setName(label.slice(0, 200));
+      setGrams(Number(saved?.grams) > 0 ? Number(saved.grams) : 100);
     } else {
-      setProduct(item);
-      setName(item.brand ? `${item.name}, ${item.brand}` : item.name);
+      setName(saved?.name ?? item.name);
+      setCalories(String(saved?.calories ?? ''));
+      setProtein(String(saved?.protein ?? ''));
+      setFat(String(saved?.fat ?? ''));
+      setCarbs(String(saved?.carbs ?? ''));
     }
+
     setStep('form');
   };
 
@@ -58,17 +66,12 @@ export const EntryForm = ({ date, entry, defaultMealType, onSubmit, onCancel, is
     return () => clearTimeout(t);
   }, [name]);
 
-  const canSuggest = !entry && !picked && term.length >= 2;
+  const canSuggest = step === 'form' && !entry && !product && !picked && term.length >= 2;
   const suggestionsQuery = useRecentFoods(term, { enabled: canSuggest });
   const suggestions = canSuggest ? (suggestionsQuery.data || []) : [];
 
-  const applySuggestion = (s) => {
-    setName(s.name);
-    setCalories(String(Math.round(Number(s.calories))));
-    setProtein(String(Number(s.protein)));
-    setFat(String(Number(s.fat)));
-    setCarbs(String(Number(s.carbs)));
-    setPicked(true);
+  const applySuggestion = (saved) => {
+    pick({ name: saved.name, entry: saved });
   };
 
   const submit = () => {
@@ -83,8 +86,8 @@ export const EntryForm = ({ date, entry, defaultMealType, onSubmit, onCancel, is
       protein: protein === '' ? 0 : Number(protein),
       fat: fat === '' ? 0 : Number(fat),
       carbs: carbs === '' ? 0 : Number(carbs),
-      barcode: product?.barcode ?? entry?.barcode ?? null,
-      grams: product ? Number(grams) : entry?.grams ?? null,
+      barcode: product?.barcode ?? sourceEntry?.barcode ?? null,
+      grams: product ? Number(grams) : sourceEntry?.grams != null ? Number(sourceEntry.grams) : null,
     });
   };
 
@@ -127,7 +130,7 @@ export const EntryForm = ({ date, entry, defaultMealType, onSubmit, onCancel, is
           <div className="absolute left-0 right-0 top-full z-20 mt-1 overflow-hidden rounded-xl border border-border bg-surface shadow-lg">
             {suggestions.map((s) => (
               <button
-                key={s.name}
+                key={s.key}
                 onClick={() => applySuggestion(s)}
                 className="flex w-full items-center gap-2 px-3 py-2 text-left hover:bg-surface-2"
               >

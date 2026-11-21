@@ -14,8 +14,13 @@ export const ExercisePicker = ({ isOpen, onClose, onPick }) => {
   const [creating, setCreating] = useState(false);
 
   const { data: exercises, isLoading } = useExercises({
+    sort: 'usage',
     ...(group && { muscleGroup: group }),
-    ...(search && { search }),
+    ...(search.trim() && { search: search.trim() }),
+  },
+  {
+    enabled: isOpen,
+    staleTime: 0,
   });
 
   return (

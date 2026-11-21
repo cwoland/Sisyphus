@@ -3,6 +3,7 @@ import {
   getEntries, getRecentFoods, createEntry, updateEntry, deleteEntry, getDailySummary,
   getTargets, updateTargets,
 } from '../../entities/nutrition/nutrition.api.js';
+import { useAuthStore } from '../../entities/user/auth.store.js';
 import { toast } from '../../shared/ui/toast/toast.store.js';
 import { isQueuedError } from '../../shared/offline/isQueued.js';
 
@@ -35,12 +36,16 @@ export const useDaySummary = (date) =>
 export const useTargets = () =>
   useQuery({ queryKey: ['nutrition', 'targets'], queryFn: getTargets });
 
-export const useRecentFoods = (q, options = {}) =>
-  useQuery({
-    queryKey: ['nutrition', 'recent', q],
+export const useRecentFoods = (q, options = {}) => {
+  const userId = useAuthStore((state) => state.user?.id);
+
+  return useQuery({
+    queryKey: ['nutrition', 'recent', userId, q],
     queryFn: () => getRecentFoods(q),
     ...options,
+    enabled: Boolean(userId) && (options.enabled ?? true),
   });
+};
 
 export const useNutritionMutations = (date) => {
   const qc = useQueryClient();
@@ -49,6 +54,8 @@ export const useNutritionMutations = (date) => {
   const invalidate = () => {
     qc.invalidateQueries({ queryKey: entriesKey });
     qc.invalidateQueries({ queryKey: ['nutrition', 'summary', date] });
+    qc.invalidateQueries({ queryKey: ['nutrition', 'recent'] });
+    qc.invalidateQueries({ queryKey: ['food', 'picker'] });
   };
 
   const snapshot = async () => {

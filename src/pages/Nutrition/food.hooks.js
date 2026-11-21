@@ -1,11 +1,14 @@
 import { useQuery } from '@tanstack/react-query';
 import { searchFood } from '../../entities/nutrition/food.api.js';
+import { useAuthStore } from '../../entities/user/auth.store.js';
 
-export const useFoodSearch = (term, options = {}) =>
-  useQuery({
-    queryKey: ['food', 'search', term],
+export const useFoodSearch = (term = '') => {
+  const userId = useAuthStore((state) => state.user?.id);
+
+  return useQuery({
+    queryKey: ['food', 'picker', userId, term],
     queryFn: () => searchFood(term),
-    enabled: term.trim().length >= 2,
-    staleTime: 10 * 60 * 1000,
-    ...options,
+    enabled: Boolean(userId),
+    staleTime: 0,
   });
+};

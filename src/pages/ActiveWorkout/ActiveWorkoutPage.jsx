@@ -1,5 +1,6 @@
 import { useState, useMemo, useRef, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { useQueryClient } from '@tanstack/react-query';
 import {
   Flag,
   Pause,
@@ -17,10 +18,7 @@ import {
   useWorkoutDetails,
   useWorkoutMutations,
 } from '../Calendar/calendar.hooks.js';
-import {
-  buildWorkoutGroups,
-  restSecondsForGroup,
-} from '../../features/active-workout/workoutFlow.js';
+import { buildSessionGroups } from '../../features/active-workout/workoutFlow.js';
 import { ProgressRings } from '../../features/active-workout/ProgressRings.jsx';
 import { SetRoleBadge } from '../../features/active-workout/SetRoleBadge.jsx';
 import { SetTicks } from '../../features/active-workout/SetTicks.jsx';
@@ -32,6 +30,8 @@ import { useRestTimer } from '../../features/active-workout/useRestTimer.js';
 import { WorkoutFinale } from '../../features/active-workout/WorkoutFinale.jsx';
 import { RecordBanner } from '../../features/active-workout/RecordBanner.jsx';
 import { WorkoutBackdrop } from '../../features/active-workout/WorkoutBackdrop.jsx';
+import { ExerciseActions } from '../../features/active-workout/ExerciseActions.jsx';
+import { changeExercise } from '../../features/active-workout/changeExercise.js';
 import { isQueuedError } from '../../shared/offline/isQueued.js';
 import { Skeleton } from '../../shared/ui/Skeleton.jsx';
 import { Button } from '../../shared/ui/Button.jsx';
@@ -66,6 +66,7 @@ export const ActiveWorkoutPage = () => {
 
 const WorkoutSession = ({ id }) => {
   const navigate = useNavigate();
+  const qc = useQueryClient();
   const detailsQuery = useWorkoutDetails(id);
 
   const {
@@ -78,8 +79,8 @@ const WorkoutSession = ({ id }) => {
   const elapsed = useElapsed(workout?.started_at);
 
   const groups = useMemo(
-    () => buildWorkoutGroups(workout?.sets),
-    [workout]
+    () => buildSessionGroups(workout?.sets),
+    [workout?.sets]
   );
 
   const [index, setIndex] = useState(0);
@@ -131,7 +132,7 @@ const WorkoutSession = ({ id }) => {
 
   const groupRest =
     restOverrides[current?.key] ??
-    restSecondsForGroup(current, rest.duration);
+    current?.plannedRest ?? rest.duration;
 
   const pending =
     current?.steps.find((s) => !s.is_completed) ?? null;
@@ -141,23 +142,13 @@ const WorkoutSession = ({ id }) => {
     : pending;
 
   const currentExercise = activeSet
-    ? current.exercises.find(
-        (e) => e.id === activeSet.exercise_id
-      )
-    : current?.exercises[current.exercises.length - 1];
+    ? { id: activeSet.exercise_id, name: activeSet.exercise_name, tracking: activeSet.tracking }
+    : current?.exercises.at(-1);
 
   const mode = currentExercise?.tracking || 'weight_reps';
-
-  const lastCompleted = current
-    ? [...current.steps].reverse().find(
-        (s) =>
-          s.is_completed &&
-          s.exercise_id === pending?.exercise_id
-      ) ??
-      [...current.steps].reverse().find(
-        (s) => s.is_completed
-      )
-    : null;
+  const lastCompleted = current?.steps.findLast(
+    (set) => set.is_completed && set.exercise_id === currentExercise?.id
+  );
 
   const previousSet = current
     ? [...current.steps].reverse().find(
@@ -187,7 +178,7 @@ const WorkoutSession = ({ id }) => {
 
   const draftKey = dropFor
     ? `drop:${dropFor}`
-    : pending?.id ?? null;
+    : pending ? `${pending.id}:${pending.exercise_id}` : null;
 
   if (draftKey && draft.forId !== draftKey) {
     const source = dropFor
@@ -370,6 +361,7 @@ const WorkoutSession = ({ id }) => {
       payloadFor({
         workoutId: id,
         setId: pending.id,
+        exerciseId: pending.exercise_id,
         rpe: draft.rpe,
         isCompleted: true,
       }),
@@ -410,6 +402,44 @@ const WorkoutSession = ({ id }) => {
 
   const goNext = () => move(1);
   const goPrev = () => move(-1);
+
+  const applyExerciseAction = async (replacement) => {
+    if (!pending || dropFor || commitLock.current || setMutation.isPending ||
+        statusMutation.isPending || finalePhrase) return false;
+
+    commitLock.current = true;
+    setCommitBusy(true);
+    try {
+      const updated = await changeExercise(qc, workout, pending, replacement);
+      const after = buildSessionGroups(updated.sets);
+      const sameIndex = after.findIndex((group) => group.key === current.key);
+      const sameGroup = after[sameIndex];
+      const hasPending = (group) => group.steps.some((set) => !set.is_completed);
+      if (sameGroup && hasPending(sameGroup)) {
+        setIndex(sameIndex);
+      } else {
+        const start = Math.max(0, Math.min(safeIndex, after.length - 1));
+        let destination = after.findIndex((group, i) => i >= start && hasPending(group));
+        if (destination < 0) destination = after.findIndex(hasPending);
+        setIndex(destination >= 0 ? destination : start);
+      }
+
+      const round = sameGroup?.steps.filter(
+        (set) => (set.round_index ?? 0) === (pending.round_index ?? 0)
+      );
+      if (!rest.isResting && round?.length && round.every((set) => set.is_completed) && groupRest > 0) {
+        rest.start(groupRest);
+      }
+
+      stopSeal();
+      setSetsOpen(false);
+      setShowWeight(false);
+      return true;
+    } finally {
+      commitLock.current = false;
+      setCommitBusy(false);
+    }
+  };
 
   const dismissRecord = () => {
     clearTimeout(recordTimer.current);
@@ -546,8 +576,9 @@ const WorkoutSession = ({ id }) => {
         <div className="mx-auto flex min-h-full w-full max-w-2xl flex-col items-center justify-center gap-6 px-4 py-6 pb-[calc(6.5rem+env(safe-area-inset-bottom))] lg:pb-10">
           {!current ? (
             <p className="text-center text-sm text-text-muted">
-              В этой тренировке нет упражнений. Добавьте их
-              в календаре перед стартом.
+              {workout.sets?.some((set) => set.is_skipped)
+                ? 'Все оставшиеся упражнения пропущены. Можно завершить тренировку.'
+                : 'В этой тренировке нет упражнений. Добавьте их в календаре перед стартом.'}
             </p>
           ) : (
             <>
@@ -584,6 +615,16 @@ const WorkoutSession = ({ id }) => {
                   />
                 </button>
               </nav>
+
+              {pending && !dropFor && workout.status === 'in_progress' && (
+                <ExerciseActions
+                  key={`${pending.id}:${pending.exercise_id}`}
+                  workout={workout}
+                  anchor={pending}
+                  busy={commitBusy || setMutation.isPending || statusMutation.isPending}
+                  onApply={applyExerciseAction}
+                />
+              )}
 
               <div className="flex items-center justify-center gap-3">
                 <ProgressRings
@@ -698,18 +739,18 @@ const WorkoutSession = ({ id }) => {
               {current.isSuperset && (
                 <ol className="flex flex-wrap items-center justify-center gap-1.5">
                   {current.exercises.map((e, i) => {
-                    const isNow =
-                      e.id === activeSet?.exercise_id;
+                    const activeSlot = activeSet?.original_exercise_id ?? activeSet?.exercise_id;
+                    const isNow = e.slot === activeSlot;
 
                     const passed = activeSet
                       ? current.exercises.findIndex(
-                          (x) => x.id === activeSet.exercise_id
+                          (x) => x.slot === activeSlot
                         ) > i
                       : true;
 
                     return (
                       <li
-                        key={e.id}
+                        key={e.slot}
                         className={clsx(
                           'rounded-lg px-2.5 py-1 text-xs font-medium transition-colors',
                           isNow

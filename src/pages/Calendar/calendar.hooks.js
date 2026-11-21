@@ -162,6 +162,8 @@ export const useWorkoutMutations = () => {
             id: vars.clientId,
             workout_id: vars.workoutId,
             exercise_id: exerciseId,
+            original_exercise_id: parent?.original_exercise_id ?? null,
+            is_skipped: false,
             exercise_name: vars.exerciseName || parent?.exercise_name || sameExercise?.exercise_name || 'Упражнение',
             muscle_group: parent?.muscle_group || sameExercise?.muscle_group,
             tracking: parent?.tracking || sameExercise?.tracking,
