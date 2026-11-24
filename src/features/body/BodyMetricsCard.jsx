@@ -111,7 +111,7 @@ export const BodyMetricsCard = () => {
         <Button variant="secondary" size="sm" className="flex-1" onClick={() => setFormOpen(true)}>
           <Plus size={16} /> Записать замеры
         </Button>
-        {metrics.length > 1 && (
+        {metrics.length > 0 && (
           <Button variant="ghost" size="sm" onClick={() => setHistoryOpen(true)}>
             <History size={16} /> История
           </Button>

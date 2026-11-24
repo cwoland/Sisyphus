@@ -13,7 +13,7 @@ self.addEventListener('activate', (event) => {
   event.waitUntil(caches.delete('api-cache'));
 });
 
-const NEVER_CACHE = ['/api/chats', '/api/ai', '/api/auth'];
+const NEVER_CACHE = ['/api/chats', '/api/ai', '/api/auth', '/api/body/photos'];
 registerRoute(
   ({ url, request }) => request.method === 'GET' && url.origin === self.location.origin &&
     url.pathname.startsWith('/api/') && !NEVER_CACHE.some((prefix) => url.pathname.startsWith(prefix)),

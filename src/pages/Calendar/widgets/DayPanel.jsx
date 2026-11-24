@@ -13,7 +13,7 @@ const statusConfig = {
   skipped: { icon: XCircle, label: 'Пропущена', color: 'text-crimson' },
 };
 
-export const DayPanel = ({ date, workouts, onOpenWorkout, onSync, onSetStatus, onAddWorkout, onStart }) => (
+export const DayPanel = ({ date, workouts, onOpenWorkout, onSync, onSetStatus, onAddWorkout, onStart, onShowSummary }) => (
   <div className="rounded-2xl border border-border bg-surface p-4">
     <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
     <h2 className="min-w-0 break-words font-display text-lg font-semibold text-text">
@@ -60,6 +60,9 @@ export const DayPanel = ({ date, workouts, onOpenWorkout, onSync, onSetStatus, o
                   <Button size="sm" onClick={() => onStart(w)}>
                     {w.status === 'in_progress' ? 'Продолжить' : 'Начать тренировку'}
                   </Button>
+                )}
+                {w.status === 'completed' && (
+                  <Button size="sm" onClick={() => onShowSummary(w.id)}>Итоги</Button>
                 )}
                 <Button size="sm" variant="secondary" onClick={() => onOpenWorkout(w)}>
                   Открыть

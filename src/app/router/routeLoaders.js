@@ -13,6 +13,7 @@ export const routeLoaders = {
   activeWorkout: () => import('../../pages/ActiveWorkout/ActiveWorkoutPage.jsx').then(named('ActiveWorkoutPage')),
   notFound:      () => import('../../pages/NotFound/NotFoundPage.jsx').then(named('NotFoundPage')),
   stats:         () => import('../../pages/Stats/StatsPage.jsx').then(named('StatsPage')),
+  progress:      () => import('../../pages/Progress/ProgressPage.jsx').then(named('ProgressPage')),
 };
 
 export const routeKeyByPath = {
@@ -25,6 +26,7 @@ export const routeKeyByPath = {
   '/ai': 'ai',
   '/profile': 'profile',
   '/records': 'records',
+  '/progress': 'progress',
 };
 
 const prefetched = new Set();

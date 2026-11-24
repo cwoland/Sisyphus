@@ -1,12 +1,14 @@
 import {
     LayoutDashboard,
     Calendar,
+    Newspaper,
     Dumbbell,
     Apple,
     Users,
     MessageCircle,
     Sparkles,
     User,
+    Landmark,
 } from 'lucide-react';
 
 export const navItems = [
@@ -18,8 +20,12 @@ export const navItems = [
     { to: '/chat', label: 'Чат', icon: MessageCircle },
     { to: '/ai', label: 'ИИ-тренер', icon: Sparkles },
     { to: '/profile', label: 'Профиль', icon: User },
+    { to: '/progress', label: 'Храм прогресса', icon: Landmark },
 ];
 
-export const bottomNavItems = navItems.filter((i) => 
-['/', '/calendar', '/programs', '/chat'].includes(i.to)
-);
+export const bottomNavItems = [
+    navItems.find((item) => item.to === '/'),
+    navItems.find((item) => item.to === '/calendar'),
+    { to: '/friends', label: 'Лента', icon: Newspaper },
+    navItems.find((item) => item.to === '/profile'),
+];

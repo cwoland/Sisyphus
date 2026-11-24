@@ -21,7 +21,7 @@ export const WeekStrip = ({ workouts = [] }) => {
     return acc;
   }, {});
 
-  const doneCount = Object.values(byDate).filter((w) => w.status === 'completed').length;
+  const doneCount = workouts.filter((w) => w.status === 'completed').length;
 
   return (
     <section aria-label="Неделя">
@@ -31,7 +31,7 @@ export const WeekStrip = ({ workouts = [] }) => {
         </h2>
         <p className="text-sm text-text-muted">
           <span className="font-display font-bold text-text">{doneCount}</span>
-          {' '}из {Object.keys(byDate).length || 0} закрыто
+          {' '}из {workouts.length} тренировок завершено
         </p>
       </div>
 
@@ -46,6 +46,7 @@ export const WeekStrip = ({ workouts = [] }) => {
             <li key={key}>
               <Link
                 to="/calendar"
+                state={{ date: key }}
                 aria-label={`${weekdayShort[i]}, ${day.getDate()}: ${w ? w.title : 'отдых'}`}
                 className={clsx(
                   'flex min-h-[64px] flex-col items-center justify-center gap-1 rounded-xl transition-colors',

@@ -33,8 +33,8 @@ export const startWorkout = (id) =>
 export const getActiveWorkout = () =>
     api.get('/workouts/active').then((r) => r.data.workout);
 
-export const updateWorkoutStatus = ({ id, status }) =>
-    api.patch(`/workouts/${id}/status`, { status }).then((r) => r.data.workout);
+export const updateWorkoutStatus = ({ id, status, elapsedSeconds }) =>
+    api.patch(`/workouts/${id}/status`, { status, elapsedSeconds }).then((r) => r.data.workout);
 
 export const syncWorkout = (id) =>
     api.post(`/workouts/${id}/sync`).then((r) => r.data.workout);

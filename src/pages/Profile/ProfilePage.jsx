@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   LogOut, Moon, Sun, Monitor, Sparkles, Download, Bell,
@@ -19,7 +20,6 @@ import { Input } from '../../shared/ui/Input.jsx';
 import { PasswordInput } from '../../shared/ui/PasswordInput.jsx';
 import { Sheet } from '../../shared/ui/Sheet.jsx';
 import { Switch } from '../../shared/ui/Switch.jsx';
-import { BodyMetricsCard } from '../../features/body/BodyMetricsCard.jsx';
 import { ProfileHero } from './widgets/ProfileHero.jsx';
 import { SettingsRow } from './widgets/SettingsRow.jsx';
 import { toast } from '../../shared/ui/toast/toast.store.js';
@@ -129,7 +129,12 @@ export const ProfilePage = () => {
       </Group>
 
       <Group title="Тело">
-        <BodyMetricsCard />
+        <Link
+          to="/progress"
+          className="block rounded-xl border border-border bg-surface p-4 font-semibold"
+        >
+          Храм прогресса →
+        </Link>
       </Group>
 
       <Group title="Настройки">

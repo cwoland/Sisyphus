@@ -38,9 +38,11 @@ export const CalendarGrid = ({ anchorDate, view, workouts, selectedDate, onSelec
           return (
             <button
               key={key}
+              aria-pressed={Boolean(isSelected)}
+              aria-label={key + (dayWorkouts.length ? ", тренировок: " + dayWorkouts.length : "")}
               onClick={() => onSelectDate(day)}
               className={clsx(
-                'relative flex min-w-0 min-h-[44px] aspect-square flex-col items-center justify-start rounded-xl p-1.5 transition-colors sm:aspect-auto sm:min-h-[64px]',
+                'relative flex min-w-0 min-h-[44px] w-full flex-col items-center justify-start rounded-xl p-1.5 transition-colors sm:min-h-[64px]',
                 isSelected ? 'bg-accent/10 ring-1 ring-accent' : 'hover:bg-surface-2',
                 !isCurrentMonth && 'opacity-40'
               )}

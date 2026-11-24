@@ -48,6 +48,7 @@ import {
   formatDuration,
   describeSet,
 } from '../../entities/exercise/tracking.js';
+import { workoutSummary } from '../../entities/workout/summary.js';
 
 const mmss = (s) =>
   `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
@@ -458,41 +459,10 @@ const WorkoutSession = ({ id }) => {
 
   const phrase = pickRandom(completionPhrases);
 
-  const completedSets = (workout?.sets || []).filter(
-    (set) => set.is_completed
-  );
+  const start = Date.parse(workout.started_at);
+  const elapsedSeconds = Number.isFinite(start) ? Math.max(0, Math.floor((Date.now() - start) / 1000)) : undefined;
 
-  const exerciseIds = new Set(
-    completedSets
-      .map((set) => set.exercise_id)
-      .filter(Boolean)
-  );
-
-  const tonnage = completedSets.reduce((sum, set) => {
-    const weight = Number(set.weight);
-    const reps = Number(set.reps);
-
-    if (
-      set.weight == null ||
-      set.reps == null ||
-      !Number.isFinite(weight) ||
-      !Number.isFinite(reps) ||
-      weight < 0 ||
-      reps < 0
-    ) {
-      return sum;
-    }
-
-    return sum + weight * reps;
-  }, 0);
-
-  setFinaleSummary({
-    title: workout?.title || 'Тренировка',
-    duration: elapsed,
-    exercises: exerciseIds.size,
-    sets: completedSets.length,
-    tonnage,
-  });
+  setFinaleSummary(workoutSummary(workout, elapsedSeconds));
 
   setFinaleSaveState('saving');
   setFinalePhrase(phrase);
@@ -501,6 +471,7 @@ const WorkoutSession = ({ id }) => {
     {
       id,
       status: 'completed',
+      elapsedSeconds,
     },
     {
       onSuccess: () => {
@@ -1078,7 +1049,7 @@ const WorkoutSession = ({ id }) => {
         </div>
       </main>
 
-      <BottomNav onOpenMenu={() => navigate('/')} />
+      <BottomNav />
 
       {record && (
         <RecordBanner

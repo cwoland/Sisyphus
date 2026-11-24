@@ -1,3 +1,4 @@
+import { WeekOverview } from './widgets/WeekOverview.jsx';
 import { ru } from 'date-fns/locale';
 import { Link, useNavigate } from 'react-router-dom';
 import { Play, Check, ArrowUpRight, RotateCcw, CalendarDays } from 'lucide-react';
@@ -65,6 +66,7 @@ export const DashboardPage = () => {
           {workoutsQuery.isLoading ? <Skeleton className="h-24 w-full" /> : workoutsQuery.isError
             ? <ErrorState text="Не удалось загрузить неделю." onRetry={() => workoutsQuery.refetch()} />
             : <WeekStrip workouts={week} />}
+          <WeekOverview />
           <Link to="/calendar" className="mt-4 flex min-h-11 items-center justify-between gap-2 border-t border-border pt-3 text-sm font-medium text-terracotta-ink">
             Весь календарь <ArrowUpRight size={17} />
           </Link>

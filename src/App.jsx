@@ -33,6 +33,7 @@ const RecordsPage       = lazy(routeLoaders.records);
 const ActiveWorkoutPage = lazy(routeLoaders.activeWorkout);
 const NotFoundPage      = lazy(routeLoaders.notFound);
 const StatsPage         = lazy(routeLoaders.stats);
+const ProgressPage      = lazy(routeLoaders.progress);    
 
 
 registerSW({ immediate: true });
@@ -90,6 +91,7 @@ function App() {
               <Route path="/chat" element={<ChatPage />} />
               <Route path="/ai" element={<AiPage />} />
               <Route path="/profile" element={<ProfilePage />} />
+              <Route path="/progress" element={<ProgressPage />} />
               <Route path="/records" element={<RecordsPage />} />
               <Route path="/stats" element={<StatsPage />} />
             </Route>

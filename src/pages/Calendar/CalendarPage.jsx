@@ -1,5 +1,7 @@
+import { QuickWorkoutSheet } from './widgets/QuickWorkoutSheet.jsx';
+import { WorkoutHistorySheet } from './widgets/WorkoutHistorySheet.jsx';
 import { useState, useMemo, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { ChevronLeft, ChevronRight, Plus, Trash2 } from 'lucide-react';
 
 import { useCalendarWorkouts, useWorkoutDetails, useWorkoutMutations, useRecords, useStartWorkout } from './calendar.hooks.js';
@@ -15,33 +17,26 @@ import { completionPhrases, pickRandom } from '../../shared/lib/sisyphusPhrases.
 import { toast } from '../../shared/ui/toast/toast.store.js';
 import { SavedHint } from '../../shared/ui/SavedHint.jsx';
 import {
-  monthTitle, addMonths, addWeeks, weekRangeLabel, toApiDate,
+  monthTitle, addMonths, safeDate, toApiDate,
 } from '../../shared/lib/date.js';
 
 
-const useResponsiveView = () => {
-  const [view, setView] = useState(() =>
-    window.matchMedia('(min-width: 1024px)').matches ? 'month' : 'week'
-  );
-
-  useEffect(() => {
-    const mq = window.matchMedia('(min-width: 1024px)');
-    const sync = (e) => setView(e.matches ? 'month' : 'week');
-    mq.addEventListener('change', sync);
-    return () => mq.removeEventListener('change', sync);
-  }, []);
-
-  return [view, setView];
-};
-
 export const CalendarPage = () => {
-  const [anchorDate, setAnchorDate] = useState(new Date());
-  const [view] = useResponsiveView();
-  const [selectedDate, setSelectedDate] = useState(new Date());
+  const location = useLocation();
+  const [params, setParams] = useSearchParams();
+  const quickOpen = params.get('quick') === '1';
+  const closeQuick = () => setParams((previous) => {
+    const next = new URLSearchParams(previous);
+    next.delete('quick');
+    return next;
+  }, { replace: true, state: location.state });
+  const [selectedDate, setSelectedDate] = useState(() => safeDate(location.state?.date) ?? new Date());
+  const anchorDate = selectedDate;
+  const [historyId, setHistoryId] = useState(null);
   const [openWorkoutId, setOpenWorkoutId] = useState(null);
   const [pickerOpen, setPickerOpen] = useState(false);
 
-  const workoutsQuery = useCalendarWorkouts(anchorDate, view);
+  const workoutsQuery = useCalendarWorkouts(anchorDate, 'month');
   const detailsQuery = useWorkoutDetails(openWorkoutId);
   const { statusMutation, syncMutation, setMutation, deleteSetMutation, createMutation, updateMutation, deleteWorkoutMutation } = useWorkoutMutations();
   const recordsQuery = useRecords();
@@ -49,7 +44,7 @@ export const CalendarPage = () => {
   const navigate = useNavigate();
 
   const shiftAnchor = (dir) => {
-    setAnchorDate((d) => (view === 'month' ? addMonths(d, dir) : addWeeks(d, dir)));
+    setSelectedDate((day) => addMonths(day, dir));
   };
 
   const dayWorkouts = useMemo(
@@ -144,13 +139,13 @@ export const CalendarPage = () => {
     <div className="min-w-0 space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h1 className="min-w-0 break-words font-display text-xl font-bold capitalize text-text sm:text-2xl">
-          {view === 'month' ? monthTitle(anchorDate) : weekRangeLabel(anchorDate)}
+          {monthTitle(anchorDate)}
         </h1>
         <div className="ml-auto flex shrink-0 gap-1">
           <button onClick={() => shiftAnchor(-1)} className="rounded-lg p-2 text-text-muted hover:bg-surface-2 hover:text-text" aria-label="Назад">
             <ChevronLeft size={20} />
           </button>
-          <button onClick={() => { setAnchorDate(new Date()); setSelectedDate(new Date()); }} className="rounded-lg px-3 py-2 text-sm text-text-muted hover:bg-surface-2 hover:text-text">
+          <button onClick={() => setSelectedDate(new Date())} className="rounded-lg px-3 py-2 text-sm text-text-muted hover:bg-surface-2 hover:text-text">
             Сегодня
           </button>
           <button onClick={() => shiftAnchor(1)} className="rounded-lg p-2 text-text-muted hover:bg-surface-2 hover:text-text" aria-label="Вперёд">
@@ -166,7 +161,7 @@ export const CalendarPage = () => {
           ) : (
             <CalendarGrid
               anchorDate={anchorDate}
-              view={view}
+              view="month"
               workouts={workoutsQuery.data}
               selectedDate={selectedDate}
               onSelectDate={setSelectedDate}
@@ -176,6 +171,7 @@ export const CalendarPage = () => {
 
         <div className="min-w-0 space-y-6">
           <DayPanel
+            onShowSummary={setHistoryId}
             onStart={handleStart}
             date={selectedDate}
             workouts={dayWorkouts}
@@ -187,6 +183,15 @@ export const CalendarPage = () => {
           <BestResultCard records={recordsQuery.data || []} />
         </div>
       </div>
+
+      {quickOpen && (
+        <QuickWorkoutSheet create={createMutation} onClose={closeQuick} onCreated={(workout) => {
+          closeQuick();
+          setSelectedDate(safeDate(workout.date));
+          setOpenWorkoutId(workout.id);
+        }} />
+      )}
+      <WorkoutHistorySheet id={historyId} onClose={() => setHistoryId(null)} />
 
       <Sheet
         isOpen={!!openWorkoutId}

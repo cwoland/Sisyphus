@@ -82,13 +82,13 @@ export const useWorkoutMutations = () => {
   const statusMutation = useMutation({
     networkMode: 'always',
     mutationFn: updateWorkoutStatus,
-    onMutate: async ({ id, status }) => {
+    onMutate: async ({ id, status, elapsedSeconds }) => {
       await qc.cancelQueries({ queryKey: ['workouts'] });
       const lists = patchLists((old) => old.map((w) => (w.id === id ? { ...w, status } : w)));
 
       const detailKey = ['workout', id];
       const detail = qc.getQueryData(detailKey);
-      if (detail) qc.setQueryData(detailKey, { ...detail, status });
+      if (detail) qc.setQueryData(detailKey, { ...detail, status, elapsed_seconds: status === 'completed' ? detail.elapsed_seconds ?? elapsedSeconds ?? null : null });
 
       const active = qc.getQueryData(['workouts', 'active']);
       if (active?.id === id) qc.setQueryData(['workouts', 'active'], status === 'in_progress' ? { ...active, status } : null);
@@ -101,6 +101,7 @@ export const useWorkoutMutations = () => {
     }, 'Не удалось изменить статус'),
     onSettled: skipWhenQueued((_d, _e, vars) => {
       invalidateAll(vars.id);
+      qc.invalidateQueries({ queryKey: ['stats'] });
       qc.invalidateQueries({ queryKey: ['records'] });
     }),
   });

@@ -149,7 +149,7 @@ const ExerciseDetail = ({ exercise, onNoteSaved }) => {
       ? exercise.personal_technique.trim()
       : '';
 
-  const displayedTechnique = personalTechnique || sharedTechnique;
+
 
   const saveNote = useMutation({
     mutationFn: saveExerciseTechniqueNote,
@@ -288,7 +288,7 @@ const ExerciseDetail = ({ exercise, onNoteSaved }) => {
               <Button
                 type="button"
                 onClick={handleSave}
-                isLoading={saveNote.isLoading}
+                isLoading={saveNote.isPending}
               >Сохранить</Button>
 
               <Button
@@ -303,20 +303,21 @@ const ExerciseDetail = ({ exercise, onNoteSaved }) => {
               >Отмена</Button>
             </div>
           </div>
-        ) : displayedTechnique ? (
-          <>
-            {personalTechnique && (
-              <p className="mt-3 text-xs font-medium text-text-muted">Твоя заметка</p>
-            )}
-
-            <p className="mt-3 whitespace-pre-line text-sm leading-6 text-text">
-              {displayedTechnique}
-            </p>
-          </>
         ) : (
-          <p className="mt-3 text-sm leading-6 text-text-muted">
-            Описание пока не добавлено.
-          </p>
+          <>
+            {sharedTechnique && (
+              <p className="mt-3 whitespace-pre-line text-sm leading-6 text-text">{sharedTechnique}</p>
+            )}
+            {personalTechnique && (
+              <div className="mt-3 rounded-xl bg-surface-2 p-3">
+                <p className="text-xs font-semibold text-text-muted">Твоя заметка</p>
+                <p className="mt-1 whitespace-pre-line text-sm leading-6 text-text">{personalTechnique}</p>
+              </div>
+            )}
+            {!sharedTechnique && !personalTechnique && (
+              <p className="mt-3 text-sm text-text-muted">Описание пока не добавлено.</p>
+            )}
+          </>
         )}
       </section>
     </div>

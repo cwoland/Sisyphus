@@ -29,7 +29,7 @@ export const AppLayout = () => {
         </main>
       </div>
 
-      <BottomNav onOpenMenu={() => setDrawerOpen(true)} />
+      <BottomNav />
       <Drawer isOpen={drawerOpen} onClose={() => setDrawerOpen(false)} />
     </div>
   );

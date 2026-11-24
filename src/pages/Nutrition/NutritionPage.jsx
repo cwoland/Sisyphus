@@ -70,7 +70,7 @@ export const NutritionPage = () => {
         <div className="flex items-center gap-2">
           {weight != null && (
             <Link
-              to="/profile"
+              to="/progress"
               className="flex min-h-[36px] items-center gap-1.5 rounded-xl border border-border bg-surface px-3 text-sm transition-colors hover:bg-surface-2"
             >
               <Scale size={15} className="text-text-muted" />
