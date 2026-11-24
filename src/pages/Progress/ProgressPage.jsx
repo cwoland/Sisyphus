@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useMutation } from '@tanstack/react-query';
-import { Landmark } from 'lucide-react';
 import { useAuthStore } from '../../entities/user/auth.store.js';
 import { updateProfileRequest } from '../../entities/user/auth.api.js';
 import { BodyMetricsCard } from '../../features/body/BodyMetricsCard.jsx';
@@ -127,9 +126,12 @@ export function ProgressPage() {
 
   return (
     <div className="mx-auto max-w-2xl space-y-4">
-      <header className="epic-panel flex items-center gap-3 border-l-4 border-terracotta p-5">
-        <Landmark className="shrink-0 text-terracotta-ink" size={32} aria-hidden="true" />
-        <h1 className="font-display text-2xl font-bold">Храм прогресса</h1>
+      <header className="relative isolate flex min-h-40 items-end overflow-hidden rounded-2xl bg-[#33150b] p-5 sm:min-h-52 sm:p-7">
+        <img src="/art/scenes/progress-ares.webp" alt="" width="1440" height="480" fetchPriority="high"
+          className="absolute inset-0 -z-10 h-full w-full object-cover object-right" />
+        <h1 className="max-w-[55%] font-display text-3xl font-bold leading-tight text-white drop-shadow-md sm:text-4xl">
+          Храм прогресса
+        </h1>
       </header>
 
       {metrics.isError ? (
